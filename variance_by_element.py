@@ -3,9 +3,10 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-def degenerate_array(array):
+def degenerate_array_sum(array):
     """ (ndarray) -> ndarray
-
+    Returns a 'degenerate' copy of an ndarray by adding random int from 0 to 9
+    to each of the elements in the array.
     """
     return array + np.random.randint(10, size=array.shape)
 
@@ -13,11 +14,11 @@ def degenerate_array(array):
 wt_r1_ha_ha = np.load('data/reads/R1_wt_npy/splash_q20_noN_min6_R1_1120_wtI_cs1_HA_HA_inf.npy')
 
 # "Degenerate" arrays for further variance calculation
-wt_r1_ha_ha_dg01 = degenerate_array(wt_r1_ha_ha)
-wt_r1_ha_ha_dg02 = degenerate_array(wt_r1_ha_ha)
-wt_r1_ha_ha_dg03 = degenerate_array(wt_r1_ha_ha)
-wt_r1_ha_ha_dg04 = degenerate_array(wt_r1_ha_ha)
-wt_r1_ha_ha_dg05 = degenerate_array(wt_r1_ha_ha)
+wt_r1_ha_ha_dg01 = degenerate_array_sum(wt_r1_ha_ha)
+wt_r1_ha_ha_dg02 = degenerate_array_sum(wt_r1_ha_ha)
+wt_r1_ha_ha_dg03 = degenerate_array_sum(wt_r1_ha_ha)
+wt_r1_ha_ha_dg04 = degenerate_array_sum(wt_r1_ha_ha)
+wt_r1_ha_ha_dg05 = degenerate_array_sum(wt_r1_ha_ha)
 
 # Calculate variance by element and create variance array
 wt_r1_ha_ha_variance = (np.var([wt_r1_ha_ha, wt_r1_ha_ha_dg01,
