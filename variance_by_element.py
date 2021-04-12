@@ -5,10 +5,12 @@ import matplotlib.pyplot as plt
 import os
 from scipy import stats
 
+
 def plot_heatmap(array, output_dir):
     heatmap = sns.heatmap(array)
     plt.figure()
     heatmap.figure.savefig(output_dir)
+
 
 def plot_histogram(array, output_dir):
     histogram = plt.figure()
@@ -18,73 +20,100 @@ def plot_histogram(array, output_dir):
     histogram.savefig(output_dir)
     plt.close(histogram)
 
-def check_heatmaps(replicate01_path, replicate02_path, replicate03_path, output_dir):
-    replicate01_arrays = os.listdir(replicate01_path)
-    replicate02_arrays = os.listdir(replicate02_path)
-    replicate03_arrays = os.listdir(replicate03_path)
-    
-    replicate01_arrays.sort()
-    replicate02_arrays.sort()
-    replicate03_arrays.sort()
 
-    for i in range(36):
-        array01 = np.load(replicate01_path + replicate01_arrays[i])
-        array02 = np.load(replicate02_path + replicate02_arrays[i])
-        array03 = np.load(replicate03_path + replicate03_arrays[i])
-        variance_array = np.var([array01, array02, array03], axis=0)
-        plot_heatmap(variance_array, (output_dir + '/' + replicate01_arrays[i][39:-8]))
+def read_arrays(data_directory):
+    """
+    Takes a directory containing subdirectories related to diferent replicates and returns
+    two dictionaries, one describing the paths to the arrays and another containing the 
+    arrays for each segment combination.
 
-def check_normality(replicate01_path, replicate02_path, replicate03_path):
-    replicate01_arrays = os.listdir(replicate01_path)
-    replicate02_arrays = os.listdir(replicate02_path)
-    replicate03_arrays = os.listdir(replicate03_path)
+    Input:
+        
+    Return:
+        
+    """
+    d_repDir2Combinations = {}
+    d_combination2Array = {}
+
+    replicateDirs = os.listdir(data_directory)
+    for repDir in replicateDirs:
+        allCombinations = os.listdir(repDir)
+        # dict = {'replicate01_path' : [replicate01_arrays]}
+        d_repDir2Combinations[repDir] = allCombinations
+        
+
+        for combination in allCombinations:
+            # /data/dessertlocal/projects/gl_iav-splash_freiburg/data/arrays/wt0120/ --> 
+            # wt0120 (basename)
+            uniqueID = f'{os.basename(repDir)}/{combination[39:-8]}'
+            array = np.load(f'{repDir}/{combination}')
+            # dict = {'Seg1-Seg2' : [np.array(array01), np.array(array02), 
+            #                        np.array(array03)]}
+            if d_combination2Array[uniqueID]:
+                d_combination2Array[uniqueID].extend(array)
+            else:
+                d_combination2Array[uniqueID] = [array]
+            
+
+    return (d_repDir2Combinations, d_combination2Array)
+
+
+def calculate_variances(d_arrays):
+    """
+    Takes a dictionary with numpy arrays and calculates the variance for each unique entry.
+
+    Input:
+        d_arrays -- {'uniqueName' : [np.arrays]}
+
+    Return:
+        d_comb2variance -- {'uniqueName' : np.array}
     
-    replicate01_arrays.sort()
-    replicate02_arrays.sort()
-    replicate03_arrays.sort()
+    """
+    d_comb2variance = {}
+    for combination, l_countTable in d_arrays.items():
+        d_comb2variance[combination] = np.var(l_countTable, axis=0)
     
+    return d_comb2variance
+
+
+def check_heatmaps(variances, output_dir):
+    """
+    Takes a dictionary of np.arrays and plots heatmaps for the np.arrays and saves them
+    to the output_dir
+
+    Input:
+
+    Return:
+    """
+    # Retrieves the key (comb) and the value (variance_array)
+    for comb, variance_array in variances.items():
+        plot_heatmap(variance_array, f'{output_dir}/{comb}_hist')
+
+
+def check_normality(variances):
     normality_summary = {}
 
-    for i in range(36):
-        array01 = np.load(replicate01_path + replicate01_arrays[i])
-        array02 = np.load(replicate02_path + replicate02_arrays[i])
-        array03 = np.load(replicate03_path + replicate03_arrays[i])
-        variance_array = np.var([array01, array02, array03], axis=0)
+    for comb, variance_array in variances.items():
         k2, p = stats.normaltest(variance_array.flatten())
         if p < 0.05:
-            normality_summary[replicate01_arrays[i][39:-8]] = 'normal'       
+            normality_summary[comb] = 'normal'       
         else:
-            normality_summary[replicate01_arrays[i][39:-8]] = 'non-normal'
+            normality_summary[comb] = 'non-normal'
     return normality_summary  
 
-def check_histograms(replicate01_path, replicate02_path, replicate03_path, output_dir):
-    replicate01_arrays = os.listdir(replicate01_path)
-    replicate02_arrays = os.listdir(replicate02_path)
-    replicate03_arrays = os.listdir(replicate03_path)
-    
-    replicate01_arrays.sort()
-    replicate02_arrays.sort()
-    replicate03_arrays.sort()
 
-    for i in range(36):
-        array01 = np.load(replicate01_path + replicate01_arrays[i])
-        array02 = np.load(replicate02_path + replicate02_arrays[i])
-        array03 = np.load(replicate03_path + replicate03_arrays[i])
-        variance_array = np.var([array01, array02, array03], axis=0)
-        plot_histogram(variance_array, (output_dir + '/' + replicate01_arrays[i][39:-8] + '_hist'))
+def check_histograms(variances, output_dir):
+    for comb, variance_array in variances.items():
+        plot_histogram(variance_array, f'{output_dir}/{comb}_hist')
 
-wt_histograms = check_histograms('/data/dessertlocal/projects/gl_iav-splash_freiburg/data/arrays/wt0120/',
-                                 '/data/dessertlocal/projects/gl_iav-splash_freiburg/data/arrays/wt1120_I/',
-                                 '/data/dessertlocal/projects/gl_iav-splash_freiburg/data/arrays/wt1120_II/',
-                                 '/data/dessertlocal/projects/gl_iav-splash_freiburg/results/202003/20200325')
 
-wt_heatmaps = check_heatmaps('/data/dessertlocal/projects/gl_iav-splash_freiburg/data/arrays/wt0120/',
-                             '/data/dessertlocal/projects/gl_iav-splash_freiburg/data/arrays/wt1120_I/',
-                             '/data/dessertlocal/projects/gl_iav-splash_freiburg/data/arrays/wt1120_II/',
-                             '/data/dessertlocal/projects/gl_iav-splash_freiburg/results/202003/20200325')
+DIRECTORY = '/data/dessertlocal/projects/gl_iav-splash_freiburg/'  
+INPUT = f"{DIRECTORY}/data/arrays/"
+RESULT = f"{DIRECTORY}/results/202104/20200412"
 
-wt_normality = check_normality('/data/dessertlocal/projects/gl_iav-splash_freiburg/data/arrays/wt0120/',
-                               '/data/dessertlocal/projects/gl_iav-splash_freiburg/data/arrays/wt1120_I/',
-                               '/data/dessertlocal/projects/gl_iav-splash_freiburg/data/arrays/wt1120_II/')
-
-print(wt_normality)
+# 
+wt_d_repDir2Combinations, wt_d_combination2Array = read_arrays(INPUT)
+# 
+wt_d_comb2variances = calculate_variances(wt_d_combination2Array)
+# 
+check_heatmaps(wt_d_comb2variances, RESULT)
