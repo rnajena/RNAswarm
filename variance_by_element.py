@@ -36,7 +36,7 @@ def regex_from_segments(viral_segments):
     compiled_regex = re.compile(segments_to_regex[:-1])
     return compiled_regex
 
-def read_arrays(data_directory):
+def read_arrays(data_directory, viral_segments):
     """
     Takes a directory containing subdirectories related to diferent replicates and returns
     two dictionaries, one describing the paths to the arrays and another containing the 
@@ -49,26 +49,21 @@ def read_arrays(data_directory):
     """
     d_repDir2Combinations = {}
     d_combination2Array = {}
-
-    replicateDirs = os.listdir(data_directory)
+    segments_to_regex = regex_from_segments(viral_segments)
+    replicateDirs = [entry for entry in os.listdir(data_directory) 
+                     if os.path.isdir(f'{data_directory}/{entry}')]
+    
     for repDir in replicateDirs:
-        allCombinations = os.listdir(repDir)
-        # dict = {'replicate01_path' : [replicate01_arrays]}
+        allCombinations = os.listdir(f'{data_directory}/{repDir}')
         d_repDir2Combinations[repDir] = allCombinations
-        
 
         for combination in allCombinations:
-            # /data/dessertlocal/projects/gl_iav-splash_freiburg/data/arrays/wt0120/ --> 
-            # wt0120 (basename)
-            uniqueID = f'{os.basename(repDir)}/{combination[39:-8]}'
-            array = np.load(f'{repDir}/{combination}')
-            # dict = {'Seg1-Seg2' : [np.array(array01), np.array(array02), 
-            #                        np.array(array03)]}
-            if d_combination2Array[uniqueID]:
-                d_combination2Array[uniqueID].extend(array)
+            uniqueID = f'{segments_to_regex.search(combination).group()}'
+            array = np.load(f'{data_directory}/{repDir}/{combination}')
+            if uniqueID in d_combination2Array:
+                d_combination2Array[uniqueID].append(array)
             else:
                 d_combination2Array[uniqueID] = [array]
-            
 
     return (d_repDir2Combinations, d_combination2Array)
 
@@ -102,7 +97,7 @@ def check_heatmaps(variances, output_dir):
     """
     # Retrieves the key (comb) and the value (variance_array)
     for comb, variance_array in variances.items():
-        plot_heatmap(variance_array, f'{output_dir}/{comb}_hist')
+        plot_heatmap(variance_array, f'{output_dir}{comb}_hist')
 
 
 def check_normality(variances):
@@ -119,15 +114,16 @@ def check_normality(variances):
 
 def check_histograms(variances, output_dir):
     for comb, variance_array in variances.items():
-        plot_histogram(variance_array, f'{output_dir}/{comb}_hist')
+        plot_histogram(variance_array, f'{output_dir}{comb}_hist')
 
 
 DIRECTORY = '/data/dessertlocal/projects/gl_iav-splash_freiburg/'  
-INPUT = f"{DIRECTORY}/data/arrays/"
-RESULT = f"{DIRECTORY}/results/202104/20200412"
+INPUT = f'{DIRECTORY}data/arrays/'
+RESULT = f'{DIRECTORY}results/202104/20200416/'
+iav_segments = ['PB2','PB1','PA','HA','NP','NA','M','NS']
 
 # 
-wt_d_repDir2Combinations, wt_d_combination2Array = read_arrays(INPUT)
+wt_d_repDir2Combinations, wt_d_combination2Array = read_arrays(INPUT, iav_segments)
 # 
 wt_d_comb2variances = calculate_variances(wt_d_combination2Array)
 # 
