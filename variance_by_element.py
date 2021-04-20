@@ -86,7 +86,7 @@ def calculate_variances(d_arrays):
     return d_comb2variance
 
 
-def check_heatmaps(variances, output_dir):
+def save_heatmaps(variances, output_dir):
     """
     Takes a dictionary of np.arrays and plots heatmaps for the np.arrays and saves them
     to the output_dir
@@ -97,7 +97,7 @@ def check_heatmaps(variances, output_dir):
     """
     # Retrieves the key (comb) and the value (variance_array)
     for comb, variance_array in variances.items():
-        plot_heatmap(variance_array, f'{output_dir}{comb}_hist')
+        plot_heatmap(variance_array, f'{output_dir}/{comb}_hist')
 
 
 def check_normality(variances):
@@ -112,7 +112,7 @@ def check_normality(variances):
     return normality_summary  
 
 
-def check_histograms(variances, output_dir):
+def save_histograms(variances, output_dir):
     for comb, variance_array in variances.items():
-        plot_histogram(variance_array, f'{output_dir}{comb}_hist')
+        plot_histogram(variance_array, f'{output_dir}/{comb}_hist')
 

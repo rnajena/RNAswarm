@@ -1,5 +1,3 @@
-# To add a new cell, type '# %%'
-# To add a new markdown cell, type '# %% [markdown]'
 # %%
 # Import functions for analysis of SPLASH np.arrays
 import variance_by_element
@@ -25,7 +23,7 @@ wt_d_comb2variances = variance_by_element.calculate_variances(wt_d_combination2A
 
 # %%
 # 
-variance_by_element.check_heatmaps(wt_d_comb2variances, RESULT)
+variance_by_element.save_heatmaps(wt_d_comb2variances, RESULT)
 
 
 # %%
