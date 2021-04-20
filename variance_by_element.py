@@ -116,15 +116,3 @@ def check_histograms(variances, output_dir):
     for comb, variance_array in variances.items():
         plot_histogram(variance_array, f'{output_dir}{comb}_hist')
 
-
-DIRECTORY = '/data/dessertlocal/projects/gl_iav-splash_freiburg/'  
-INPUT = f'{DIRECTORY}data/arrays/'
-RESULT = f'{DIRECTORY}results/202104/20200416/'
-iav_segments = ['PB2','PB1','PA','HA','NP','NA','M','NS']
-
-# 
-wt_d_repDir2Combinations, wt_d_combination2Array = read_arrays(INPUT, iav_segments)
-# 
-wt_d_comb2variances = calculate_variances(wt_d_combination2Array)
-# 
-check_heatmaps(wt_d_comb2variances, RESULT)
