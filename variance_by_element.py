@@ -100,16 +100,13 @@ def save_heatmaps(variances, output_dir):
         plot_heatmap(variance_array, f'{output_dir}/{comb}_hist')
 
 
-def check_normality(variances):
-    normality_summary = {}
+def check_characteristics(variances, output_dir):
+    d_comb2characteristics = {}
 
     for comb, variance_array in variances.items():
-        k2, p = stats.normaltest(variance_array.flatten())
-        if p < 0.05:
-            normality_summary[comb] = 'normal'       
-        else:
-            normality_summary[comb] = 'non-normal'
-    return normality_summary  
+        k2, d_comb2characteristics[comb] = stats.normaltest(variance_array.flatten())      
+
+    return d_comb2p  
 
 
 def save_histograms(variances, output_dir):
