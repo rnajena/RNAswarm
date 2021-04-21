@@ -12,7 +12,11 @@ After playing a little with Python's re library, I will finish implementing a re
 - [`re` module documentation](https://docs.python.org/3/howto/regex.html#regex-howto)
 - 
 ## Results
-The refcatoring of the code is finished, but the `check_heatmaps` is not yet working and has to be fixed.
+The refactoring of the code is finished, but the `check_heatmaps` is not yet working and has to be fixed.
+
+## 2021.04.20 - Finish refactoring and regex implementation
+### Quick log
+The problem was not `check_heatmaps` function, it was just the fact that I was using the wrong filepaths in the file.
 
 
 
