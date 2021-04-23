@@ -18,6 +18,9 @@ The refactoring of the code is finished, but the `check_heatmaps` is not yet wor
 ### Quick log
 The problem was not `check_heatmaps` function, it was just the fact that I was using the wrong filepaths in the file.
 
+## 2021.04.21 - Implement functions to check magnitude of variances
+### Goal
+- Work on [issue #5](https://github.com/gabriellovate/iav-splash_src/issues/5)
 
 
 
