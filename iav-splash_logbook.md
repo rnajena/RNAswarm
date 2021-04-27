@@ -22,5 +22,8 @@ The problem was not `check_heatmaps` function, it was just the fact that I was u
 ### Goal
 - Work on [issue #5](https://github.com/gabriellovate/iav-splash_src/issues/5)
 
-
+## 2021.04.27 - Test vRNAsite and work on issue #5
+### Goal
+- Run vRNAsite for genomes provided by Celia
+- Work on [issue #5](https://github.com/gabriellovate/iav-splash_src/issues/5)
 
