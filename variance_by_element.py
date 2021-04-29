@@ -24,11 +24,12 @@ def plot_histogram(array, output_dir):
 
 def regex_from_segments(viral_segments):
     """
-    Returns a compiled regex that can be used to search for pairs of viral segment 
-    abreviations in a given string.
+    Returns a compiled regex that can be used to search for pairs of
+    viral segment abreviations in a given string.
 
     Precondition:
-    The viral segments must be writen as sgmt01_segmt02 in order to be found.
+    The viral segments must be writen as sgmt01_segmt02 in order to be
+    found.
     """
     segments_to_regex = ""
     for viral_segment01 in viral_segments:
@@ -42,9 +43,10 @@ def regex_from_segments(viral_segments):
 
 def read_arrays(data_directory, viral_segments):
     """
-    Takes a directory containing subdirectories related to diferent replicates and returns
-    two dictionaries, one describing the paths to the arrays and another containing the 
-    arrays for each segment combination.
+    Takes a directory containing subdirectories related to diferent
+    replicates and returns two dictionaries, one describing the paths to
+    the arrays and another containing the arrays for each segment
+    combination.
 
     Input:
         
@@ -77,7 +79,8 @@ def read_arrays(data_directory, viral_segments):
 
 def calculate_variances(d_arrays):
     """
-    Takes a dictionary with numpy arrays and calculates the variance for each unique entry.
+    Takes a dictionary with numpy arrays and calculates the variance for
+    each unique entry.
 
     Input:
         d_arrays -- {'uniqueName' : [np.arrays]}
@@ -95,8 +98,8 @@ def calculate_variances(d_arrays):
 
 def save_heatmaps(variances, output_dir):
     """
-    Takes a dictionary of np.arrays and plots heatmaps for the np.arrays and saves them
-    to the output_dir
+    Takes a dictionary of np.arrays and plots heatmaps for the np.arrays
+    and saves them to the output_dir
 
     Input:
 
