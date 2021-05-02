@@ -29,5 +29,13 @@ The problem was not `check_heatmaps` function, it was just the fact that I was u
 
 ## 2021.04.29 - Generate visualisations for presentation
 ### Goals
-- Run vRNAsite for genomes provided by Celia (command `python3 vRNAsite.py -pfx /home/ru27wav/projects/gl_iav-splash_freiburg/results/202104/20210429/vRNAsite/plots -fsa /home/ru27wav/projects/gl_iav-splash_freiburg/results/202104/20210429/vRNAsite/SC35M.fasta  -ovr -rev -cmp -rvp -mat`)
+- Run vRNAsite for genomes provided by Celia
+    - Command used: 
+```bash
+python3 vRNAsite.py -pfx \
+/home/ru27wav/projects/gl_iav-splash_freiburg/results/202104/20210429/vRNAsite/plots \
+-fsa \
+/home/ru27wav/projects/gl_iav-splash_freiburg/results/202104/20210429/vRNAsite/SC35M.fasta \
+-ovr -rev -cmp -rvp -mat
+```
 - Generate heatmaps for some interactions
