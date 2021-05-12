@@ -39,3 +39,18 @@ python3 vRNAsite.py -pfx \
 -ovr -rev -cmp -rvp -mat
 ```
 - Generate heatmaps for some interactions
+
+## 2021.05.03 - Test vRNAsite and owrk on issue #5
+### Context
+#### Running vRNAsite
+Last time I tried running vRNAsite with the `-mat` flag which tells vRNAsite to use previously computed matrices, running it without it should work as expected.
+### Goals
+- 
+    - Command used: 
+```bash
+python3 vRNAsite.py -pfx \
+/home/ru27wav/projects/gl_iav-splash_freiburg/results/202105/20210503/vNRAsite_results \
+-fsa \
+/home/ru27wav/projects/gl_iav-splash_freiburg/results/202104/20210429/vRNAsite/SC35M.fasta \
+-ovr -rev -cmp -rvp
+```
