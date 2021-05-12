@@ -134,4 +134,3 @@ def save_characteristics(variances, output_dir):
             "range": np.ptp(variance_array),
         }
 
-    print_csv_from_dict(d_comb2characteristics)
