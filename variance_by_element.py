@@ -14,12 +14,15 @@ def plot_heatmap(array, output_dir):
 
 
 def plot_histogram(array, output_dir):
-    histogram = plt.figure()
-    ax = histogram.add_subplot(111)
-    ax.hist(array.flatten(), bins="auto")
-    histogram.tight_layout()
-    histogram.savefig(output_dir)
-    plt.close(histogram)
+    plt.hist(array.flatten())
+    plt.close()
+
+    # histogram = plt.figure()
+    # ax = histogram.add_subplot(111)
+    # ax.hist(array.flatten(), bins="auto")
+    # histogram.tight_layout()
+    # histogram.savefig(output_dir)
+    # plt.close(histogram)
 
 
 def regex_from_segments(viral_segments):
