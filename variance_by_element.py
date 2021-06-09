@@ -7,10 +7,10 @@ import re
 from scipy import stats
 
 
-def plot_heatmap(array, output_dir):
+def plot_heatmap(array, output_dir, filename):
     heatmap = sns.heatmap(array)
     plt.figure()
-    heatmap.figure.savefig(output_dir)
+    heatmap.figure.savefig(f"{output_dir}/{filename}")
 
 
 def plot_histogram(array, output_dir):
@@ -27,12 +27,11 @@ def plot_histogram(array, output_dir):
 
 def regex_from_segments(viral_segments):
     """
-    Returns a compiled regex that can be used to search for pairs of
-    viral segment abreviations in a given string.
+    Returns a compiled regex that can be used to search for pairs of viral segment 
+    abreviations in a given string.
 
     Precondition:
-    The viral segments must be writen as sgmt01_segmt02 in order to be
-    found.
+    The viral segments must be writen as sgmt01_segmt02 in order to be found.
     """
     segments_to_regex = ""
     for viral_segment01 in viral_segments:
@@ -46,10 +45,9 @@ def regex_from_segments(viral_segments):
 
 def read_arrays(data_directory, viral_segments):
     """
-    Takes a directory containing subdirectories related to diferent
-    replicates and returns two dictionaries, one describing the paths to
-    the arrays and another containing the arrays for each segment
-    combination.
+    Takes a directory containing subdirectories related to diferent replicates and 
+    returns two dictionaries, one describing the paths to the arrays and another 
+    containing the arrays for each segment combination.
 
     Input:
         
@@ -82,8 +80,8 @@ def read_arrays(data_directory, viral_segments):
 
 def calculate_variances(d_arrays):
     """
-    Takes a dictionary with numpy arrays and calculates the variance for
-    each unique entry.
+    Takes a dictionary with numpy arrays and calculates the variance for each unique 
+    entry.
 
     Input:
         d_arrays -- {'uniqueName' : [np.arrays]}
@@ -101,8 +99,8 @@ def calculate_variances(d_arrays):
 
 def save_heatmaps(variances, output_dir):
     """
-    Takes a dictionary of np.arrays and plots heatmaps for the np.arrays
-    and saves them to the output_dir
+    Takes a dictionary of np.arrays and plots heatmaps for the np.arrays and saves them
+     to the output_dir
 
     Input:
 
@@ -110,7 +108,7 @@ def save_heatmaps(variances, output_dir):
     """
     # Retrieves the key (comb) and the value (variance_array)
     for comb, variance_array in variances.items():
-        plot_heatmap(variance_array, f"{output_dir}/{comb}_hist")
+        plot_heatmap(variance_array, output_dir, f"{comb}_hist")
 
 
 def save_histograms(variances, output_dir):
