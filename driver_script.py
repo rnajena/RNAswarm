@@ -37,3 +37,13 @@ wt_d_comb2variances["NP_NS"].flatten()
 
 
 # %%
+# Define file paths and viral features:
+DIRECTORY = "/data/dessertlocal/projects/gl_iav-splash_freiburg"
+INPUT = f"{DIRECTORY}/data/arrays"
+RESULT = f"{DIRECTORY}/results/202106/20210611"
+iav_segments = ["PB2", "PB1", "PA", "HA", "NP", "NA", "M", "NS"]
+
+# %%
+# Read the arrays from file and put them into dictionaries:
+wt_d_repDir2Combinations, wt_d_combination2Array = vbe.read_arrays(INPUT, iav_segments)
+sample01_NA_NP = wt_d_combination2Array["NA_NP"][0]
