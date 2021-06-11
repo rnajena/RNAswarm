@@ -54,3 +54,5 @@ python3 vRNAsite.py -pfx \
 /home/ru27wav/projects/gl_iav-splash_freiburg/results/202104/20210429/vRNAsite/SC35M.fasta \
 -ovr -rev -cmp -rvp
 ```
+
+## 2021.06.08 - Implement peak finding methodology
