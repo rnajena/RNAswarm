@@ -32,17 +32,27 @@ def extract_regions(binarry_array):
     """
     
     """
-    # First iterate through all lines of the array
-    
-    _list = []
+    # Iterating through array and clustering together neighboring True values on the
+    # same line
+    coordinate_list = []
     for (i, j), value in np.ndenumerate(binarry_array):
         if value == True:
-            if str(coordinate_list).endswith(f"({i}, {j - 1})]]"):
+            if coordinate_list == []:
+                coordinate_list.append([(i, j)])
+            elif coordinate_list[-1][-1] == (i, j - 1):
                 coordinate_list[-1].append((i, j))
             else:
                 coordinate_list.append([(i, j)])
-    # Then iterate through the 
-    for element in list:
-        
+
+    # Iterating through array and clustering together neighboring True values on the
+    # same column
+    for (i, j), value in np.ndenumerate(binarry_array):
+        if value == True:
+            for cluster in coordinate_list:
+                for coordinate in cluster:
+                    if (i - 1, j) == coordinate:
+                        coordinate_list.remove([(i, j)])
+                        cluster.append((i, j))
+
     return coordinate_list
 

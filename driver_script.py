@@ -49,10 +49,11 @@ vbe.plot_heatmap(sample01_NA_NP_10_filtered, RESULT, "sample01-NA_NP_01-threshol
 # As a test for the extract_regions functions, I'll create a binarry array:
 test_bin_array = np.array(
     (
-        (True, True, False, False),
-        (False, False, False, True),
-        (True, True, True, False),
-        (False, False, True, False),
+        (True, True, False, False, False),
+        (False, False, False, True, False),
+        (True, True, True, False, True),
+        (True, False, True, False, True),
+        (True, False, False, False, False),
     )
 )
 
