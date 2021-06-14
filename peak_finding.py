@@ -28,7 +28,7 @@ def arbitrary_filter(arr, threshold):
     return filtered_arr
 
 
-def extract_regions(binarry_array):
+def extract_coordinates(binarry_array):
     """
     
     """
@@ -56,3 +56,13 @@ def extract_regions(binarry_array):
 
     return coordinate_list
 
+
+def extract_regions(coordinate_list):
+    """
+    """
+    regions_dict = {}
+    for region_id in range(len(coordinate_list)):
+        regions_dict[region_id] = {
+            "start": coordinate_list[region_id][0],
+            "end": coordinate_list[region_id][-1],
+        }

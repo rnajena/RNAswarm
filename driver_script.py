@@ -58,7 +58,7 @@ test_bin_array = np.array(
 )
 
 # %%
-regions_test = pf.extract_regions(test_bin_array)
+regions_test = pf.extract_coordinates(test_bin_array)
 print(regions_test)
 # %%
 
