@@ -83,8 +83,8 @@ def extract_regions(coordinate_list):
     Returns
     -------
     res: regions_list
-        list of dictionaries containing the coordinates for the four extremities of the
-        triangle.
+        list of dictionaries containing the coordinate, height and width of each 
+        interaction region.
     """
     regions_dict = {}
     for region_id in range(len(coordinate_list)):
