@@ -2,7 +2,7 @@
 # Import functions for analysis of SPLASH np.arrays
 import numpy as np
 import variance_by_element as vbe
-import peak_finding as pf
+import find_interactions as fi
 
 # # %%
 # # Define file paths and viral features:
@@ -21,7 +21,7 @@ import peak_finding as pf
 
 # # %%
 # # Extract interaction regions from the arrays...
-# sample01_NA_NP_binary = pf.std_deviation_filter(sample01_NA_NP)
+# sample01_NA_NP_binary = fi.std_deviation_filter(sample01_NA_NP)
 
 # # %%
 # # ...and plot it.
@@ -29,7 +29,7 @@ import peak_finding as pf
 
 # # %%
 # # Or we can use a different filter to extract interaction regions from the arrays...
-# sample01_NA_NP_mean_filtered = pf.mean_filter(sample01_NA_NP)
+# sample01_NA_NP_mean_filtered = fi.mean_filter(sample01_NA_NP)
 
 # # %%
 # # ...and plot it.
@@ -39,7 +39,7 @@ import peak_finding as pf
 
 # # %%
 # # We can also plot only cells with value smaller than 10, for instance...
-# sample01_NA_NP_10_filtered = pf.arbitrary_filter(sample01_NA_NP, 10)
+# sample01_NA_NP_10_filtered = fi.arbitrary_filter(sample01_NA_NP, 10)
 
 # # %%
 # # ...and plot it.
@@ -58,11 +58,11 @@ test_bin_array = np.array(
 )
 
 # %%
-coordinates_test = pf.extract_coordinates(test_bin_array)
+coordinates_test = fi.extract_coordinates(test_bin_array)
 print(coordinates_test)
 
 # %%
-regions_test = pf.extract_regions(coordinates_test)
+regions_test = fi.extract_regions(coordinates_test)
 print(regions_test)
 
 
