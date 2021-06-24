@@ -48,6 +48,15 @@ import find_interactions as fi
 # %%
 # As a test for the extract_regions functions, I'll create a binarry array:
 test_bin_array = np.array(
+    #     (
+    #         (True, True, False, False, False),
+    #         (False, False, False, True, False),
+    #         (True, True, True, False, True),
+    #         (True, True, True, False, True),
+    #         (True, False, False, False, False),
+    #     )
+    # )
+    #
     (
         (True, True, False, False, False),
         (False, False, False, True, False),
@@ -56,14 +65,10 @@ test_bin_array = np.array(
         (True, False, False, False, False),
     )
 )
-
 # %%
 coordinates_test = fi.extract_coordinates(test_bin_array)
 print(coordinates_test)
 
 # %%
-regions_test = fi.extract_regions(coordinates_test)
-print(regions_test)
-
-
-# %%
+# regions_test = fi.extract_regions(coordinates_test)
+# print(regions_test)

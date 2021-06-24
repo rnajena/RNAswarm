@@ -1,6 +1,9 @@
 import numpy as np
 from operator import itemgetter
 
+# import networkx
+# from networkx.algorithms.components.connected import connected_components
+
 
 def std_deviation_filter(arr):
     """
@@ -44,29 +47,46 @@ def extract_coordinates(binarry_array):
     """
     # Iterating through array and clustering together neighboring True values on the
     # same line
-    coordinate_list = []
+    unclustered_list = []
     for (i, j), value in np.ndenumerate(binarry_array):
-        if value == True:
-            if coordinate_list == []:
-                coordinate_list.append([(i, j)])
-            elif coordinate_list[-1][-1] == (i, j - 1):
-                coordinate_list[-1].append((i, j))
+        if value:
+            if not unclustered_list:
+                unclustered_list.append([(i, j)])
             else:
-                coordinate_list.append([(i, j)])
+                is_neighbour = False
+                for cluster in unclustered_list:
+                    tmp = []
+                    for coordinate in cluster:
+                        if coordinate == (i - 1, j) or coordinate == (i, j - 1):
+                            tmp.append((i, j))
+                            is_neighbour = True
+                            break
+                    if is_neighbour:
+                        cluster.extend(tmp)
+                if not is_neighbour:
+                    unclustered_list.append([(i, j)])
 
-    # Iterating through array and clustering together neighboring True values on the
-    # same column
-    for (i, j), value in np.ndenumerate(binarry_array):
-        if value == True:
-            for cluster in coordinate_list:
-                for coordinate in cluster:
-                    if (i - 1, j) == coordinate:
-                        for cluster in coordinate_list:
-                            if (i, j) in cluster:
-                                cluster.remove((i, j))
-                        cluster.append((i, j))
-            if [] in coordinate_list:
-                coordinate_list.remove([])
+    # ref of the following block of code:
+    # https://stackoverflow.com/questions/4842613/merge-lists-that-share-common-elements
+    coordinate_list = []
+    while unclustered_list:
+        first, *rest = unclustered_list
+        first = set(first)
+
+        lf = -1
+        while len(first) > lf:
+            lf = len(first)
+
+            rest2 = []
+            for r in rest:
+                if first.intersection(set(r)):
+                    first |= set(r)
+                else:
+                    rest2.append(r)
+            rest = rest2
+
+        coordinate_list.append(first)
+        unclustered_list = rest
 
     return coordinate_list
 
@@ -83,7 +103,7 @@ def extract_regions(coordinate_list):
     Returns
     -------
     res: regions_list
-        list of dictionaries containing the coordinate, height and width of each 
+        list of dictionaries containing the coordinate, height and width of each
         interaction region.
     """
     regions_dict = {}
