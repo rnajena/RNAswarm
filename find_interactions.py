@@ -123,7 +123,8 @@ def extract_regions(coordinate_list):
 
 
 def readcounts_to_means(regions_dict, readcount_aray):
-    """ Return
+    """ Returns a dictionary with interaction id as key and mean of the values inside
+    the interaction region extracted with extract_regions function.
 
     Parameters
     ----------
@@ -132,7 +133,7 @@ def readcounts_to_means(regions_dict, readcount_aray):
 
     Returns
     -------
-    res: readcounts
+    res: readcount_dict
     """
     readcount_dict = {}
     for id, region in regions_dict.items():
