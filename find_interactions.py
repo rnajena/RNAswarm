@@ -161,15 +161,23 @@ def readcounts_to_means(regions_dict, readcount_aray):
     return readcount_dict
 
 
-def format_to_DEseq2_input(readcounts):
-    """ Return ...
+def format_to_table(readcount_dict, separator=",", output_path=None):
+    """ Returns ...
 
     Parameters
     ----------
-    readcounts: ...
+    readcount_dict: ...
+    path: ...
 
     Returns
     -------
     res: DEseq2_input
     """
-    pass
+    table = ""
+    for id, mean in readcount_dict.items():
+        table = f"{table}\n{id}{separator}{mean}"
+    if output_path:
+        with open(output_path, "w") as file:
+            file.write(table)
+    return table
+

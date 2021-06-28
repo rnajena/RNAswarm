@@ -79,3 +79,7 @@ print(regions_test)
 # %%
 means_test = fi.readcounts_to_means(regions_test, test_value_array)
 print(means_test)
+
+# %%
+DEseq2_table = fi.format_to_table(means_test)
+print(DEseq2_table)
