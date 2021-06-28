@@ -45,22 +45,24 @@ import find_interactions as fi
 # # ...and plot it.
 # vbe.plot_heatmap(sample01_NA_NP_10_filtered, RESULT, "sample01-NA_NP_01-threshold_10")
 
+#%%
+test_value_array = np.array(
+    (
+        (4, 4, 0, 0, 0),
+        (0, 0, 0, 4, 0),
+        (0, 0, 4, 0, 4),
+        (4, 4, 4, 0, 4),
+        (4, 0, 0, 0, 0),
+    )
+)
+
 # %%
 # As a test for the extract_regions functions, I'll create a binarry array:
 test_bin_array = np.array(
-    #     (
-    #         (True, True, False, False, False),
-    #         (False, False, False, True, False),
-    #         (True, True, True, False, True),
-    #         (True, True, True, False, True),
-    #         (True, False, False, False, False),
-    #     )
-    # )
-    #
     (
         (True, True, False, False, False),
         (False, False, False, True, False),
-        (False, True, True, False, True),
+        (False, False, True, False, True),
         (True, True, True, False, True),
         (True, False, False, False, False),
     )
@@ -69,6 +71,11 @@ test_bin_array = np.array(
 coordinates_test = fi.extract_coordinates(test_bin_array)
 print(coordinates_test)
 
+#%%
+regions_test = fi.extract_regions(coordinates_test)
+print(regions_test)
+
+
 # %%
-# regions_test = fi.extract_regions(coordinates_test)
-# print(regions_test)
+means_test = fi.readcounts_to_means(regions_test, test_value_array)
+print(means_test)

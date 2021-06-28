@@ -33,7 +33,7 @@ def arbitrary_filter(arr, threshold):
 
 
 def extract_coordinates(binarry_array):
-    """ Return a list of lists containing coordinates for True values on a np.array, 
+    """ Return a list of sets containing coordinates for True values on a np.array, 
     clustering those if they are neighbouring values.
 
     Parameters
@@ -43,7 +43,7 @@ def extract_coordinates(binarry_array):
     Returns
     -------
     res: coordinate_list
-        coordinates in the form of a list of tuples grouped if values are neighbouring
+        coordinates in the form of sets of tuples grouped if values are neighbouring
     """
     # Iterating through array and clustering together neighboring True values on the
     # same line
@@ -102,24 +102,73 @@ def extract_regions(coordinate_list):
 
     Returns
     -------
-    res: regions_list
-        list of dictionaries containing the coordinate, height and width of each
+    res: regions_dict
+        dict of dicts containing the coordinate, height and width of each
         interaction region.
     """
     regions_dict = {}
     for region_id in range(len(coordinate_list)):
         i_sorted_coord_l = sorted(coordinate_list[region_id], key=itemgetter(0))
         j_sorted_coord_l = sorted(coordinate_list[region_id], key=itemgetter(1))
-        height = i_sorted_coord_l[-1][0] - i_sorted_coord_l[0][0]
-        width = j_sorted_coord_l[-1][1] - j_sorted_coord_l[0][1]
-        if height == 0:
-            height = 1
-        if width == 0:
-            width = 1
+        coordinate = (i_sorted_coord_l[0][0], j_sorted_coord_l[0][1])
+        height = i_sorted_coord_l[-1][0] - coordinate[0] + 1
+        width = j_sorted_coord_l[-1][1] - coordinate[1] + 1
         regions_dict[region_id] = {
-            "coordinate": (i_sorted_coord_l[0][0], j_sorted_coord_l[0][1]),
+            "coordinate": coordinate,
             "height": height,
             "width": width,
         }
 
     return regions_dict
+
+
+def readcounts_to_means(regions_dict, readcount_aray):
+    """ Return
+
+    Parameters
+    ----------
+    regions_dict: dict of dicts containing the coordinate, height and width of each
+    interaction region.
+
+    Returns
+    -------
+    res: readcounts
+    """
+    readcount_dict = {}
+    for id, region in regions_dict.items():
+        if region["width"] > 1 and region["height"] > 1:
+            readcount_dict[id] = readcount_aray[
+                region["coordinate"][0] : region["width"],
+                region["coordinate"][1] : region["height"],
+            ].mean()
+        elif region["width"] > 1:
+            readcount_dict[id] = readcount_aray[
+                region["coordinate"][0],
+                region["coordinate"][1] : region["coordinate"][1] + region["width"] - 1,
+            ].mean()
+        elif region["height"] > 1:
+            readcount_dict[id] = readcount_aray[
+                region["coordinate"][0] : region["coordinate"][0]
+                + region["height"]
+                - 1,
+                region["coordinate"][1],
+            ].mean()
+        else:
+            readcount_dict[id] = readcount_aray[
+                region["coordinate"][0], region["coordinate"][1],
+            ]
+    return readcount_dict
+
+
+def format_to_DEseq2_input(readcounts):
+    """ Return ...
+
+    Parameters
+    ----------
+    readcounts: ...
+
+    Returns
+    -------
+    res: DEseq2_input
+    """
+    pass
