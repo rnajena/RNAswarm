@@ -32,8 +32,14 @@ def arbitrary_filter(arr, threshold):
     return filtered_arr
 
 
+# ref: https://stackoverflow.com/questions/20528328/numpy-logical-or-for-more-than-two-arguments
+def combine_filters(binarry_arrays_list):
+    combined_array = np.logical_or.reduce((np.array(binarry_arrays_list)))
+    return combined_array
+
+
 def extract_coordinates(binarry_array):
-    """ Return a list of sets containing coordinates for True values on a np.array, 
+    """ Return a list of lists containing coordinates for True values on a np.array, 
     clustering those if they are neighbouring values.
 
     Parameters
@@ -43,7 +49,7 @@ def extract_coordinates(binarry_array):
     Returns
     -------
     res: coordinate_list
-        coordinates in the form of sets of tuples grouped if values are neighbouring
+        coordinates in the form of lists of tuples grouped if values are neighbouring
     """
     # Iterating through array and clustering together neighboring True values on the
     # same line
@@ -161,12 +167,12 @@ def readcounts_to_means(regions_dict, readcount_aray):
     return readcount_dict
 
 
-def format_to_table(readcount_dict, separator=",", output_path=None):
+def format_to_table(readcounts, sep=",", output_path=None):
     """ Returns ...
 
     Parameters
     ----------
-    readcount_dict: ...
+    readcounts: ...
     path: ...
 
     Returns
@@ -174,10 +180,11 @@ def format_to_table(readcount_dict, separator=",", output_path=None):
     res: DEseq2_input
     """
     table = ""
-    for id, mean in readcount_dict.items():
-        table = f"{table}\n{id}{separator}{mean}"
+    # we should check if all dicts inside readcounts have the same size
+    for id in range(1, len(readcounts[0] + 1)):
+        # We should generalize this to experimental settings with n replicates
+        table = f"{table}\n{id}{sep}{readcounts[0][id]}{sep}{readcounts[1][id]}{sep}{readcounts[2][id]}"
     if output_path:
         with open(output_path, "w") as file:
             file.write(table)
     return table
-
