@@ -1,9 +1,6 @@
 import numpy as np
 from operator import itemgetter
 
-# import networkx
-# from networkx.algorithms.components.connected import connected_components
-
 
 def std_deviation_filter(arr):
     """
