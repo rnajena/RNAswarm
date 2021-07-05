@@ -37,7 +37,7 @@ def combine_filters(binarry_arrays_list):
 
 def extract_coordinates(binarry_array):
     """ Return a list of lists containing coordinates for True values on a np.array, 
-    clustering those if they are neighbouring values.
+    clustering those if they are neighboring values.
 
     Parameters
     ----------
@@ -46,52 +46,35 @@ def extract_coordinates(binarry_array):
     Returns
     -------
     res: coordinate_list
-        coordinates in the form of lists of tuples grouped if values are neighbouring
+        coordinates in the form of lists of tuples grouped if values are neighboring
     """
     # Iterating through array and clustering together neighboring True values on the
     # same line
-    unclustered_list = []
-    for (i, j), value in np.ndenumerate(binarry_array):
-        if value:
-            if not unclustered_list:
-                unclustered_list.append([(i, j)])
-            else:
-                is_neighbour = False
-                for cluster in unclustered_list:
-                    tmp = []
-                    for coordinate in cluster:
-                        if coordinate == (i - 1, j) or coordinate == (i, j - 1):
-                            tmp.append((i, j))
-                            is_neighbour = True
-                            break
-                    if is_neighbour:
-                        cluster.extend(tmp)
-                if not is_neighbour:
-                    unclustered_list.append([(i, j)])
-
-    # ref of the following block of code:
-    # https://stackoverflow.com/questions/4842613/merge-lists-that-share-common-elements
-    coordinate_list = []
-    while unclustered_list:
-        first, *rest = unclustered_list
-        first = set(first)
-
-        lf = -1
-        while len(first) > lf:
-            lf = len(first)
-
-            rest2 = []
-            for r in rest:
-                if first.intersection(set(r)):
-                    first |= set(r)
+    coord_to_cluster = {}
+    idx = 0
+    for (i, j), value in np.ndenumerate(binarry_array):  # iterates through the matrix
+        if value:  # if it finds a True value
+            previous_neighbors = [
+                (i - 1, j),
+                (i, j - 1),
+                (i - 1, j - 1),
+                (i + 1, j - 1),
+            ]  # extract neighbors
+            if any(previous_neighbors):
+                cluster_idx = set(
+                    [coord_to_cluster[neighbor] for neighbor in previous_neighbors]
+                )
+                if len(cluster_idx) == 1:
+                    coord_to_cluster[(i, j)] = cluster_idx[0]
                 else:
-                    rest2.append(r)
-            rest = rest2
-
-        coordinate_list.append(first)
-        unclustered_list = rest
-
-    return coordinate_list
+                    lowest = min(cluster_idx)
+                    for neighbor in previous_neighbors:
+                        if binarry_array[neighbor]:
+                            coord_to_cluster[neighbor] = lowest
+                    coord_to_cluster[(i, j)] = lowest
+            else:
+                idx += 1
+                coord_to_cluster[(i, j)] = idx
 
 
 def extract_regions(coordinate_list):
@@ -101,7 +84,7 @@ def extract_regions(coordinate_list):
     Parameters
     ----------
     coordinate_list: coordinates in the form of a list of tuples grouped if values are
-    neighbouring
+    neighboring
 
     Returns
     -------
