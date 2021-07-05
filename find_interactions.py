@@ -48,19 +48,22 @@ def extract_coordinates(binarry_array):
     res: coordinate_list
         coordinates in the form of lists of tuples grouped if values are neighboring
     """
-    # Iterating through array and clustering together neighboring True values on the
-    # same line
     coord_to_cluster = {}
     idx = 0
-    for (i, j), value in np.ndenumerate(binarry_array):  # iterates through the matrix
-        if value:  # if it finds a True value
+    for (i, j), value in np.ndenumerate(binarry_array):
+        if value:
             previous_neighbors = [
                 (i - 1, j),
                 (i, j - 1),
                 (i - 1, j - 1),
                 (i + 1, j - 1),
-            ]  # extract neighbors
-            if any(previous_neighbors):
+            ]
+            if (
+                coord_to_cluster[(i - 1, j)]
+                or coord_to_cluster[(i, j - 1)]
+                or coord_to_cluster[(i - 1, j - 1)]
+                or coord_to_cluster[(i + 1, j - 1)]
+            ):
                 cluster_idx = set(
                     [coord_to_cluster[neighbor] for neighbor in previous_neighbors]
                 )
@@ -75,9 +78,10 @@ def extract_coordinates(binarry_array):
             else:
                 idx += 1
                 coord_to_cluster[(i, j)] = idx
+    return coord_to_cluster
 
 
-def extract_regions(coordinate_list):
+def extract_regions(coord_to_cluster):
     """ Return a list of dictionaries containing the coordinates for a rectangle that
     contains the interactions of a given cluster.
 
@@ -93,19 +97,24 @@ def extract_regions(coordinate_list):
         interaction region.
     """
     regions_dict = {}
-    for region_id in range(len(coordinate_list)):
-        i_sorted_coord_l = sorted(coordinate_list[region_id], key=itemgetter(0))
-        j_sorted_coord_l = sorted(coordinate_list[region_id], key=itemgetter(1))
+    clusters = set([idx for coordinate, idx in coord_to_cluster.items()])
+    for cluster in clusters:
+        cluster_coords = [
+            coordinate for coordinate, idx in coord_to_cluster.items() if idx == cluster
+        ]
+
+        i_sorted_coord_l = sorted(cluster_coords, key=itemgetter(0))
+        j_sorted_coord_l = sorted(cluster_coords, key=itemgetter(1))
+
         coordinate = (i_sorted_coord_l[0][0], j_sorted_coord_l[0][1])
         height = i_sorted_coord_l[-1][0] - coordinate[0] + 1
         width = j_sorted_coord_l[-1][1] - coordinate[1] + 1
-        regions_dict[region_id] = {
+
+        regions_dict[cluster] = {
             "coordinate": coordinate,
             "height": height,
             "width": width,
         }
-
-    return regions_dict
 
 
 def readcounts_to_means(regions_dict, readcount_aray):
