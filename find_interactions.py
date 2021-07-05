@@ -52,12 +52,17 @@ def extract_coordinates(binarry_array):
     idx = 0
     for (i, j), value in np.ndenumerate(binarry_array):
         if value:
-            previous_neighbors = [
-                (i - 1, j),
-                (i, j - 1),
-                (i - 1, j - 1),
-                (i + 1, j - 1),
-            ]
+            previous_neighbors = []
+            if i and j and i < binarry_array.shape[0]:
+                neighbors = [(i - 1, j), (i, j - 1), (i - 1, j - 1), (i + 1, j - 1)]
+            elif i and j:
+                neighbors = [i - 1, j), (i, j - 1), (i - 1, j - 1)]
+            elif i:
+                neighbors = [(i - 1, j)]
+            elif j and i < binarry_array.shape[0]:
+                neighbors = [i - 1, j), (i, j - 1), (i + 1, j - 1)]
+            elif j:
+                neighbors = [(i - 1, j), (i, j - 1)]
             if (
                 coord_to_cluster[(i - 1, j)]
                 or coord_to_cluster[(i, j - 1)]
