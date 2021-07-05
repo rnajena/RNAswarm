@@ -77,7 +77,11 @@ def extract_coordinates(binarry_array):
                     coord_to_cluster[(i, j)] = lowest
             else:
                 idx += 1
+                for coord in previous_neighbors:
+                    if coord_to_cluster[coord]:
+                        coord_to_cluster[coord]
                 coord_to_cluster[(i, j)] = idx
+
     return coord_to_cluster
 
 
