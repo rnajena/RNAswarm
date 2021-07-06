@@ -48,32 +48,49 @@ def extract_coordinates(binarry_array):
     res: coordinate_list
         coordinates in the form of lists of tuples grouped if values are neighboring
     """
-    coord_to_cluster = {}
-    idx = 0
-    for (i, j), value in np.ndenumerate(binarry_array):
-        if value:
-            previous_neighbors = [
-                neighbor
+    coord_to_cluster = (
+        {}
+    )  # Dictionary that has coordinate as key and cluster index as value
+    idx = 0  # Iterator that holds cluster index value
+    for (i, j), value in np.ndenumerate(
+        binarry_array
+    ):  # Iterates through each element of the array
+        if value:  # If the element is True...
+            previous_neighbors = [  # Creates a list of valid neighbors (doesn't care if the value is True)
+                coord
                 for coord in [(i - 1, j), (i, j - 1), (i - 1, j - 1), (i + 1, j - 1)]
                 if coord[0] > 0 and coord[1] > 0 and coord[0] < binarry_array.shape[0]
             ]
-            if any([coord_to_cluster[neighbor] for neighbor in previous_neighbors]):
+            if any([binarry_array[neighbor] for neighbor in previous_neighbors]):
+                # Case where there is a neighbor holding the value True
                 cluster_idx = set(
-                    [coord_to_cluster[neighbor] for neighbor in previous_neighbors]
+                    [
+                        coord_to_cluster[neighbor]
+                        for neighbor in previous_neighbors
+                        if neighbor in coord_to_cluster.keys()
+                    ]
                 )
+                # Creates a set that holds the indexes of all valid neighbors
                 if len(cluster_idx) == 1:
+                    # Case where all neighbors have the same cluster index
                     coord_to_cluster[(i, j)] = cluster_idx[0]
                 else:
+                    # Case where there are neighbors with different cluster indexes
                     lowest = min(cluster_idx)
                     for neighbor in previous_neighbors:
                         if binarry_array[neighbor]:
                             coord_to_cluster[neighbor] = lowest
                     coord_to_cluster[(i, j)] = lowest
             else:
+                # Case where there is no neighbor holding the value True
                 idx += 1
-                for coord in previous_neighbors:
-                    if coord_to_cluster[coord]:
-                        coord_to_cluster[coord]
+                for neighbor in previous_neighbors:
+                    # Why are we checking previous neighbors here if they don't hold the value True?
+                    if (
+                        neighbor in coord_to_cluster.keys()
+                        and coord_to_cluster[neighbor]
+                    ):
+                        coord_to_cluster[neighbor]
                 coord_to_cluster[(i, j)] = idx
 
     return coord_to_cluster
