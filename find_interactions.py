@@ -54,15 +54,10 @@ def extract_coordinates(binarry_array):
         if value:
             previous_neighbors = [
                 neighbor
-                for neighbor in [(i - 1, j), (i, j - 1), (i - 1, j - 1), (i + 1, j - 1)]
-                if neighbor[0] and neighbor[1] and neighbor[0] < binarry_array.shape[0]
+                for coord in [(i - 1, j), (i, j - 1), (i - 1, j - 1), (i + 1, j - 1)]
+                if coord[0] > 0 and coord[1] > 0 and coord[0] < binarry_array.shape[0]
             ]
-            if (
-                coord_to_cluster[(i - 1, j)]
-                or coord_to_cluster[(i, j - 1)]
-                or coord_to_cluster[(i - 1, j - 1)]
-                or coord_to_cluster[(i + 1, j - 1)]
-            ):
+            if any([coord_to_cluster[neighbor] for neighbor in previous_neighbors]):
                 cluster_idx = set(
                     [coord_to_cluster[neighbor] for neighbor in previous_neighbors]
                 )
