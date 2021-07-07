@@ -44,10 +44,11 @@ vbe.plot_heatmap(NA_NP_all_samples, RESULT, f"NA_NP_combined")
 NA_NP_coordinates = fi.extract_coordinates(NA_NP_all_samples)
 
 # %%
-NA_NP_regions = fi.extract_regions(NA_NP_all_samples)
+NA_NP_regions = fi.extract_regions(NA_NP_coordinates)
+NA_NP_regions
 
 # %%
-NA_NP_means = [
-    fi.readcounts_to_means(NA_NP_all_samples, array) for array in NA_NP_arrays
-]
+NA_NP_means = [fi.readcounts_to_means(NA_NP_regions, array) for array in NA_NP_arrays]
 fi.format_to_table(NA_NP_means, output_path=f"{RESULT}/NA_NP_interactions.csv")
+
+# %%

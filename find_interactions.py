@@ -1,5 +1,5 @@
 import numpy as np
-from operator import itemgetter
+from operator import is_, itemgetter
 
 
 def std_deviation_filter(arr):
@@ -79,11 +79,10 @@ def extract_coordinates(binarry_array):
                 filter(
                     lambda coord: coord[0] > 0
                     and coord[1] > 0
-                    and coord[0] < binarry_array.shape[0],
+                    and coord[1] < binarry_array.shape[1],
                     neighbors,
                 )
             )  # Filter for just valid neighbors
-            print(neighbors_filtered)
             values_of_neighbors_filtered = [
                 binarry_array[neighbor] for neighbor in neighbors_filtered
             ]
@@ -98,7 +97,6 @@ def extract_coordinates(binarry_array):
                 # Creates a set that holds the indexes of all valid neighbors
                 if len(cluster_idx) == 1:
                     # Case where all neighbors have the same cluster index
-                    print(cluster_idx[0])
                     coord_to_cluster[(i, j)] = cluster_idx[0]
                 else:
                     # Case where there are neighbors with different cluster indexes
@@ -156,6 +154,7 @@ def extract_regions(coord_to_cluster):
             "height": height,
             "width": width,
         }
+    return regions_dict
 
 
 def readcounts_to_means(regions_dict, readcount_aray):
@@ -172,26 +171,26 @@ def readcounts_to_means(regions_dict, readcount_aray):
     res: readcount_dict
     """
     readcount_dict = {}
-    for id, region in regions_dict.items():
+    for idx, region in regions_dict.items():
         if region["width"] > 1 and region["height"] > 1:
-            readcount_dict[id] = readcount_aray[
+            readcount_dict[idx] = readcount_aray[
                 region["coordinate"][0] : region["width"],
                 region["coordinate"][1] : region["height"],
             ].mean()
         elif region["width"] > 1:
-            readcount_dict[id] = readcount_aray[
+            readcount_dict[idx] = readcount_aray[
                 region["coordinate"][0],
                 region["coordinate"][1] : region["coordinate"][1] + region["width"] - 1,
             ].mean()
         elif region["height"] > 1:
-            readcount_dict[id] = readcount_aray[
+            readcount_dict[idx] = readcount_aray[
                 region["coordinate"][0] : region["coordinate"][0]
                 + region["height"]
                 - 1,
                 region["coordinate"][1],
             ].mean()
         else:
-            readcount_dict[id] = readcount_aray[
+            readcount_dict[idx] = readcount_aray[
                 region["coordinate"][0], region["coordinate"][1],
             ]
     return readcount_dict
@@ -211,10 +210,17 @@ def format_to_table(readcounts, sep=",", output_path=None):
     """
     table = ""
     # we should check if all dicts inside readcounts have the same size
-    for id in range(1, len(readcounts[0] + 1)):
+    for idx in readcounts[0].keys():
         # We should generalize this to experimental settings with n replicates
-        table = f"{table}\n{id}{sep}{readcounts[0][id]}{sep}{readcounts[1][id]}{sep}{readcounts[2][id]}"
+        table = f"{table}{idx}{sep}{readcounts[0][idx]}{sep}{readcounts[1][idx]}{sep}{readcounts[2][idx]}\n"
     if output_path:
         with open(output_path, "w") as file:
             file.write(table)
+    is_size_consistent = sum("\n" in char for char in table) == len(
+        readcounts[0].keys()
+    )
+    if is_size_consistent:
+        print("Size of table consistent with dictionary")
+    else:
+        print("Size of table not consistent with dictionary")
     return table
