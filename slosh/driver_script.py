@@ -7,7 +7,7 @@ import find_interactions as fi
 # Define file paths and viral features:
 DIRECTORY = "/data/dessertlocal/projects/gl_iav-splash_freiburg"
 INPUT = f"{DIRECTORY}/data/arrays"
-RESULT = f"{DIRECTORY}/results/202108/20210817"
+RESULT = f"{DIRECTORY}/results/202108/20210824"
 iav_segments = ["PB2", "PB1", "PA", "HA", "NP", "NA", "M", "NS"]
 
 # %%

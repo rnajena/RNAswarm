@@ -159,7 +159,7 @@ def extract_regions(coord_to_cluster):
 
 def readcounts_to_means(regions_dict, readcount_aray):
     """ Returns a dictionary with interaction id as key and mean of the values inside
-    the interaction region extracted with extract_regions function.
+    the interaction region as value.
 
     Parameters
     ----------
@@ -174,8 +174,8 @@ def readcounts_to_means(regions_dict, readcount_aray):
     for idx, region in regions_dict.items():
         if region["width"] > 1 and region["height"] > 1:
             readcount_dict[idx] = readcount_aray[
-                region["coordinate"][0] : region["width"],
-                region["coordinate"][1] : region["height"],
+                region["coordinate"][0] : region["coordinate"][0] + region["width"] - 1,
+                region["coordinate"][1] : region["coordinate"][1] + region["height"] -1,
             ].mean()
         elif region["width"] > 1:
             readcount_dict[idx] = readcount_aray[
