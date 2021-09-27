@@ -1,7 +1,7 @@
 #!/usr/bin/env Rscript
 library(readr)
 library(dplyr)
-library(tximport)
+library(tximport) # I didn't manage to install it on the working conda environment, might be good to check what is going on there
 library(tximportData)
 
 # Import the data for NA_NP
