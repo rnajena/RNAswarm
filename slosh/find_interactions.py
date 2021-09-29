@@ -212,7 +212,7 @@ def format_to_table(readcounts, sep=",", output_path=None):
     # we should check if all dicts inside readcounts have the same size
     for idx in readcounts[0].keys():
         # We should generalize this to experimental settings with n replicates
-        table = f"{table}{idx}{sep}{readcounts[0][idx]}{sep}{readcounts[1][idx]}{sep}{readcounts[2][idx]}\n"
+        table = f"{table}{idx}{sep}{int(round(readcounts[0][idx]))}{sep}{int(round(readcounts[1][idx]))}{sep}{int(round(readcounts[2][idx]))}\n"
     if output_path:
         with open(output_path, "w") as file:
             file.write(table)
