@@ -27,5 +27,10 @@ NA_NP_dds <- DESeq(NA_NP_dds)
 resultsNames(NA_NP_dds) # lists the coefficients
 NA_NP_res <- results(NA_NP_dds, name="Wt NA_NP")
 
-# # Generate circus plots
+# Questions I want to answer:
+# Which interactions are constant in all samples? And which interactions are not?
+
+# Data visualization 
+# Generate circus plots to identify interactions that are differentially presentin our samples
+
 
