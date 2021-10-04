@@ -1,0 +1,8 @@
+chr - PB2 SC35M_PB2 0 2341 color=(65,137,154)
+chr - PB1 SC35M_PB1 0 2341 color=(110,91,122)
+chr - PA SC35M_PA 0 2233 color=(229,117,132)
+chr - HA SC35M_HA 0 1740 color=(255,200,132)
+chr - NP SC35M_NP 0 1565 color=(255,242,201)
+chr - NA SC35M_NA 0 1461 color=(228,225,146)
+chr - M SC35M_M 0 1027 color=(208,240,202)
+chr - NS SC35M_NS 0 890 color=(137,218,213)
