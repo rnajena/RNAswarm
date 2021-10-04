@@ -24,14 +24,11 @@ for segment, arrays in wt_d_combination2Array.items():
         else:
             wt_d_combination_2_array_filtered[segment].append(fi.mean_filter(arrays[i]))
 
-# %%
-wt_d_combination_2_array_filtered
-
-# %%
-# Unpack the filtered arrays and plot them
-for segment, arrays in wt_d_combination_2_array_filtered.items():
-    for i in range(len(arrays)):
-        vbe.plot_heatmap(arrays[i], RESULT, f"{segment}_{i}")
+# # %%
+# # Unpack the filtered arrays and plot them
+# for segment, arrays in wt_d_combination_2_array_filtered.items():
+#     for i in range(len(arrays)):
+#         vbe.plot_heatmap(arrays[i], RESULT, f"{segment}_{i}")
 
 # %%
 # Combine the arrays of each segment combination in one array
@@ -39,10 +36,10 @@ wt_d_combination_2_array_combined = {}
 for segment, arrays in wt_d_combination_2_array_filtered.items():
     wt_d_combination_2_array_combined[segment] = fi.combine_filters(arrays)
 
-# %%
-# ...and plot it.
-for segment, array in wt_d_combination_2_array_combined.items():
-    vbe.plot_heatmap(array, RESULT, f"{segment}_combined")
+# # %%
+# # ...and plot it.
+# for segment, array in wt_d_combination_2_array_combined.items():
+#     vbe.plot_heatmap(array, RESULT, f"{segment}_combined")
 
 # %%
 wt_d_coordinates = {}
@@ -52,11 +49,12 @@ for segment, array in wt_d_combination_2_array_combined.items():
 # %%
 wt_d_regions = {}
 for segment, coordinates in wt_d_coordinates.items():
-    wt_d_coordinates[segment] = fi.extract_coordinates(array)
+    wt_d_regions[segment] = fi.extract_regions(coordinates)
 
 # %%
-
 wt_d_means = {}
 for segment, regions in wt_d_regions.items():
     wt_d_means[segment] = [fi.readcounts_to_means(regions, array) for array in wt_d_combination_2_array_filtered[segment]]
+
+for segment, means in wt_d_means.items():
     fi.format_to_table(wt_d_means[segment], output_path=f"{RESULT}/{segment}_interactions.csv")
