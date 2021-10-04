@@ -5,9 +5,9 @@ import find_interactions as fi
 
 # %%
 # Define file paths and viral features:
-DIRECTORY = "/data/dessertlocal/projects/gl_iav-splash_freiburg"
+DIRECTORY = "/home/gabriellovate/Projects/gl_iav-splash_freiburg"
 INPUT = f"{DIRECTORY}/data/arrays"
-RESULT = f"{DIRECTORY}/results/202109/20210930"
+RESULT = f"{DIRECTORY}/results/202110/20211002"
 iav_segments = ["PB2", "PB1", "PA", "HA", "NP", "NA", "M", "NS"]
 
 # %%
@@ -15,40 +15,48 @@ iav_segments = ["PB2", "PB1", "PA", "HA", "NP", "NA", "M", "NS"]
 wt_d_repDir2Combinations, wt_d_combination2Array = vbe.read_arrays(INPUT, iav_segments)
 
 # %%
-# Extract arrays for testing, in this case interactions betwen NA and NP segments
-NA_NP_arrays = wt_d_combination2Array["NA_NP"]
-NA_NP_arrays
+# Unpack the arrays and filter the regions with readcounts greater than the mean of all values...
+wt_d_combination_2_array_filtered = {}
+for segment, arrays in wt_d_combination2Array.items():
+    for i in range(len(arrays)):
+        if i == 0:
+            wt_d_combination_2_array_filtered[segment] = [fi.mean_filter(arrays[i])]
+        else:
+            wt_d_combination_2_array_filtered[segment].append(fi.mean_filter(arrays[i]))
 
 # %%
-# Now we filter regions with readcounts greater than the mean of all values...
-NA_NP_arrays_meanfiltered = [fi.mean_filter(array) for array in NA_NP_arrays]
-NA_NP_arrays_meanfiltered
+wt_d_combination_2_array_filtered
+
+# %%
+# Unpack the filtered arrays and plot them
+for segment, arrays in wt_d_combination_2_array_filtered.items():
+    for i in range(len(arrays)):
+        vbe.plot_heatmap(arrays[i], RESULT, f"{segment}_{i}")
+
+# %%
+# Combine the arrays of each segment combination in one array
+wt_d_combination_2_array_combined = {}
+for segment, arrays in wt_d_combination_2_array_filtered.items():
+    wt_d_combination_2_array_combined[segment] = fi.combine_filters(arrays)
 
 # %%
 # ...and plot it.
-iterator = 0
-for array in NA_NP_arrays_meanfiltered:
-    iterator += 1
-    vbe.plot_heatmap(array, RESULT, f"NA_NP_{iterator}")
+for segment, array in wt_d_combination_2_array_combined.items():
+    vbe.plot_heatmap(array, RESULT, f"{segment}_combined")
 
 # %%
-# Combine all regions in one array...
-NA_NP_all_samples = fi.combine_filters(NA_NP_arrays_meanfiltered)
-NA_NP_all_samples
+wt_d_coordinates = {}
+for segment, array in wt_d_combination_2_array_combined.items():
+    wt_d_coordinates[segment] = fi.extract_coordinates(array)
 
 # %%
-# ...and plot it.
-vbe.plot_heatmap(NA_NP_all_samples, RESULT, f"NA_NP_combined")
+wt_d_regions = {}
+for segment, coordinates in wt_d_coordinates.items():
+    wt_d_coordinates[segment] = fi.extract_coordinates(array)
 
 # %%
-NA_NP_coordinates = fi.extract_coordinates(NA_NP_all_samples)
 
-# %%
-NA_NP_regions = fi.extract_regions(NA_NP_coordinates)
-NA_NP_regions
-
-# %%
-NA_NP_means = [fi.readcounts_to_means(NA_NP_regions, array) for array in NA_NP_arrays]
-fi.format_to_table(NA_NP_means, output_path=f"{RESULT}/NA_NP_interactions.csv")
-
-# %%
+wt_d_means = {}
+for segment, regions in wt_d_regions.items():
+    wt_d_means[segment] = [fi.readcounts_to_means(regions, array) for array in wt_d_combination_2_array_filtered[segment]]
+    fi.format_to_table(wt_d_means[segment], output_path=f"{RESULT}/{segment}_interactions.csv")
