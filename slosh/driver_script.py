@@ -1,60 +1,45 @@
-# %%
 # Import functions for analysis of SPLASH np.arrays
 import variance_by_element as vbe
 import find_interactions as fi
 
-# %%
 # Define file paths and viral features:
 DIRECTORY = "/home/ru27wav/Projects/gl_iav-splash_freiburg/"
-INPUT = f"{DIRECTORY}/data/arrays"
+INPUT = f"{DIRECTORY}/data/arrays_test"
 RESULT = f"{DIRECTORY}/results"
 iav_segments = ["PB2", "PB1", "PA", "HA", "NP", "NA", "M", "NS"]
 
-# %%
 # Read the arrays from file and put them into dictionaries
-wt_d_repDir2Combinations, wt_d_combination2Array = vbe.read_arrays(INPUT, iav_segments)
+wt_d_repDir2Combinations, wt_d_combinations2arrays = vbe.read_arrays(INPUT, iav_segments)
 
-# %%
 # Unpack the arrays and filter the regions with readcounts greater than the mean of all values...
-wt_d_combination_2_array_filtered = {}
-for segment, arrays in wt_d_combination2Array.items():
+wt_d_combinations2arrays_filtered = {}
+for combination, arrays in wt_d_combinations2arrays.items():
     for i in range(len(arrays)):
         if i == 0:
-            wt_d_combination_2_array_filtered[segment] = [fi.mean_filter(arrays[i])]
+            wt_d_combinations2arrays_filtered[combination] = [fi.mean_filter(arrays[i])]
         else:
-            wt_d_combination_2_array_filtered[segment].append(fi.mean_filter(arrays[i]))
+            wt_d_combinations2arrays_filtered[combination].append(fi.mean_filter(arrays[i]))
 
-# # %%
-# # Unpack the filtered arrays and plot them
-# for segment, arrays in wt_d_combination_2_array_filtered.items():
-#     for i in range(len(arrays)):
-#         vbe.plot_heatmap(arrays[i], RESULT, f"{segment}_{i}")
+# Merge the binary arrays
+wt_d_combinations2arrays_combined = {}
+for combination, arrays in wt_d_combinations2arrays_filtered.items():
+    wt_d_combinations2arrays_combined[combination] = fi.combine_filters(arrays)
 
-# %%
-# Combine the arrays of each segment combination in one array
-wt_d_combination_2_array_combined = {}
-for segment, arrays in wt_d_combination_2_array_filtered.items():
-    wt_d_combination_2_array_combined[segment] = fi.combine_filters(arrays)
+# Create a dictionary of coordinates
+wt_d_combinations2coordinates = {}
+for combination, array in wt_d_combinations2arrays_combined.items():
+    wt_d_combinations2coordinates[combination] = fi.extract_coordinates(array)
 
-# # %%
-# # ...and plot it.
-# for segment, array in wt_d_combination_2_array_combined.items():
-#     vbe.plot_heatmap(array, RESULT, f"{segment}_combined")
+# Create a dictionary of regions
+wt_d_combinations2regions = {}
+for combination, coordinates in wt_d_combinations2coordinates.items():
+    wt_d_combinations2regions[combination] = fi.extract_regions(coordinates)
 
-# %%
-wt_d_coordinates = {}
-for segment, array in wt_d_combination_2_array_combined.items():
-    wt_d_coordinates[segment] = fi.extract_coordinates(array)
+# Create a dictionary of the mean countvalue for each region
+wt_d_combinations2means = {}
+for combination, regions in wt_d_combinations2regions.items():
+    wt_d_combinations2means[combination] = [fi.readcounts_to_means(regions, array) for array in wt_d_combinations2arrays[combination]]
 
-# %%
-wt_d_regions = {}
-for segment, coordinates in wt_d_coordinates.items():
-    wt_d_regions[segment] = fi.extract_regions(coordinates)
-
-# %%
-wt_d_means = {}
-for segment, regions in wt_d_regions.items():
-    wt_d_means[segment] = [fi.readcounts_to_means(regions, array) for array in wt_d_combination_2_array_filtered[segment]]
-
-for segment, means in wt_d_means.items():
-    fi.format_to_table(wt_d_means[segment], output_path=f"{RESULT}/{segment}_interactions.csv")
+# Format each of the mean dictionaries to a .csv file and save it
+for combination, means in wt_d_combinations2means.items():
+    fi.format_to_table(wt_d_combinations2means[combination], output_path=f"{RESULT}/{combination}_interactions.csv")
