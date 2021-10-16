@@ -196,7 +196,7 @@ def readcounts_to_means(regions_dict, readcount_aray):
     return readcount_dict
 
 
-def format_to_table(readcounts, sep=",", output_path=None):
+def format_means_to_table(readcounts, sep=",", output_path=None):
     """ Returns ...
 
     Parameters
@@ -224,3 +224,17 @@ def format_to_table(readcounts, sep=",", output_path=None):
     else:
         print("Size of table not consistent with dictionary")
     return table
+
+def format_arrays_to_table():
+    """ Returns ...
+
+    Parameters
+    ----------
+    readcounts: ...
+    path: ...
+
+    Returns
+    -------
+    res:
+    """
+    

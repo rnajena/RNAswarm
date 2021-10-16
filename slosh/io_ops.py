@@ -1,30 +1,9 @@
 import numpy as np
-import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
 import os
 import re
 from scipy import stats
 
-
-def plot_heatmap(array, output_dir, filename):
-    heatmap = sns.heatmap(array)
-    plt.figure()
-    heatmap.figure.savefig(f"{output_dir}/{filename}")
-    plt.close("all")
-
-
-def plot_histogram(array, output_dir):
-    plt.hist(array.flatten())
-    plt.close()
-
-    # histogram = plt.figure()
-    # ax = histogram.add_subplot(111)
-    # ax.hist(array.flatten(), bins="auto")
-    # histogram.tight_layout()
-    # histogram.savefig(output_dir)
-    # plt.close(histogram)
-
+import visualize_data as vd
 
 def regex_from_segments(viral_segments):
     """
@@ -97,6 +76,10 @@ def calculate_variances(d_arrays):
 
     return d_comb2variance
 
+def print_csv_from_dict(dict):
+    for comb, characteristics in dict.items():
+        for characteristic, value in characteristics.items():
+            print("{},{},".format(characteristic, value), end="")
 
 def save_heatmaps(variances, output_dir):
     """
@@ -109,19 +92,11 @@ def save_heatmaps(variances, output_dir):
     """
     # Retrieves the key (comb) and the value (variance_array)
     for comb, variance_array in variances.items():
-        plot_heatmap(variance_array, output_dir, f"{comb}_hist")
-
+        vd.plot_heatmap(variance_array, output_dir, f"{comb}_hist")
 
 def save_histograms(variances, output_dir):
     for comb, variance_array in variances.items():
-        plot_histogram(variance_array, f"{output_dir}/{comb}_hist")
-
-
-def print_csv_from_dict(dict):
-    for comb, characteristics in dict.items():
-        for characteristic, value in characteristics.items():
-            print("{},{},".format(characteristic, value), end="")
-
+        vd.plot_histogram(variance_array, f"{output_dir}/{comb}_hist")
 
 def save_characteristics(variances, output_dir):
     d_comb2characteristics = {}

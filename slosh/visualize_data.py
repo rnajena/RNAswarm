@@ -1,5 +1,16 @@
 import nxviz as nv
+import seaborn as sns
 import matplotlib.pyplot as plt
+
+def plot_heatmap(array, output_dir, filename):
+    heatmap = sns.heatmap(array)
+    plt.figure()
+    heatmap.figure.savefig(f"{output_dir}/{filename}")
+    plt.close("all")
+
+def plot_histogram(array, output_dir):
+    plt.hist(array.flatten())
+    plt.close()
 
 # We assume you have a graph G that is a NetworkX graph object.
 # In this example, all nodes possess the "group" and "value" node attributes
@@ -15,3 +26,4 @@ ax = nv.circos(
 )
 
 nv.annotate.circos_group(G, group_by="group")
+

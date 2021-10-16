@@ -1,5 +1,5 @@
 # Import functions for analysis of SPLASH np.arrays
-import variance_by_element as vbe
+import io_ops as iops
 import find_interactions as fi
 
 # Define file paths and viral features:
@@ -9,7 +9,7 @@ RESULT = f"{DIRECTORY}/results"
 iav_segments = ["PB2", "PB1", "PA", "HA", "NP", "NA", "M", "NS"]
 
 # Read the arrays from file and put them into dictionaries
-wt_d_repDir2Combinations, wt_d_combinations2arrays = vbe.read_arrays(INPUT, iav_segments)
+wt_d_repDir2Combinations, wt_d_combinations2arrays = iops.read_arrays(INPUT, iav_segments)
 
 # Unpack the arrays and filter the regions with readcounts greater than the mean of all values...
 wt_d_combinations2arrays_filtered = {}
@@ -42,4 +42,4 @@ for combination, regions in wt_d_combinations2regions.items():
 
 # Format each of the mean dictionaries to a .csv file and save it
 for combination, means in wt_d_combinations2means.items():
-    fi.format_to_table(wt_d_combinations2means[combination], output_path=f"{RESULT}/{combination}_interactions.csv")
+    fi.format_means_to_table(wt_d_combinations2means[combination], output_path=f"{RESULT}/{combination}_interactions.csv")
