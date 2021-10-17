@@ -6,3 +6,5 @@ __pycache__
 .gitignore
 src.Rproj
 .Rhistory
+slosh/circos/circos.svg
+slosh/slosh_multistrain.ipynb

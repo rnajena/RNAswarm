@@ -1,34 +1,14 @@
 import numpy as np
-import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
 import os
 import re
 from scipy import stats
 
-
-def plot_heatmap(array, output_dir, filename):
-    heatmap = sns.heatmap(array)
-    plt.figure()
-    heatmap.figure.savefig(f"{output_dir}/{filename}")
-    plt.close("all")
-
-
-def plot_histogram(array, output_dir):
-    plt.hist(array.flatten())
-    plt.close()
-
-    # histogram = plt.figure()
-    # ax = histogram.add_subplot(111)
-    # ax.hist(array.flatten(), bins="auto")
-    # histogram.tight_layout()
-    # histogram.savefig(output_dir)
-    # plt.close(histogram)
+import visualize_data as vd
 
 
 def regex_from_segments(viral_segments):
     """
-    Returns a compiled regex that can be used to search for pairs of viral segment 
+    Returns a compiled regex that can be used to search for pairs of viral segment
     abreviations in a given string.
 
     Precondition:
@@ -46,14 +26,14 @@ def regex_from_segments(viral_segments):
 
 def read_arrays(data_directory, viral_segments):
     """
-    Takes a directory containing subdirectories related to diferent replicates and 
-    returns two dictionaries, one describing the paths to the arrays and another 
+    Takes a directory containing subdirectories related to diferent replicates and
+    returns two dictionaries, one describing the paths to the arrays and another
     containing the arrays for each segment combination.
 
     Input:
-        
+
     Return:
-        
+
     """
     d_repDir2Combinations = {}
     d_combination2Array = {}
@@ -81,7 +61,7 @@ def read_arrays(data_directory, viral_segments):
 
 def calculate_variances(d_arrays):
     """
-    Takes a dictionary with numpy arrays and calculates the variance for each unique 
+    Takes a dictionary with numpy arrays and calculates the variance for each unique
     entry.
 
     Input:
@@ -89,13 +69,19 @@ def calculate_variances(d_arrays):
 
     Return:
         d_comb2variance -- {'uniqueName' : np.array}
-    
+
     """
     d_comb2variance = {}
     for combination, l_countTable in d_arrays.items():
         d_comb2variance[combination] = np.var(l_countTable, axis=0)
 
     return d_comb2variance
+
+
+def print_csv_from_dict(dict):
+    for comb, characteristics in dict.items():
+        for characteristic, value in characteristics.items():
+            print("{},{},".format(characteristic, value), end="")
 
 
 def save_heatmaps(variances, output_dir):
@@ -109,18 +95,12 @@ def save_heatmaps(variances, output_dir):
     """
     # Retrieves the key (comb) and the value (variance_array)
     for comb, variance_array in variances.items():
-        plot_heatmap(variance_array, output_dir, f"{comb}_hist")
+        vd.plot_heatmap(variance_array, output_dir, f"{comb}_hist")
 
 
 def save_histograms(variances, output_dir):
     for comb, variance_array in variances.items():
-        plot_histogram(variance_array, f"{output_dir}/{comb}_hist")
-
-
-def print_csv_from_dict(dict):
-    for comb, characteristics in dict.items():
-        for characteristic, value in characteristics.items():
-            print("{},{},".format(characteristic, value), end="")
+        vd.plot_histogram(variance_array, f"{output_dir}/{comb}_hist")
 
 
 def save_characteristics(variances, output_dir):
@@ -136,3 +116,55 @@ def save_characteristics(variances, output_dir):
             "range": np.ptp(variance_array),
         }
 
+
+def format_means_to_table(readcounts, sep=",", output_path=None):
+    """Returns teste teste
+
+    Parameters
+    ----------
+    readcounts: ...
+    path: ...
+
+    Returns
+    -------
+    res: DEseq2_input
+    """
+    table = ""
+    # we should check if all dicts inside readcounts have the same size
+
+    if len(readcounts) > 1:
+        for idx in readcounts[0].keys():
+            for sample_id in range(len(readcounts)):
+                if sample_id == 0:
+                    table = f"{table}{idx}{sep}{int(round(readcounts[sample_id][idx]))}"
+                elif sample_id == len(readcounts) - 1:
+                    table = f"{table}{sep}{int(round(readcounts[sample_id][idx]))}\n"
+                else:
+                    table = f"{table}{sep}{int(round(readcounts[1][idx]))}"
+    elif len(readcounts) == 1:
+        for idx in readcounts[0].keys():
+            table = f"{table}{idx}{sep}{int(round(readcounts[0][idx]))}\n"
+
+    assert sum("\n" in char for char in table) == len(
+        readcounts[0].keys()
+    ), "Size of table is not consistent with dictionary"
+
+    if output_path:
+        with open(output_path, "w") as file:
+            file.write(table)
+
+    return table
+
+
+def format_arrays_to_table():
+    """Returns ...
+
+    Parameters
+    ----------
+    readcounts: ...
+    path: ...
+
+    Returns
+    -------
+    res:
+    """
