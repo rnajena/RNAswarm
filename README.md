@@ -6,7 +6,27 @@ According to [Wikipedia](https://en.wikipedia.org/wiki/Slosh_dynamics): "In flui
 ## Dependencies (dev state)
 ### iav-splash conda env
 
-### r-iav_splash conda env
+### conda envs
+#### iav_splash
+
+This environment has all dependencies needed to run slosh, but doesn't include development dependencies (black, ipython, etc)
+
 ```Bash
-conda create --name r-iav_splash bioconductor-deseq2 bioconductor-edger bioconductor-tximport bioconductor-tximportdata r-gplots csvkit r-readr r-dplyr 
+mamba create --name iav_splash bioconductor-deseq2 r-base numpy seaborn scipy circos
+```
+
+#### iav_splash-dev
+
+This environment has all dependencies needed to run slosh, including development dependencies (black, ipython, etc)
+
+```Bash
+mamba create --name iav_splash-dev bioconductor-deseq2 r-base numpy seaborn scipy circos 
+```
+
+#### iav_splash-r
+
+This environment only has dependencies related to R code
+
+```Bash
+mamba create --name iav_splash-r bioconductor-deseq2 r-base
 ```
