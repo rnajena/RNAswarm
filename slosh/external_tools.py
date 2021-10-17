@@ -11,4 +11,5 @@ def run_shell_script(script_path, *arguments):
     """
     """
     assert script_path[-3:] == ".sh", f"{script_path} is not a shell script"
-    
+    argument_list = ["bash", script_path] + arguments
+    subprocess.run(argument_list)
