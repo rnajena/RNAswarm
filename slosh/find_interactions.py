@@ -31,12 +31,12 @@ def arbitrary_filter(arr, threshold):
 
 # ref: https://stackoverflow.com/questions/20528328/numpy-logical-or-for-more-than-two-arguments
 def combine_filters(binarry_arrays_list):
-    combined_array = np.logical_or.reduce((np.array(binarry_arrays_list)))
+    combined_array = np.logical_or.reduce(np.array(binarry_arrays_list))
     return combined_array
 
 
 def is_valid_coordinate(coord, array):
-    """ Check if a coordinate is present in a given array.
+    """Check if a coordinate is present in a given array.
     Parameters
     ----------
     binarry_array: np.aray with binary values (True or False)
@@ -51,7 +51,7 @@ def is_valid_coordinate(coord, array):
 
 
 def extract_coordinates(binarry_array):
-    """ Return a list of lists containing coordinates for True values on a np.array, 
+    """Return a list of lists containing coordinates for True values on a np.array,
     clustering those if they are neighboring values.
 
     Parameters
@@ -121,7 +121,7 @@ def extract_coordinates(binarry_array):
 
 
 def extract_regions(coord_to_cluster):
-    """ Return a list of dictionaries containing the coordinates for a rectangle that
+    """Return a list of dictionaries containing the coordinates for a rectangle that
     contains the interactions of a given cluster.
 
     Parameters
@@ -158,7 +158,7 @@ def extract_regions(coord_to_cluster):
 
 
 def readcounts_to_means(regions_dict, readcount_aray):
-    """ Returns a dictionary with interaction id as key and mean of the values inside
+    """Returns a dictionary with interaction id as key and mean of the values inside
     the interaction region as value.
 
     Parameters
@@ -175,7 +175,9 @@ def readcounts_to_means(regions_dict, readcount_aray):
         if region["width"] > 1 and region["height"] > 1:
             readcount_dict[idx] = readcount_aray[
                 region["coordinate"][0] : region["coordinate"][0] + region["width"] - 1,
-                region["coordinate"][1] : region["coordinate"][1] + region["height"] -1,
+                region["coordinate"][1] : region["coordinate"][1]
+                + region["height"]
+                - 1,
             ].mean()
         elif region["width"] > 1:
             readcount_dict[idx] = readcount_aray[
@@ -191,6 +193,7 @@ def readcounts_to_means(regions_dict, readcount_aray):
             ].mean()
         else:
             readcount_dict[idx] = readcount_aray[
-                region["coordinate"][0], region["coordinate"][1],
+                region["coordinate"][0],
+                region["coordinate"][1],
             ]
     return readcount_dict
