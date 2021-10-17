@@ -132,14 +132,18 @@ def format_means_to_table(readcounts, sep=",", output_path=None):
     table = ""
     # we should check if all dicts inside readcounts have the same size
 
-    for idx in readcounts[0].keys():
-        for sample_id in range(len(readcounts)):
-            if sample_id == 0:
-                table = f"{table}{idx}{sep}{int(round(readcounts[sample_id][idx]))}"
-            elif sample_id == len(readcounts) - 1:
-                table = f"{table}{sep}{int(round(readcounts[sample_id][idx]))}\n"
-            else:
-                table = f"{table}{sep}{int(round(readcounts[1][idx]))}"
+    if len(readcounts) > 1:
+        for idx in readcounts[0].keys():
+            for sample_id in range(len(readcounts)):
+                if sample_id == 0:
+                    table = f"{table}{idx}{sep}{int(round(readcounts[sample_id][idx]))}"
+                elif sample_id == len(readcounts) - 1:
+                    table = f"{table}{sep}{int(round(readcounts[sample_id][idx]))}\n"
+                else:
+                    table = f"{table}{sep}{int(round(readcounts[1][idx]))}"
+    elif len(readcounts) == 1:
+        for idx in readcounts[0].keys():
+            table = f"{table}{idx}{sep}{int(round(readcounts[0][idx]))}\n"
 
     assert sum("\n" in char for char in table) == len(
         readcounts[0].keys()
