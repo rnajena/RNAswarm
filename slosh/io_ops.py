@@ -5,9 +5,10 @@ from scipy import stats
 
 import visualize_data as vd
 
+
 def regex_from_segments(viral_segments):
     """
-    Returns a compiled regex that can be used to search for pairs of viral segment 
+    Returns a compiled regex that can be used to search for pairs of viral segment
     abreviations in a given string.
 
     Precondition:
@@ -25,14 +26,14 @@ def regex_from_segments(viral_segments):
 
 def read_arrays(data_directory, viral_segments):
     """
-    Takes a directory containing subdirectories related to diferent replicates and 
-    returns two dictionaries, one describing the paths to the arrays and another 
+    Takes a directory containing subdirectories related to diferent replicates and
+    returns two dictionaries, one describing the paths to the arrays and another
     containing the arrays for each segment combination.
 
     Input:
-        
+
     Return:
-        
+
     """
     d_repDir2Combinations = {}
     d_combination2Array = {}
@@ -60,7 +61,7 @@ def read_arrays(data_directory, viral_segments):
 
 def calculate_variances(d_arrays):
     """
-    Takes a dictionary with numpy arrays and calculates the variance for each unique 
+    Takes a dictionary with numpy arrays and calculates the variance for each unique
     entry.
 
     Input:
@@ -68,7 +69,7 @@ def calculate_variances(d_arrays):
 
     Return:
         d_comb2variance -- {'uniqueName' : np.array}
-    
+
     """
     d_comb2variance = {}
     for combination, l_countTable in d_arrays.items():
@@ -76,10 +77,12 @@ def calculate_variances(d_arrays):
 
     return d_comb2variance
 
+
 def print_csv_from_dict(dict):
     for comb, characteristics in dict.items():
         for characteristic, value in characteristics.items():
             print("{},{},".format(characteristic, value), end="")
+
 
 def save_heatmaps(variances, output_dir):
     """
@@ -94,9 +97,11 @@ def save_heatmaps(variances, output_dir):
     for comb, variance_array in variances.items():
         vd.plot_heatmap(variance_array, output_dir, f"{comb}_hist")
 
+
 def save_histograms(variances, output_dir):
     for comb, variance_array in variances.items():
         vd.plot_histogram(variance_array, f"{output_dir}/{comb}_hist")
+
 
 def save_characteristics(variances, output_dir):
     d_comb2characteristics = {}
@@ -111,8 +116,9 @@ def save_characteristics(variances, output_dir):
             "range": np.ptp(variance_array),
         }
 
+
 def format_means_to_table(readcounts, sep=",", output_path=None):
-    """ Returns ...
+    """Returns teste teste
 
     Parameters
     ----------
@@ -125,23 +131,29 @@ def format_means_to_table(readcounts, sep=",", output_path=None):
     """
     table = ""
     # we should check if all dicts inside readcounts have the same size
+
     for idx in readcounts[0].keys():
-        # We should generalize this to experimental settings with n replicates
-        table = f"{table}{idx}{sep}{int(round(readcounts[0][idx]))}{sep}{int(round(readcounts[1][idx]))}{sep}{int(round(readcounts[2][idx]))}\n"
+        for sample_id in range(len(readcounts)):
+            if sample_id == 0:
+                table = f"{table}{idx}{sep}{int(round(readcounts[sample_id][idx]))}"
+            elif sample_id == len(readcounts) - 1:
+                table = f"{table}{sep}{int(round(readcounts[sample_id][idx]))}\n"
+            else:
+                table = f"{table}{sep}{int(round(readcounts[1][idx]))}"
+
+    assert sum("\n" in char for char in table) == len(
+        readcounts[0].keys()
+    ), "Size of table is not consistent with dictionary"
+
     if output_path:
         with open(output_path, "w") as file:
             file.write(table)
-    is_size_consistent = sum("\n" in char for char in table) == len(
-        readcounts[0].keys()
-    )
-    if is_size_consistent:
-        print("Size of table consistent with dictionary")
-    else:
-        print("Size of table not consistent with dictionary")
+
     return table
 
+
 def format_arrays_to_table():
-    """ Returns ...
+    """Returns ...
 
     Parameters
     ----------
