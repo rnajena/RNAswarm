@@ -5,7 +5,7 @@ import find_interactions as fi
 # Define file paths and viral features:
 DIRECTORY = "/home/ru27wav/Projects/gl_iav-splash_freiburg/"
 INPUT = f"{DIRECTORY}/data/arrays_test"
-RESULT = f"{DIRECTORY}/results"
+RESULT = f"{DIRECTORY}/results/test"
 iav_segments = ["PB2", "PB1", "PA", "HA", "NP", "NA", "M", "NS"]
 
 # Read the arrays from file and put them into dictionaries

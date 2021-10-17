@@ -23,7 +23,7 @@ channels:
 This environment has all dependencies needed to run slosh, but doesn't include development dependencies (black, ipython, etc)
 
 ```Bash
-mamba create --name iav_splash bioconductor-deseq2 r-base numpy seaborn scipy circos
+conda create --name iav_splash bioconductor-deseq2 r-base numpy seaborn scipy circos
 ```
 
 #### iav_splash-dev
@@ -31,7 +31,7 @@ mamba create --name iav_splash bioconductor-deseq2 r-base numpy seaborn scipy ci
 This environment has all dependencies needed to run slosh, including development dependencies (ipykernel)
 
 ```Bash
-mamba create --name iav_splash-dev bioconductor-deseq2 r-base numpy seaborn scipy circos ipykernel
+conda create --name iav_splash-dev bioconductor-deseq2 r-base numpy seaborn scipy circos ipykernel
 ```
 
 #### iav_splash-r
@@ -39,5 +39,5 @@ mamba create --name iav_splash-dev bioconductor-deseq2 r-base numpy seaborn scip
 This environment only has dependencies related to R code
 
 ```Bash
-mamba create --name iav_splash-r bioconductor-deseq2 r-base
+conda create --name iav_splash-r bioconductor-deseq2 r-base
 ```

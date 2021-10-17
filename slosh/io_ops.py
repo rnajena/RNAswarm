@@ -111,3 +111,44 @@ def save_characteristics(variances, output_dir):
             "range": np.ptp(variance_array),
         }
 
+def format_means_to_table(readcounts, sep=",", output_path=None):
+    """ Returns ...
+
+    Parameters
+    ----------
+    readcounts: ...
+    path: ...
+
+    Returns
+    -------
+    res: DEseq2_input
+    """
+    table = ""
+    # we should check if all dicts inside readcounts have the same size
+    for idx in readcounts[0].keys():
+        # We should generalize this to experimental settings with n replicates
+        table = f"{table}{idx}{sep}{int(round(readcounts[0][idx]))}{sep}{int(round(readcounts[1][idx]))}{sep}{int(round(readcounts[2][idx]))}\n"
+    if output_path:
+        with open(output_path, "w") as file:
+            file.write(table)
+    is_size_consistent = sum("\n" in char for char in table) == len(
+        readcounts[0].keys()
+    )
+    if is_size_consistent:
+        print("Size of table consistent with dictionary")
+    else:
+        print("Size of table not consistent with dictionary")
+    return table
+
+def format_arrays_to_table():
+    """ Returns ...
+
+    Parameters
+    ----------
+    readcounts: ...
+    path: ...
+
+    Returns
+    -------
+    res:
+    """
