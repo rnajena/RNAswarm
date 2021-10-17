@@ -7,6 +7,17 @@ According to [Wikipedia](https://en.wikipedia.org/wiki/Slosh_dynamics): "In flui
 ### iav-splash conda env
 
 ### conda envs
+
+#### Channel priority
+
+```Bash
+channels:
+  - conda-forge
+  - bioconda
+  - r
+  - defaults
+```
+
 #### iav_splash
 
 This environment has all dependencies needed to run slosh, but doesn't include development dependencies (black, ipython, etc)
@@ -17,10 +28,10 @@ mamba create --name iav_splash bioconductor-deseq2 r-base numpy seaborn scipy ci
 
 #### iav_splash-dev
 
-This environment has all dependencies needed to run slosh, including development dependencies (black, ipython, etc)
+This environment has all dependencies needed to run slosh, including development dependencies (ipykernel)
 
 ```Bash
-mamba create --name iav_splash-dev bioconductor-deseq2 r-base numpy seaborn scipy circos 
+mamba create --name iav_splash-dev bioconductor-deseq2 r-base numpy seaborn scipy circos ipykernel
 ```
 
 #### iav_splash-r
