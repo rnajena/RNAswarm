@@ -1,14 +1,12 @@
 library("DESeq2")
 
-# Import the data for NA_NP
-args <- commandArgs(trailing = TRUE)
-input_filepath <- args[1]
+# Import the data for test
+input_filepath <- "/home/ru27wav/Projects/gl_iav-splash_freiburg/results/test/wt_mut_interactions.csv"
 
-output_filepath = sprintf("%s_deseq2.csv" ,substr(input_filepath, 0, (nchar(input_filepath) - 4)))
+output_filepath = /home/ru27wav/Projects/gl_iav-splash_freiburg/results/test/deseq2_output.csv
 
 counts <- read.csv(input_filepath, header = FALSE, row.names=1)
-samples <- c("wt01", "wt02", "wt03")
-conditions <- c("wt01", "wt02", "wt03")
+conditions <- c("wt", "mut"
 
 # Hack to make the dataframe looks like what it should look to be used as countData DEseq2 input
 counts <- counts[,2:4]
