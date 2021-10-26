@@ -7,3 +7,10 @@ __pycache__
 src.Rproj
 .Rhistory
 slosh/circos/circos.svg
+slosh/circos/circos_highest.png
+.gitignore
+slosh/circos/circos_highest.svg
+slosh/circos/circos_lowest.png
+slosh/circos/circos_lowest.svg
+.gitignore
+slosh/circos/circos.png
