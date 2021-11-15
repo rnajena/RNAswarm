@@ -1,5 +1,0 @@
-NA	0	1	PB1	967	968 fill_color=(140,104,137)
-NA	0	1	PB1	968	969 fill_color=(140,104,137)
-NA	0	1	PB1	970	971 fill_color=(140,104,137)
-PB1	17	60	PB1	1934	2091 fill_color=(140,104,137)
-NA	431	459	PB1	637	733 fill_color=(140,104,137)
