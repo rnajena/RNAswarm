@@ -44,6 +44,12 @@ def generate_ndarray_from_mapping(mapping_file):
     """
     Generate a numpy array from a mapping file, showing pairwise interactions between segments/genomes
     """
-    
+    pass
 
+
+def run_deseq2_on_ndarray(ndarray):
+    """
+    Run DESeq2 on a numpy array
+    """
+    pass
 
