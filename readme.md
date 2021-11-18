@@ -9,4 +9,5 @@ RNAswarm is a tool for analyzing SPLASH data. It is a Python package that:
 ```Bash
 conda install -c bioconda fastp
 ```
+
 ## Usage
