@@ -1,32 +1,23 @@
 import os
 import argparse
 
-__main__ = '__main__'
-if __name__ == __main__:
-    parser = argparse.ArgumentParser(description='Run RNAswarm pipeline')
-    parser.add_argument('-f', '--fastq', help='Fastq file', required=True)
-    parser.add_argument('-o', '--output_dir', help='Output directory', required=True)
-    parser.add_argument('-g', '--genome_index', help='Genome index', required=True)
-    args = parser.parse_args()
-    run_fastp(args.fastq, args.output_dir)
+def run_fastp(fastq_file, output_dir):
+    """
+    Run fastp on a fastq file
+    """
+    fastp_cmd = f'fastp -i {fastq_file} -o {output_dir} -h {output_dir} -j {output_dir}'
+    print(fastp_cmd)
+    os.system(fastp_cmd)
+
 
 # The idea is to get a multiqc report for every time we do something with the reads (fastp, hisat2, etc)
 def run_multiqc(output_dir):
     """
     Run multiqc on a directory
     """
-    multiqc_cmd = 'multiqc {}'.format(output_dir)
+    multiqc_cmd = f'multiqc {output_dir}'
     print(multiqc_cmd)
     os.system(multiqc_cmd)
-
-
-def run_fastp(fastq_file, output_dir):
-    """
-    Run fastp on a fastq file
-    """
-    fastp_cmd = 'fastp -i {} -o {} -h {} -j {}'.format(fastq_file, output_dir, output_dir, output_dir)
-    print(fastp_cmd)
-    os.system(fastp_cmd)
 
 
 # It is important to check how hisat2 is doing the mapping, in our case we don't want to bias our alligments with the knowledge of splicing regions, once
@@ -35,9 +26,18 @@ def run_hisat2(fastq_file, output_dir, genome_index):
     """
     Run hisat2 on a fastq file
     """
-    hisat2_cmd = 'hisat2 -x {} -U {} -S {}.sam'.format(genome_index, fastq_file, output_dir)
+    hisat2_cmd = f'hisat2 -x {genome_index} -U {fastq_file} -S {output_dir}.sam'
     print(hisat2_cmd)
     os.system(hisat2_cmd)
+
+
+def run_segemehl(fastq_file, output_dir):
+    """
+    Run segemehl on a fastq file
+    """
+    segemehl_cmd = f'segemehl -i {fastq_file} -o {output_dir}'
+    print(segemehl_cmd)
+    os.system(segemehl_cmd)
 
 
 def generate_ndarray_from_mapping(mapping_file):
