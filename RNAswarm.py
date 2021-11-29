@@ -1,11 +1,15 @@
+#!/home/ru27wav/miniconda3/envs/RNAswarm/bin/python
+
 import os
 import argparse
+
+print('RNAswarm')
 
 def run_fastp(fastq_file, output_dir):
     """
     Run fastp on a fastq file
     """
-    fastp_cmd = f'fastp -i {fastq_file} -o {output_dir} -h {output_dir} -j {output_dir}'
+    fastp_cmd = f"fastp -i {fastq_file} -o {output_dir} -h {output_dir} -j {output_dir}"
     print(fastp_cmd)
     os.system(fastp_cmd)
 
