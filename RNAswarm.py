@@ -1,4 +1,4 @@
-#!/home/ru27wav/miniconda3/envs/RNAswarm/bin/python
+#!/usr/bin/env python
 
 import os
 import argparse
