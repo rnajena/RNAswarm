@@ -5,6 +5,9 @@ import argparse
 
 print('RNAswarm')
 
+
+
+
 def run_fastp(fastq_file, output_dir):
     """
     Run fastp on a fastq file
@@ -35,11 +38,20 @@ def run_hisat2(fastq_file, output_dir, genome_index):
     os.system(hisat2_cmd)
 
 
-def run_segemehl(fastq_file, output_dir):
+def generate_segemehl_index(genome_file, threads):
+    """
+    Generate a segemehl index
+    """
+    segemehl_cmd = f'segemehl.x -x {genome_file[:-6]}.idx -d {genome_file} -t {threads}'
+    print(segemehl_cmd)
+    os.system(segemehl_cmd)
+
+
+def run_segemehl(fastq_file, genome_index, genome_file, output_dir, threads):
     """
     Run segemehl on a fastq file
     """
-    segemehl_cmd = f'segemehl -i {fastq_file} -o {output_dir}'
+    segemehl_cmd = f'segemehl.x -i {genome_index} -d {} -q {fastq_file} -t {threads} > {}'
     print(segemehl_cmd)
     os.system(segemehl_cmd)
 
