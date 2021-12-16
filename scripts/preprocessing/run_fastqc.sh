@@ -4,10 +4,12 @@ READS_DIR=/home/ru27wav/Projects/gl_iav-splash_freiburg/data/dadonaite_2019/read
 OUTPUT_DIR=/home/ru27wav/Projects/gl_iav-splash_freiburg/results/dadonaite_2019
 THREADS=72
 
+RESULTS_DIR="$OUTPUT_DIR/00-QC_raw_reads"
+mkdir $RESULTS_DIR
 # Run fastqc on a repository full of fastq files
 FASTQ_FILES=$(find $READS_DIR | grep .fastq | xargs ls)
 
 for FASTQ_FILE in $FASTQ_FILES
 do
-    fastqc -t $THREADS $FASTQ_FILE -o $OUTPUT_DIR &>> $OUTPUT_DIR/fastqc.log
+    fastqc -t $THREADS $FASTQ_FILE -o $RESULTS_DIR &>> $RESULTS_DIR/fastqc.log
 done
