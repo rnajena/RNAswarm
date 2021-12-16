@@ -1,6 +1,5 @@
 #!/bin/sh
 
-GENOME_DIR=/home/ru27wav/Projects/gl_iav-splash_freiburg/data/dadonaite_2019/genomes
 OUTPUT_DIR=/home/ru27wav/Projects/gl_iav-splash_freiburg/results/dadonaite_2019/hisat2
 READS_DIR=/home/ru27wav/Projects/gl_iav-splash_freiburg/data/dadonaite_2019/reads
 
