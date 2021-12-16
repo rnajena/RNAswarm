@@ -3,11 +3,6 @@
 import os
 import argparse
 
-print('RNAswarm')
-
-
-
-
 def run_fastp(fastq_file, output_dir):
     """
     Run fastp on a fastq file
