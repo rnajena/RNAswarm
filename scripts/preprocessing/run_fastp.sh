@@ -1,37 +1,25 @@
 #!/bin/sh
-# Run fastp on a dadonaite's fastq files
-fastp -i /data/fass2/reads/gl_iav-splash_freiburg/dadonaite_2019/reads/pr8/SRR7350059.fastq\
-      -o /data/dessertlocal/projects/gl_iav-splash_freiburg/results/dadonaite_2019/fastp/pr8/SRR7350059_trimmed.fastq\
-      --failed_out /data/dessertlocal/projects/gl_iav-splash_freiburg/results/dadonaite_2019/fastp/pr8/SRR7350059_failed_out.fastq\
-      --html /data/dessertlocal/projects/gl_iav-splash_freiburg/results/dadonaite_2019/fastp/pr8/SRR7350059_report.html\
-      &>> /data/dessertlocal/projects/gl_iav-splash_freiburg/results/dadonaite_2019/fastp/pr8/SRR7350059_fastp.log
 
-fastp -i /data/fass2/reads/gl_iav-splash_freiburg/dadonaite_2019/reads/pr8/SRR9637504.fastq\
-      -o /data/dessertlocal/projects/gl_iav-splash_freiburg/results/dadonaite_2019/fastp/pr8/SRR9637504_trimmed.fastq\
-      --failed_out /data/dessertlocal/projects/gl_iav-splash_freiburg/results/dadonaite_2019/fastp/pr8/SRR9637504_failed_out.fastq\
-      --html /data/dessertlocal/projects/gl_iav-splash_freiburg/results/dadonaite_2019/fastp/pr8/SRR9637504_report.html\
-      &>> /data/dessertlocal/projects/gl_iav-splash_freiburg/results/dadonaite_2019/fastp/pr8/SRR9637504_fastp.log
+READS_DIR=/home/ru27wav/Projects/gl_iav-splash_freiburg/data/dadonaite_2019/reads
+RESUTS_DIR=/home/ru27wav/Projects/gl_iav-splash_freiburg/results/dadonaite_2019
+THREADS=72
 
-fastp -i /data/fass2/reads/gl_iav-splash_freiburg/dadonaite_2019/reads/udorn/SRR7350060.fastq\
-        -o /data/dessertlocal/projects/gl_iav-splash_freiburg/results/dadonaite_2019/fastp/udorn/SRR7350060_trimmed.fastq\
-        --failed_out /data/dessertlocal/projects/gl_iav-splash_freiburg/results/dadonaite_2019/fastp/udorn/SRR7350060_failed_out.fastq\
-        --html /data/dessertlocal/projects/gl_iav-splash_freiburg/results/dadonaite_2019/fastp/udorn/SRR7350060_report.html\
-        &>> /data/dessertlocal/projects/gl_iav-splash_freiburg/results/dadonaite_2019/fastp/udorn/SRR7350060_fastp.log
+OUTPUT_DIR="$RESUTS_DIR/01-trimmed_reads"
+mkdir $OUTPUT_DIR
 
-fastp -i /data/fass2/reads/gl_iav-splash_freiburg/dadonaite_2019/reads/udorn/SRR9637509.fastq\
-        -o /data/dessertlocal/projects/gl_iav-splash_freiburg/results/dadonaite_2019/fastp/udorn/SRR9637509_trimmed.fastq\
-        --failed_out /data/dessertlocal/projects/gl_iav-splash_freiburg/results/dadonaite_2019/fastp/udorn/SRR9637509_failed_out.fastq\
-        --html /data/dessertlocal/projects/gl_iav-splash_freiburg/results/dadonaite_2019/fastp/udorn/SRR9637509_report.html\
-        &>> /data/dessertlocal/projects/gl_iav-splash_freiburg/results/dadonaite_2019/fastp/udorn/SRR9637509_fastp.log
+FASTQC_DIR="$OUTPUT_DIR/fastqc"
+mkdir $FASTQC_DIR
 
-fastp -i /data/fass2/reads/gl_iav-splash_freiburg/dadonaite_2019/reads/wsn/SRR6388155.fastq\
-        -o /data/dessertlocal/projects/gl_iav-splash_freiburg/results/dadonaite_2019/fastp/wsn/SRR6388155_trimmed.fastq\
-        --failed_out /data/dessertlocal/projects/gl_iav-splash_freiburg/results/dadonaite_2019/fastp/wsn/SRR6388155_failed_out.fastq\
-        --html /data/dessertlocal/projects/gl_iav-splash_freiburg/results/dadonaite_2019/fastp/wsn/SRR6388155_report.html\
-        &>> /data/dessertlocal/projects/gl_iav-splash_freiburg/results/dadonaite_2019/fastp/wsn/SRR6388155_fastp.log
-
-fastp -i /data/fass2/reads/gl_iav-splash_freiburg/dadonaite_2019/reads/wsn/SRR6388157.fastq\
-        -o /data/dessertlocal/projects/gl_iav-splash_freiburg/results/dadonaite_2019/fastp/wsn/SRR6388157_trimmed.fastq\
-        --failed_out /data/dessertlocal/projects/gl_iav-splash_freiburg/results/dadonaite_2019/fastp/wsn/SRR6388157_failed_out.fastq\
-        --html /data/dessertlocal/projects/gl_iav-splash_freiburg/results/dadonaite_2019/fastp/wsn/SRR6388157_report.html\
-        &>> /data/dessertlocal/projects/gl_iav-splash_freiburg/results/dadonaite_2019/fastp/wsn/SRR6388157_fastp.log
+# Run fastp on dadonaite's fastq files
+FASTQ_FILES=$(find $READS_DIR | grep .fastq | xargs ls)
+for FASTQ_FILE in $FASTQ_FILES
+do
+    fastp -i $FASTQ_FILE -o $OUTPUT_DIR/$(basename $FASTQ_FILE .fastq)_trimmed.fastq\
+          --failed_out $OUTPUT_DIR/$(basename $FASTQ_FILE .fastq)_failed_out.fastq\
+          --json $OUTPUT_DIR/$(basename $FASTQ_FILE .fastq).json\
+          --html $OUTPUT_DIR/$(basename $FASTQ_FILE .fastq).html\
+          &>> $OUTPUT_DIR/$(basename $FASTQ_FILE .fastq).log
+    
+    fastqc -t $THREADS $OUTPUT_DIR/$(basename $FASTQ_FILE .fastq)_trimmed.fastq\
+           -o $FASTQC_DIR &>> $FASTQC_DIR/fastqc.log
+done

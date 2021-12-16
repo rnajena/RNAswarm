@@ -1,55 +1,60 @@
 #!/bin/sh
 
-GENOME_DIR=/home/ru27wav/Projects/gl_iav-splash_freiburg/data/dadonaite_2019/genomes
-OUTPUT_DIR=/home/ru27wav/Projects/gl_iav-splash_freiburg/results/dadonaite_2019/segemehl
-READS_DIR=/beegfs/ru27wav/Projects/gl_iav-splash_freiburg/results/dadonaite_2019/fastp
+RESULTS_DIR="/home/ru27wav/Projects/gl_iav-splash_freiburg/results/dadonaite_2019"
+READS_DIR="/home/ru27wav/Projects/gl_iav-splash_freiburg/results/dadonaite_2019/01-trimmed_reads"
+GENOME_DIR="/home/ru27wav/Projects/gl_iav-splash_freiburg/data/dadonaite_2019/genomes"
+
+mkdir $RESULTS_DIR/02-mappings
+INDEXES_DIR="$RESULTS_DIR/02-mappings/segmehl_indexes"
+MAPPINGS_DIR="$RESULTS_DIR/02-mappings/segemehl"
+
+mkdir $MAPPINGS_DIR
+mkdir $INDEXES_DIR
 
 # Generate indexes for genomes of interest
-mkdir -p $OUTPUT_DIR/indexes
-for file in $GENOME_DIR/*.fasta; do
-    echo $file
-    segemehl.x -x $OUTPUT_DIR/indexes/$(basename $file .fasta).idx -d $file 2> $OUTPUT_DIR/indexes/$(basename $file .fasta).log
+for GENOME in $GENOME_DIR/*.fasta; do
+    segemehl.x -x $INDEXES_DIR/$(basename $GENOME .fasta).idx -d $GENOME 2> $INDEXES_DIR/$(basename $GENOME .fasta).log
 done
 
 # Run segemehl with split read mapping enabled
-segemehl.x -i $OUTPUT_DIR/indexes/pr8_dadonaite.idx\
+segemehl.x -i $INDEXES_DIR/pr8_dadonaite.idx\
            -d $GENOME_DIR/pr8_dadonaite.fasta\
-           -q $READS_DIR/pr8/SRR7350059_trimmed.fastq\
-           -t 64 -S $OUTPUT_DIR/mappings/pr8/SRR7350059\
-           > $OUTPUT_DIR/mappings/pr8/SRR7350059.sam\
-           2> $OUTPUT_DIR/mappings/pr8/SRR7350059.log
+           -q $READS_DIR/SRR7350059_trimmed.fastq\
+           -t 72 -S $MAPPINGS_DIR/SRR7350059\
+           > $MAPPINGS_DIR/SRR7350059.sam\
+           2> $MAPPINGS_DIR/SRR7350059.log
 
-segemehl.x -i $OUTPUT_DIR/indexes/pr8_dadonaite.idx\
+segemehl.x -i $INDEXES_DIR/pr8_dadonaite.idx\
            -d $GENOME_DIR/pr8_dadonaite.fasta\
-           -q $READS_DIR/pr8/SRR9637504_trimmed.fastq\
-           -t 64 -S $OUTPUT_DIR/mappings/pr8/SRR9637504\
-            > $OUTPUT_DIR/mappings/pr8/SRR9637504.sam\
-            2> $OUTPUT_DIR/mappings/pr8/SRR9637504.log
+           -q $READS_DIR/SRR9637504_trimmed.fastq\
+           -t 72 -S $MAPPINGS_DIR/SRR9637504\
+            > $MAPPINGS_DIR/SRR9637504.sam\
+            2> $MAPPINGS_DIR/SRR9637504.log
 
-segemehl.x -i $OUTPUT_DIR/indexes/udorn_dadonaite.idx\
+segemehl.x -i $INDEXES_DIR/udorn_dadonaite.idx\
            -d $GENOME_DIR/udorn_dadonaite.fasta\
-           -q $READS_DIR/udorn/SRR7350060_trimmed.fastq\
-           -t 64 -S $OUTPUT_DIR/mappings/udorn/SRR7350060\
-           > $OUTPUT_DIR/mappings/udorn/SRR7350060.sam\
-           2> $OUTPUT_DIR/mappings/udorn/SRR7350060.log
+           -q $READS_DIR/SRR7350060_trimmed.fastq\
+           -t 72 -S $MAPPINGS_DIR/SRR7350060\
+           > $MAPPINGS_DIR/SRR7350060.sam\
+           2> $MAPPINGS_DIR/SRR7350060.log
 
-segemehl.x -i $OUTPUT_DIR/indexes/udorn_dadonaite.idx\
+segemehl.x -i $INDEXES_DIR/udorn_dadonaite.idx\
            -d $GENOME_DIR/udorn_dadonaite.fasta\
-           -q $READS_DIR/udorn/SRR9637509_trimmed.fastq\
-           -t 64 -S $OUTPUT_DIR/mappings/udorn/SRR9637509\
-           > $OUTPUT_DIR/mappings/udorn/SRR9637509.sam\
-           2> $OUTPUT_DIR/mappings/udorn/SRR9637509.log
+           -q $READS_DIR/SRR9637509_trimmed.fastq\
+           -t 72 -S $MAPPINGS_DIR/SRR9637509\
+           > $MAPPINGS_DIR/SRR9637509.sam\
+           2> $MAPPINGS_DIR/SRR9637509.log
 
-segemehl.x -i $OUTPUT_DIR/indexes/wsn_dadonaite.idx\
+segemehl.x -i $INDEXES_DIR/wsn_dadonaite.idx\
            -d $GENOME_DIR/wsn_dadonaite.fasta\
-           -q $READS_DIR/wsn/SRR6388155_trimmed.fastq\
-           -t 64 -S $OUTPUT_DIR/mappings/wsn/SRR6388155\
-           > $OUTPUT_DIR/mappings/wsn/SRR6388155.sam\
-           2> $OUTPUT_DIR/mappings/wsn/SRR6388155.log
+           -q $READS_DIR/SRR6388155_trimmed.fastq\
+           -t 72 -S $MAPPINGS_DIR/SRR6388155\
+           > $MAPPINGS_DIR/SRR6388155.sam\
+           2> $MAPPINGS_DIR/SRR6388155.log
 
-segemehl.x -i $OUTPUT_DIR/indexes/wsn_dadonaite.idx\
+segemehl.x -i $INDEXES_DIR/wsn_dadonaite.idx\
            -d $GENOME_DIR/wsn_dadonaite.fasta\
-           -q $READS_DIR/wsn/SRR6388157_trimmed.fastq\
-           -t 64 -S $OUTPUT_DIR/mappings/wsn/SRR6388157\
-           > $OUTPUT_DIR/mappings/wsn/SRR6388157.sam\
-           2> $OUTPUT_DIR/mappings/wsn/SRR6388157.log
+           -q $READS_DIR/SRR6388157_trimmed.fastq\
+           -t 72 -S $MAPPINGS_DIR/SRR6388157\
+           > $MAPPINGS_DIR/SRR6388157.sam\
+           2> $MAPPINGS_DIR/SRR6388157.log
