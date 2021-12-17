@@ -5,7 +5,7 @@ READS_DIR="/home/ru27wav/Projects/gl_iav-splash_freiburg/results/dadonaite_2019/
 GENOME_DIR="/home/ru27wav/Projects/gl_iav-splash_freiburg/data/dadonaite_2019/genomes"
 
 mkdir $RESULTS_DIR/02-mappings
-INDEXES_DIR="$RESULTS_DIR/02-mappings/segmehl_indexes"
+INDEXES_DIR="$RESULTS_DIR/02-mappings/segemehl_indexes"
 MAPPINGS_DIR="$RESULTS_DIR/02-mappings/segemehl"
 
 mkdir $MAPPINGS_DIR
