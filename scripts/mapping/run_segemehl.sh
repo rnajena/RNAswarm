@@ -28,49 +28,49 @@ PARAMS="-A $accuracy -U $minfragsco -W $minsplicecov -Z $minfraglen "
 
 # Run segemehl with split read mapping enabled
 segemehl.x -i $INDEXES_DIR/pr8_dadonaite.idx\
-           -d $GENOME_DIR/pr8_dadonaite.fasta\
+           -d $GENOME_DIR/MDCK_concat-pr8_dadonaite.fasta\
            -q $READS_DIR/SRR7350059_trimmed.fastq\
-           -t $THREADS -S $MAPPINGS_DIR/SRR7350059\
+           -t $THREADS -S $MAPPINGS_DIR/SRR7350059_concat\
            $PARAMS\
-           > $MAPPINGS_DIR/SRR7350059.sam\
-           2> $MAPPINGS_DIR/SRR7350059.log
+           > $MAPPINGS_DIR/SRR7350059_concat.sam\
+           2> $MAPPINGS_DIR/SRR7350059_concat.log
 
 segemehl.x -i $INDEXES_DIR/pr8_dadonaite.idx\
-           -d $GENOME_DIR/pr8_dadonaite.fasta\
+           -d $GENOME_DIR/MDCK_concat-pr8_dadonaite.fasta\
            -q $READS_DIR/SRR9637504_trimmed.fastq\
-           -t $THREADS -S $MAPPINGS_DIR/SRR9637504\
+           -t $THREADS -S $MAPPINGS_DIR/SRR9637504_concat\
            $PARAMS\
-           > $MAPPINGS_DIR/SRR9637504.sam\
-           2> $MAPPINGS_DIR/SRR9637504.log
+           > $MAPPINGS_DIR/SRR9637504_concat.sam\
+           2> $MAPPINGS_DIR/SRR9637504_concat.log
 
 segemehl.x -i $INDEXES_DIR/udorn_dadonaite.idx\
-           -d $GENOME_DIR/udorn_dadonaite.fasta\
+           -d $GENOME_DIR/MDCK_concat-udorn_dadonaite.fasta\
            -q $READS_DIR/SRR7350060_trimmed.fastq\
-           -t $THREADS -S $MAPPINGS_DIR/SRR7350060\
+           -t $THREADS -S $MAPPINGS_DIR/SRR7350060_concat\
            $PARAMS\
-           > $MAPPINGS_DIR/SRR7350060.sam\
-           2> $MAPPINGS_DIR/SRR7350060.log
+           > $MAPPINGS_DIR/SRR7350060_concat.sam\
+           2> $MAPPINGS_DIR/SRR7350060_concat.log
 
 segemehl.x -i $INDEXES_DIR/udorn_dadonaite.idx\
-           -d $GENOME_DIR/udorn_dadonaite.fasta\
+           -d $GENOME_DIR/MDCK_concat-udorn_dadonaite.fasta\
            -q $READS_DIR/SRR9637509_trimmed.fastq\
-           -t $THREADS -S $MAPPINGS_DIR/SRR9637509\
+           -t $THREADS -S $MAPPINGS_DIR/SRR9637509_concat\
            $PARAMS\
-           > $MAPPINGS_DIR/SRR9637509.sam\
-           2> $MAPPINGS_DIR/SRR9637509.log
+           > $MAPPINGS_DIR/SRR9637509_concat.sam\
+           2> $MAPPINGS_DIR/SRR9637509_concat.log
 
 segemehl.x -i $INDEXES_DIR/wsn_dadonaite.idx\
-           -d $GENOME_DIR/wsn_dadonaite.fasta\
+           -d $GENOME_DIR/MDBK_concat-wsn_dadonaite.fasta\
            -q $READS_DIR/SRR6388155_trimmed.fastq\
-           -t $THREADS -S $MAPPINGS_DIR/SRR6388155\
+           -t $THREADS -S $MAPPINGS_DIR/SRR6388155_concat\
            $PARAMS\
-           > $MAPPINGS_DIR/SRR6388155.sam\
-           2> $MAPPINGS_DIR/SRR6388155.log
+           > $MAPPINGS_DIR/SRR6388155_concat.sam\
+           2> $MAPPINGS_DIR/SRR6388155_concat.log
 
 segemehl.x -i $INDEXES_DIR/wsn_dadonaite.idx\
-           -d $GENOME_DIR/wsn_dadonaite.fasta\
+           -d $GENOME_DIR/MDBK_concat-wsn_dadonaite.fasta\
            -q $READS_DIR/SRR6388157_trimmed.fastq\
-           -t $THREADS -S $MAPPINGS_DIR/SRR6388157\
+           -t $THREADS -S $MAPPINGS_DIR/SRR6388157_concat\
            $PARAMS\
-           > $MAPPINGS_DIR/SRR6388157.sam\
-           2> $MAPPINGS_DIR/SRR6388157.log
+           > $MAPPINGS_DIR/SRR6388157_concat.sam\
+           2> $MAPPINGS_DIR/SRR6388157_concat.log
