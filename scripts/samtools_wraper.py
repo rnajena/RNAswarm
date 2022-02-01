@@ -27,6 +27,8 @@ def run_samtools_flagstat_all(samtools_path, sam_dir, flagstat_dir):
     Run samtools flagstat for all sam files in sam_dir.
     """
     sam_files = get_samfiles(sam_dir)
+    if not os.path.exists(flagstat_dir):
+        os.makedirs(flagstat_dir)
     for sam_file in sam_files:
         flagstat_file = sam_file.replace(sam_dir, flagstat_dir)
         flagstat_file = flagstat_file.replace(".sam", ".flagstat")
