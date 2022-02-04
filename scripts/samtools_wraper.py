@@ -3,7 +3,7 @@
 
 import os
 
-def run_samtools_flagstat(samtools_path, sam_file, flagstat_file):
+def run_samtools_flagstat(sam_file, flagstat_file):
     """
     Run samtools flagstat.
     """
@@ -22,7 +22,7 @@ def get_samfiles(sam_dir):
                 sam_files.append(os.path.join(root, file))
     return sam_files
 
-def run_samtools_flagstat_all(samtools_path, sam_dir, flagstat_dir):
+def run_samtools_flagstat_all(sam_dir, flagstat_dir):
     """
     Run samtools flagstat for all sam files in sam_dir.
     """
@@ -32,4 +32,6 @@ def run_samtools_flagstat_all(samtools_path, sam_dir, flagstat_dir):
     for sam_file in sam_files:
         flagstat_file = sam_file.replace(sam_dir, flagstat_dir)
         flagstat_file = flagstat_file.replace(".sam", ".flagstat")
-        run_samtools_flagstat(samtools_path, sam_file, flagstat_file)
+        run_samtools_flagstat(sam_file, flagstat_file)
+
+run_samtools_flagstat_all('/home/ru27wav/Projects/gl_iav-splash_freiburg/results/dadonaite_2019/02-mappings/segemehl', '/home/ru27wav/Projects/gl_iav-splash_freiburg/results/dadonaite_2019/02-mappings/samtools_flagstat')
