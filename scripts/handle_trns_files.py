@@ -51,7 +51,7 @@ def parse_trns_file(trns_file):
                     "ref-strand": line[2],
                     "start-in-read": int(line[3]),
                     "align-length": int(line[4]),
-                    "algin-edist": int(line[5]),
+                    "align-edist": int(line[5]),
                     "score": int(line[6]),
                 },
                 "mapping02": {
@@ -60,7 +60,7 @@ def parse_trns_file(trns_file):
                     "ref-strand": line[9],
                     "start-in-read": int(line[10]),
                     "align-length": int(line[11]),
-                    "algin-edist": int(line[12]),
+                    "align-edist": int(line[12]),
                     "score": int(line[13]),
                 },
             }
@@ -72,23 +72,23 @@ def fill_combination_array(combination_arrays, trns_dict):
     Fill combination arrays with values from trns_dict.
     """
     for read_id in trns_dict.keys():
-        if (
-            tuple([
+        segment01_segment02 = tuple(
+            [
                 trns_dict[read_id]["mapping01"]["ref-chr"],
                 trns_dict[read_id]["mapping02"]["ref-chr"],
-            ])
-            in combination_arrays.keys()
-        ):
-            if (
-                trns_dict[read_id]["mapping01"]["ref-strand"] == "+"
-                and trns_dict[read_id]["mapping02"]["ref-strand"] == "+"
-            ):
-                combination_arrays[
-                    tuple([
-                        trns_dict[read_id]["mapping01"]["ref-chr"],
-                        trns_dict[read_id]["mapping02"]["ref-chr"],
-                    ])
-                ][
+            ]
+        )
+        segment02_segment01 = tuple(
+            [
+                trns_dict[read_id]["mapping02"]["ref-chr"],
+                trns_dict[read_id]["mapping01"]["ref-chr"],
+            ]
+        )
+        read01_direction = trns_dict[read_id]["mapping01"]["ref-strand"]
+        read02_direction = trns_dict[read_id]["mapping02"]["ref-strand"]
+        if segment01_segment02 in combination_arrays.keys():
+            if read01_direction == "+" and read02_direction == "+":
+                combination_arrays[segment01_segment02][
                     trns_dict[read_id]["mapping01"]["ref-pos"] : trns_dict[read_id][
                         "mapping01"
                     ]["ref-pos"]
@@ -98,74 +98,42 @@ def fill_combination_array(combination_arrays, trns_dict):
                     ]["ref-pos"]
                     + trns_dict[read_id]["mapping02"]["align-length"],
                 ] += 1
-            elif (
-                trns_dict[read_id]["mapping01"]["ref-strand"] == "-"
-                and trns_dict[read_id]["mapping02"]["ref-strand"] == "-"
-            ):
-                combination_arrays[
-                    tuple([
-                        trns_dict[read_id]["mapping01"]["ref-chr"],
-                        trns_dict[read_id]["mapping02"]["ref-chr"],
-                    ])
-                ][
+            elif read01_direction == "-" and read02_direction == "-":
+                combination_arrays[segment01_segment02][
                     trns_dict[read_id]["mapping01"]["ref-pos"]
-                    - trns_dict[read_id]["mapping01"]["align-length"]
-                    : trns_dict[read_id]["mapping01"]["ref-pos"],
+                    - trns_dict[read_id]["mapping01"]["align-length"] : trns_dict[
+                        read_id
+                    ]["mapping01"]["ref-pos"],
                     trns_dict[read_id]["mapping02"]["ref-pos"]
-                    - trns_dict[read_id]["mapping02"]["align-length"]
-                    : trns_dict[read_id]["mapping02"]["ref-pos"],
+                    - trns_dict[read_id]["mapping02"]["align-length"] : trns_dict[
+                        read_id
+                    ]["mapping02"]["ref-pos"],
                 ] += 1
-            elif (
-                trns_dict[read_id]["mapping01"]["ref-strand"] == "-"
-                and trns_dict[read_id]["mapping02"]["ref-strand"] == "+"
-            ):
-                combination_arrays[
-                    tuple([
-                        trns_dict[read_id]["mapping01"]["ref-chr"],
-                        trns_dict[read_id]["mapping02"]["ref-chr"],
-                    ])
-                ][
+            elif read01_direction == "-" and read02_direction == "+":
+                combination_arrays[segment01_segment02][
                     trns_dict[read_id]["mapping01"]["ref-pos"]
-                    - trns_dict[read_id]["mapping01"]["align-length"]
-                    : trns_dict[read_id]["mapping01"]["ref-pos"],
-                    trns_dict[read_id]["mapping02"]["ref-pos"]
-                    : trns_dict[read_id]["mapping02"]["ref-pos"]
+                    - trns_dict[read_id]["mapping01"]["align-length"] : trns_dict[
+                        read_id
+                    ]["mapping01"]["ref-pos"],
+                    trns_dict[read_id]["mapping02"]["ref-pos"] : trns_dict[read_id][
+                        "mapping02"
+                    ]["ref-pos"]
                     + trns_dict[read_id]["mapping02"]["align-length"],
                 ] += 1
-            elif (
-                trns_dict[read_id]["mapping01"]["ref-strand"] == "+"
-                and trns_dict[read_id]["mapping02"]["ref-strand"] == "-"
-            ):
-                combination_arrays[
-                    tuple([
-                        trns_dict[read_id]["mapping01"]["ref-chr"],
-                        trns_dict[read_id]["mapping02"]["ref-chr"],
-                    ])
-                ][
-                    trns_dict[read_id]["mapping01"]["ref-pos"]
-                    : trns_dict[read_id]["mapping01"]["ref-pos"]
+            elif read01_direction == "+" and read02_direction == "-":
+                combination_arrays[segment01_segment02][
+                    trns_dict[read_id]["mapping01"]["ref-pos"] : trns_dict[read_id][
+                        "mapping01"
+                    ]["ref-pos"]
                     + trns_dict[read_id]["mapping01"]["align-length"],
                     trns_dict[read_id]["mapping02"]["ref-pos"]
-                    - trns_dict[read_id]["mapping02"]["align-length"]
-                    : trns_dict[read_id]["mapping02"]["ref-pos"],
+                    - trns_dict[read_id]["mapping02"]["align-length"] : trns_dict[
+                        read_id
+                    ]["mapping02"]["ref-pos"],
                 ] += 1
-        elif (
-            tuple([
-                trns_dict[read_id]["mapping02"]["ref-chr"],
-                trns_dict[read_id]["mapping01"]["ref-chr"],
-            ])
-            in combination_arrays.keys()
-        ):
-            if (
-                trns_dict[read_id]["mapping01"]["ref-strand"] == "+"
-                and trns_dict[read_id]["mapping02"]["ref-strand"] == "+"
-            ):
-                combination_arrays[
-                    tuple([
-                        trns_dict[read_id]["mapping02"]["ref-chr"],
-                        trns_dict[read_id]["mapping01"]["ref-chr"],
-                    ])
-                ][
+        elif segment02_segment01 in combination_arrays.keys():
+            if read01_direction == "+" and read02_direction == "+":
+                combination_arrays[segment02_segment01][
                     trns_dict[read_id]["mapping02"]["ref-pos"] : trns_dict[read_id][
                         "mapping02"
                     ]["ref-pos"]
@@ -175,57 +143,36 @@ def fill_combination_array(combination_arrays, trns_dict):
                     ]["ref-pos"]
                     + trns_dict[read_id]["mapping01"]["align-length"],
                 ] += 1
-            elif (
-                trns_dict[read_id]["mapping01"]["ref-strand"] == "-"
-                and trns_dict[read_id]["mapping02"]["ref-strand"] == "-"
-            ):
-                combination_arrays[
-                    tuple([
-                        trns_dict[read_id]["mapping02"]["ref-chr"],
-                        trns_dict[read_id]["mapping01"]["ref-chr"],
-                    ])
-                ][
+            elif read01_direction == "-" and read02_direction == "-":
+                combination_arrays[segment02_segment01][
                     trns_dict[read_id]["mapping02"]["ref-pos"]
-                    - trns_dict[read_id]["mapping02"]["align-length"]
-                    : trns_dict[read_id]["mapping02"]["ref-pos"],
+                    - trns_dict[read_id]["mapping02"]["align-length"] : trns_dict[
+                        read_id
+                    ]["mapping02"]["ref-pos"],
                     trns_dict[read_id]["mapping01"]["ref-pos"]
-                    - trns_dict[read_id]["mapping01"]["align-length"]
-                    : trns_dict[read_id]["mapping01"]["ref-pos"],
+                    - trns_dict[read_id]["mapping01"]["align-length"] : trns_dict[
+                        read_id
+                    ]["mapping01"]["ref-pos"],
                 ] += 1
-            elif (
-                trns_dict[read_id]["mapping01"]["ref-strand"] == "-"
-                and trns_dict[read_id]["mapping02"]["ref-strand"] == "+"
-            ):
-                combination_arrays[
-                    tuple([
-                        trns_dict[read_id]["mapping02"]["ref-chr"],
-                        trns_dict[read_id]["mapping01"]["ref-chr"],
-                    ])
-                ][
+            elif read01_direction == "-" and read02_direction == "+":
+                combination_arrays[segment02_segment01][
                     trns_dict[read_id]["mapping02"]["ref-pos"]
-                    - trns_dict[read_id]["mapping02"]["align-length"]
-                    : trns_dict[read_id]["mapping02"]["ref-pos"],
-                    trns_dict[read_id]["mapping01"]["ref-pos"]
-                    : trns_dict[read_id]["mapping01"]["ref-pos"]
+                    - trns_dict[read_id]["mapping02"]["align-length"] : trns_dict[
+                        read_id
+                    ]["mapping02"]["ref-pos"],
+                    trns_dict[read_id]["mapping01"]["ref-pos"] : trns_dict[read_id][
+                        "mapping01"
+                    ]["ref-pos"]
                     + trns_dict[read_id]["mapping01"]["align-length"],
                 ] += 1
-            elif (
-                trns_dict[read_id]["mapping01"]["ref-strand"] == "+"
-                and trns_dict[read_id]["mapping02"]["ref-strand"] == "-"
-            ):
-                combination_arrays[
-                    tuple([
-                        trns_dict[read_id]["mapping02"]["ref-chr"],
-                        trns_dict[read_id]["mapping01"]["ref-chr"],
-                    ])
-                ][
-                    trns_dict[read_id]["mapping02"]["ref-pos"]
-                    : trns_dict[read_id]["mapping02"]["ref-pos"]
+            elif read01_direction == "+" and read02_direction == "-":
+                combination_arrays[segment02_segment01][
+                    trns_dict[read_id]["mapping02"]["ref-pos"] : trns_dict[read_id][
+                        "mapping02"
+                    ]["ref-pos"]
                     + trns_dict[read_id]["mapping02"]["align-length"],
                     trns_dict[read_id]["mapping01"]["ref-pos"]
-                    - trns_dict[read_id]["mapping01"]["align-length"]
-                    : trns_dict[read_id]["mapping01"]["ref-pos"],
+                    - trns_dict[read_id]["mapping01"]["align-length"] : trns_dict[
+                        read_id
+                    ]["mapping01"]["ref-pos"],
                 ] += 1
-    return combination_arrays
-
-    
