@@ -16,11 +16,13 @@ process segemehlIndex {
     executor 'slurm'
     conda '../envs/segemehl.yaml'
 
+    publishDir '$params.output/SC35M_WT.idx' , mode: 'symlink'
+
     input:
-    file genome from genome_ch
+    path genome from genome_ch
 
     output:
-    file "SC35M_WT.idx" into genome_idx_ch
+    path "SC35M_WT.idx" into genome_idx_ch
 
     script:
     """
