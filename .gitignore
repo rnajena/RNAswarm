@@ -3,3 +3,4 @@ scripts/__pycache__/visualize_data.cpython-310.pyc
 modules/.nextflow
 modules/.nextflow.log
 modules/work
+modules/.nextflow*
