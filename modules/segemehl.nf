@@ -16,7 +16,7 @@ process segemehlIndex {
     executor 'slurm'
     conda '../envs/segemehl.yaml'
 
-    publishDir '$params.output/SC35M_WT.idx' , mode: 'symlink'
+    publishDir "$params.output/SC35M_WT.idx" , mode: 'symlink'
 
     input:
     path genome from genome_ch
