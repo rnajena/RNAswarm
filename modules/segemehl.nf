@@ -1,31 +1,88 @@
+nextflow.enable.dsl=2
 
-params.read = '/beegfs/ru27wav/Projects/gl_iav-splash_freiburg/data/schwemmle_group/reads/SC35M_WT/SC35M_WT_repli01_0120.fastq'
-params.genome = '/home/ru27wav/Projects/gl_iav-splash_freiburg/data/schwemmle_group/genomes/SC35M_WT.fasta'
-params.output = '/beegfs/ru27wav/Projects/gl_iav-splash_freiburg/results/schwemmle_group/SC35M_WT/'
+params.reads = '/beegfs/ru27wav/Projects/gl_iav-splash_freiburg/data/schwemmle_group/reads'
+params.genomes = '/beegfs/ru27wav/Projects/gl_iav-splash_freiburg/data/schwemmle_group/genomes'
+params.mappings = '/beegfs/ru27wav/Projects/gl_iav-splash_freiburg/results/schwemmle_group/segemehl_mappings'
 
-genome_ch = Channel.fromPath(params.genome)
+params.segemehl_accuracy = 9
+params.segemehl_minfragsco = 15
+params.segemehl_minsplicecov = 80
+params.segemehl_minfraglen = 15
+params.segemehl_exclclipping = 0
+params.segemehl_threads = 24
 
-/************************************************************************
-* sgemehl INDEX
-************************************************************************/
+/***********************************************************************
+* segemehl INDEX
+*************************************************************************/
 process segemehlIndex {
     label 'segemehl'
-
+    
     cpus 8
-    memory '64 GB' 
     executor 'slurm'
     conda '../envs/segemehl.yaml'
 
-    publishDir "$params.output/SC35M_WT.idx" , mode: 'symlink'
-
     input:
-    path genome from genome_ch
+    tuple val(name), path(genome)
 
     output:
-    path "SC35M_WT.idx" into genome_idx_ch
+    tuple val(name), path(genome), path("${name}.idx")
 
     script:
     """
-    segemehl.x -x SC35M_WT.idx -d $genome
+    segemehl.x -d ${genome} -x ${name}.idx
     """
+}
+
+/***********************************************************************
+* segemehl RUN
+*************************************************************************/
+process segemehl {
+    label 'segemehl'
+    
+    cpus "${params.segemehl_threads}"
+    executor 'slurm'
+    conda '../envs/segemehl.yaml'
+
+    input:
+    tuple val(name), path(genome), path(index), path(reads)
+
+    output:
+    tuple val(name), path("${genome.baseName}_${reads.baseName}.sam"), path("${genome.baseName}_${reads.baseName}.trns.txt") 
+
+    publishDir "${params.mappings}"
+
+    script:
+    """
+    segemehl.x -i ${index}\
+               -d ${genome}\
+               -q ${reads}\
+               -S ${genome.baseName}_${reads.baseName}\
+               -A ${params.segemehl_accuracy}\
+               -U ${params.segemehl_minfragsco}\
+               -W ${params.segemehl_minsplicecov}\
+               -Z ${params.segemehl_minfraglen}\
+               -t ${params.segemehl_threads}\
+               > ${genome.baseName}_${reads.baseName}.sam
+    """
+}
+
+/************************************************************************
+* 
+************************************************************************/
+workflow {
+
+    main:
+
+        genomes_ch = Channel
+                    .fromPath("$params.genomes/*.fasta")
+                    .map{ file -> tuple(file.baseName, file) }
+        
+        reads_ch = Channel
+                .fromPath("$params.reads/*/*.fastq")
+                .map{ file -> tuple(file.baseName[0..-14], file) }
+        segemehlIndex(genomes_ch)
+
+        segemehl_input_ch = segemehlIndex.out.combine(reads_ch, by: 0)
+
+        segemehl( segemehl_input_ch )
 }
