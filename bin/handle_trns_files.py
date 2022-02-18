@@ -1,6 +1,8 @@
+import seaborn as sns
+import matplotlib.pyplot as plt
 import numpy as np
 import itertools
-
+import sys
 
 def parse_genome(genome_file):
     genome_dict = {}
@@ -176,3 +178,30 @@ def fill_combination_array(combination_arrays, trns_dict):
                         read_id
                     ]["mapping01"]["ref-pos"],
                 ] += 1
+
+def plot_heatmap(array, output_dir, filename):
+    heatmap = sns.heatmap(array)
+    plt.figure()
+    heatmap.figure.savefig(f"{output_dir}/{filename}")
+    plt.close("all")
+
+genome_file_path = sys.argv[1]
+trns_file_path = sys.argv[2]
+
+print(genome_file_path)
+print(trns_file_path)
+print(sys.argv[3])
+
+genome_dict = parse_genome(genome_file_path)
+print(genome_dict)
+trns_dict = parse_trns_file(trns_file_path)
+print(trns_dict)
+
+interaction_arrays = make_combination_array(genome_dict)
+print(interaction_arrays)
+
+fill_combination_array(interaction_arrays, trns_dict)
+print(interaction_arrays)
+
+for combination, array in interaction_arrays.items():
+    plot_heatmap(array, sys.argv[3], f'{combination[0]}_{combination[1]}')

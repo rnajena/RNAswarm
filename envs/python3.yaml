@@ -1,0 +1,8 @@
+name: python3
+channels:
+  - conda-forge
+dependencies:
+  - python=3.9
+  - numpy
+  - seaborn
+  - matplotlib
