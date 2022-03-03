@@ -17,7 +17,7 @@ def parse_genome(genome_file):
 
 
 def make_combination_array(genome_dict):
-    """ "
+    """
     Creates a dictionarry of numpy array of all possible genome segement combinations.
     Use parse_genome() to create genome_dict.
     """
@@ -180,10 +180,11 @@ def fill_combination_array(combination_arrays, trns_dict):
                 ] += 1
             else: print("exception caught")
 
-def plot_heatmap(array, output_dir, filename):
-    heatmap = sns.heatmap(array)
+def plot_heatmap(array, output_dir, filename, combination_0, combination_1):
+    heatmap = sns.heatmap(array, square=True)
+    heatmap.set(xlabel=str(combination_1), ylabel=str(combination_0))
     plt.figure()
-    heatmap.figure.savefig(f"{output_dir}/{filename}")
+    heatmap.figure.savefig(f"{output_dir}/{filename}", format="svg", bbox_inches="tight")
     plt.close("all")
 
 genome_file_path = sys.argv[1]
@@ -196,4 +197,4 @@ interaction_arrays = make_combination_array(genome_dict)
 fill_combination_array(interaction_arrays, trns_dict)
 
 for combination, array in interaction_arrays.items():
-    plot_heatmap(array, sys.argv[3], f'{combination[0]}_{combination[1]}')
+    plot_heatmap(array, sys.argv[3], f'{combination[0]}_{combination[1]}', combination[0], combination[1])
