@@ -1,0 +1,8 @@
+name: segemehl
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - fastqc
+  - fastp
