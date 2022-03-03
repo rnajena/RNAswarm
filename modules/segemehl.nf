@@ -76,11 +76,11 @@ workflow {
     main:
 
         genomes_ch = Channel
-                    .fromPath("$params.genomes/*.fasta")
+                    .fromPath("${params.genomes}/*.fasta")
                     .map{ file -> tuple(file.baseName, file) }
         
         reads_ch = Channel
-                .fromPath("$params.reads/*/*.fastq")
+                .fromPath("${params.reads}/*/*.fastq")
                 .map{ file -> tuple(file.baseName[0..-14], file) }
         segemehlIndex(genomes_ch)
 
