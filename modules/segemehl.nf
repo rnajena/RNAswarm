@@ -9,7 +9,7 @@ params.segemehl_minfragsco = 15
 params.segemehl_minsplicecov = 80
 params.segemehl_minfraglen = 15
 params.segemehl_exclclipping = 0
-params.segemehl_threads = 24
+params.segemehl_threads = 48
 
 /***********************************************************************
 * segemehl INDEX
@@ -18,6 +18,7 @@ process segemehlIndex {
     label 'segemehl'
     
     cpus 8
+    time '12h'
     executor 'slurm'
     conda '../envs/segemehl.yaml'
 
@@ -40,6 +41,7 @@ process segemehl {
     label 'segemehl'
     
     cpus "${params.segemehl_threads}"
+    time '12h'
     executor 'slurm'
     conda '../envs/segemehl.yaml'
 
@@ -47,27 +49,27 @@ process segemehl {
     tuple val(name), path(genome), path(index), path(reads)
 
     output:
-    tuple val(name), path("${genome.baseName}_${reads.baseName}.sam"), path("${genome.baseName}_${reads.baseName}.trns.txt") 
+    tuple val(name), path("${reads.baseName}.sam"), path("${reads.baseName}.trns.txt") 
 
-    publishDir "${params.mappings}"
+    publishDir "${params.mappings}", mode: 'copy'
 
     script:
     """
     segemehl.x -i ${index}\
                -d ${genome}\
                -q ${reads}\
-               -S ${genome.baseName}_${reads.baseName}\
+               -S ${reads.baseName}\
                -A ${params.segemehl_accuracy}\
                -U ${params.segemehl_minfragsco}\
                -W ${params.segemehl_minsplicecov}\
                -Z ${params.segemehl_minfraglen}\
                -t ${params.segemehl_threads}\
-               > ${genome.baseName}_${reads.baseName}.sam
+               > ${reads.baseName}.sam
     """
 }
 
 /************************************************************************
-* 
+* runs complete segemehl workflow
 ************************************************************************/
 workflow {
 
