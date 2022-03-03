@@ -82,6 +82,7 @@ workflow {
         reads_ch = Channel
                 .fromPath("${params.reads}/*/*.fastq")
                 .map{ file -> tuple(file.baseName[0..-14], file) }
+        
         segemehlIndex(genomes_ch)
 
         segemehl_input_ch = segemehlIndex.out.combine(reads_ch, by: 0)
