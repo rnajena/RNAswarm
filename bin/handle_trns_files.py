@@ -184,7 +184,7 @@ def plot_heatmap(array, output_dir, filename, combination_0, combination_1):
     heatmap = sns.heatmap(array, square=True)
     heatmap.set(xlabel=str(combination_1), ylabel=str(combination_0))
     plt.figure()
-    heatmap.figure.savefig(f"{output_dir}/{filename}", format="svg", bbox_inches="tight")
+    heatmap.figure.savefig(f"{output_dir}/{filename}", bbox_inches="tight")
     plt.close("all")
 
 genome_file_path = sys.argv[1]
@@ -198,3 +198,4 @@ fill_combination_array(interaction_arrays, trns_dict)
 
 for combination, array in interaction_arrays.items():
     plot_heatmap(array, sys.argv[3], f'{combination[0]}_{combination[1]}', combination[0], combination[1])
+    
