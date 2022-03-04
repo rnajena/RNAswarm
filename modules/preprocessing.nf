@@ -7,18 +7,25 @@ params.trimmed_reads = '/beegfs/ru27wav/Projects/gl_iav-splash_freiburg/results/
 * fasqc REPORT
 ***********************************************************************/
 process fastqcReport {
+  label 'preprocessing'
+
+  cpus 8
+  time '12h'
+  executor 'slurm'
+  conda '../envs/preprocessing.yaml'
+
   input:
-  tuple val(name), path(reads), val(state)
+  tuple val(name), path(reads)
 
   output:
-  tuple val(name), path("${reads.baseName}_fastqc_${state}")
+  tuple val(name), path("${reads.baseName}_fastqc")
   
-  publishDir "${params.trimmed_reads}/${reads.baseName}_fastqc_${state}", mode: 'copy'
+  publishDir "${params.trimmed_reads}", mode: 'copy'
 
   script:
   """
-  mkdir ${reads.baseName}_fastqc_${state}"
-  fastqc -t ${reads} -o ${reads.baseName}_fastqc_${state}"
+  mkdir ${reads.baseName}_fastqc
+  fastqc ${reads} -t 8 -o ${reads.baseName}_fastqc
   """
 }
 
@@ -26,11 +33,18 @@ process fastqcReport {
 * fastp TRIMMING
 ***********************************************************************/
 process fastpTrimming {
+  label 'preprocessing'
+
+  cpus 8
+  time '12h'
+  executor 'slurm'
+  conda '../envs/preprocessing.yaml'
+
   input:
-  tuple val(name), path(reads), val(state)
+  tuple val(name), path(reads)
 
   output:
-  tuple val(name), path("${reads.baseName}_trimmed.fastq"), val('trimmed')
+  tuple val(name), path("${reads.baseName}_trimmed.fastq")
   
   publishDir "${params.trimmed_reads}", mode: 'copy'
 
@@ -43,6 +57,32 @@ process fastpTrimming {
   """
 }
 
+/***********************************************************************
+* skewer TRIMMING
+***********************************************************************/
+process skewerTrimming {
+  label 'preprocessing'
+
+  cpus 8
+  time '12h'
+  executor 'slurm'
+  conda '../envs/skewer.yaml'
+
+  input:
+  tuple val(name), path(reads)
+
+  output:
+  tuple val(name), path("${reads.baseName}_trimmed.fastq")
+  
+  publishDir "${params.trimmed_reads}", mode: 'copy'
+
+  script:
+  """
+  skewer -o ${reads.baseName}_trimmed.fastq\
+         ${reads}
+  """
+}
+
 /************************************************************************
 * runs complete preprocessing workflow
 ************************************************************************/
@@ -50,10 +90,12 @@ workflow {
 
   main:
     reads_ch = Channel
-              .fromPath("$params.genomes/*.fasta")
-              .map{ file -> tuple(file.baseName, file, 'untrimmed') }
-
-    fastqcReport( reads_ch )
+              .fromPath("${params.reads}/*/*.fastq")
+              .map{ file -> tuple(file.baseName, file) }.view()
+    
     fastpTrimming( reads_ch )
-    fastqcReport( fastpTrimming.out )
+
+    qc_ch = fastpTrimming.out.concat(reads_ch).view()
+
+    fastqcReport( qc_ch )
 }

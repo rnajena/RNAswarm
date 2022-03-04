@@ -1,0 +1,7 @@
+name: skewer
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - skewer
