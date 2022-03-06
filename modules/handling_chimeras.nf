@@ -9,7 +9,7 @@ params.heatmap_dir = '/beegfs/ru27wav/Projects/gl_iav-splash_freiburg/results/sc
 *************************************************************************/
 
 process handleTrnsFiles {
-  label 'segemehl'
+  label 'handling_chimeras'
   
   cpus 8
   time '2h'
