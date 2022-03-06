@@ -1,7 +1,7 @@
-name: preprocessing_skewer
+name: mapping_samtools
 channels:
   - conda-forge
   - bioconda
   - defaults
 dependencies:
-  - skewer
+  - samtools

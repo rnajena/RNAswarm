@@ -1,4 +1,4 @@
-name: preprocessing
+name: preprocessing_cutadapt
 channels:
   - conda-forge
   - bioconda

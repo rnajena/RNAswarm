@@ -1,4 +1,4 @@
-name: segemehl
+name: mapping_segemehl
 channels:
   - conda-forge
   - bioconda
