@@ -1,7 +1,7 @@
 nextflow.enable.dsl=2
 
 params.reads = '/beegfs/ru27wav/Projects/gl_iav-splash_freiburg/results/schwemmle_group/trimmed_reads'
-params.genomes = '/beegfs/ru27wav/Projects/gl_iav-splash_freiburg/data/schwemmle_group/genomes'
+params.genomes = '../test/data/genomes'
 params.mappings = '/beegfs/ru27wav/Projects/gl_iav-splash_freiburg/results/schwemmle_group/segemehl_mappings'
 
 params.segemehl_accuracy = 9
@@ -75,20 +75,21 @@ process segemehl {
 process bwaIndex {
     label 'bwa'
     
-    cpus 8
-    time '12h'
-    executor 'slurm'
-    conda '../envs/mapping_bwa.yaml'
+    // cpus 8
+    // time '12h'
+    // executor 'slurm'
+    // conda '../envs/mapping_bwa.yaml'
 
     input:
     tuple val(name), path(genome)
 
     output:
-    tuple val(name), path(genome), path("${name}.idx")
+    tuple val(name), path(genome), path("${name}_index")
 
     script:
     """
-    bwa index ${genome}
+    mkdir ${name}_index
+    bwa index ${genome} -p ${name}_index/${genome}
     """
 }
 
@@ -109,13 +110,15 @@ workflow {
                     .fromPath("${params.genomes}/*.fasta")
                     .map{ file -> tuple(file.baseName, file) }
         
-        reads_ch = Channel
-                .fromPath("${params.reads}/*.fastq")
-                .map{ file -> tuple(file.baseName[0..-22], file) }.view()
+        // reads_ch = Channel
+        //         .fromPath("${params.reads}/*.fastq")
+        //         .map{ file -> tuple(file.baseName[0..-22], file) }.view()
         
-        segemehlIndex(genomes_ch)
+        // segemehlIndex(genomes_ch)
 
-        segemehl_input_ch = segemehlIndex.out.combine(reads_ch, by: 0)
+        // segemehl_input_ch = segemehlIndex.out.combine(reads_ch, by: 0)
 
-        segemehl( segemehl_input_ch )
+        // segemehl( segemehl_input_ch )
+
+        bwaIndex( genomes_ch )
 }
