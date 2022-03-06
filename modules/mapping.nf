@@ -15,7 +15,7 @@ params.segemehl_threads = 48
 * segemehl INDEX
 *************************************************************************/
 process segemehlIndex {
-    label 'segemehl'
+    label 'mapping'
     
     cpus 8
     time '12h'
@@ -38,7 +38,7 @@ process segemehlIndex {
 * segemehl RUN
 *************************************************************************/
 process segemehl {
-    label 'segemehl'
+    label 'mapping'
     
     cpus "${params.segemehl_threads}"
     time '12h'
@@ -73,7 +73,7 @@ process segemehl {
 *************************************************************************/
 
 process bwaIndex {
-    label 'bwa'
+    label 'mapping'
     
     // cpus 8
     // time '12h'
@@ -84,12 +84,13 @@ process bwaIndex {
     tuple val(name), path(genome)
 
     output:
-    tuple val(name), path(genome), path("${name}_index")
+    tuple val(name), path("${name}_index")
 
     script:
     """
     mkdir ${name}_index
     bwa index ${genome} -p ${name}_index/${genome}
+    mv ${genome} ${name}_index
     """
 }
 
@@ -97,7 +98,51 @@ process bwaIndex {
 * bwa-mem RUN
 *************************************************************************/
 
+process bwaMem {
+    label 'mapping'
 
+    cpus "${params.segemehl_threads}"
+    time '12h'
+    executor 'slurm'
+    conda '../envs/mapping_bwa.yaml'
+
+    input:
+    tuple val(name), path(index), path(reads)
+
+    output:
+    tuple val(name), path("${reads.baseName}.sam")
+
+    publishDir "${params.mappings}", mode: 'copy'
+
+    script:
+    """
+    bwa mem -T 20 ${index} ${reads} > ${reads.baseName}.sam
+    """
+}
+
+/***********************************************************************
+* samtools CONVERT SAM TO BAM
+*************************************************************************/
+
+process samtoolsConvertToBam {
+    label 'mapping'
+
+    executor 'slurm'
+    conda '../envs/mapping_samtools.yaml'
+
+    input:
+    tuple val(name), path(mappings)
+
+    output:
+    tuple val(name), path("${mappings.baseName}.bam")
+
+    publishDir "${params.mappings}", mode: 'copy'
+
+    script:
+    """
+    samtools view -bS ${mappings} > ${mappings.baseName}.bam
+    """
+}
 
 /************************************************************************
 * runs complete mapping workflow
@@ -110,9 +155,9 @@ workflow {
                     .fromPath("${params.genomes}/*.fasta")
                     .map{ file -> tuple(file.baseName, file) }
         
-        // reads_ch = Channel
-        //         .fromPath("${params.reads}/*.fastq")
-        //         .map{ file -> tuple(file.baseName[0..-22], file) }.view()
+        reads_ch = Channel
+                .fromPath("${params.reads}/*.fastq")
+                .map{ file -> tuple(file.baseName[0..-22], file) }.view()
         
         // segemehlIndex(genomes_ch)
 
@@ -121,4 +166,8 @@ workflow {
         // segemehl( segemehl_input_ch )
 
         bwaIndex( genomes_ch )
+        
+        bwa_input_ch = bwaIndex.out.combine(reads_ch, by: 0).view()
+
+        bwaMem( bwa_input_ch )
 }
