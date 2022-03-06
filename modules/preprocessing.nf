@@ -12,7 +12,7 @@ process fastqcReport {
   cpus 8
   time '12h'
   executor 'slurm'
-  conda '../envs/preprocessing.yaml'
+  conda '../envs/preprocessing_qc.yaml'
 
   input:
   tuple val(name), path(reads)
@@ -38,7 +38,7 @@ process fastpTrimming {
   cpus 8
   time '12h'
   executor 'slurm'
-  conda '../envs/preprocessing.yaml'
+  conda '../envs/preprocessing_fastp.yaml'
 
   input:
   tuple val(name), path(reads)
@@ -66,7 +66,7 @@ process skewerTrimming {
   cpus 8
   time '12h'
   executor 'slurm'
-  conda '../envs/skewer.yaml'
+  conda '../envs/preprocessing_skewer.yaml'
 
   input:
   tuple val(name), path(reads)

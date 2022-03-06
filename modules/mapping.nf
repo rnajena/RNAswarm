@@ -20,7 +20,7 @@ process segemehlIndex {
     cpus 8
     time '12h'
     executor 'slurm'
-    conda '../envs/segemehl.yaml'
+    conda '../envs/mapping_segemehl.yaml'
 
     input:
     tuple val(name), path(genome)
@@ -43,7 +43,7 @@ process segemehl {
     cpus "${params.segemehl_threads}"
     time '12h'
     executor 'slurm'
-    conda '../envs/segemehl.yaml'
+    conda '../envs/mapping_segemehl.yaml'
 
     input:
     tuple val(name), path(genome), path(index), path(reads)
@@ -68,8 +68,20 @@ process segemehl {
     """
 }
 
+/***********************************************************************
+* bwa-mem INDEX
+*************************************************************************/
+
+
+
+/***********************************************************************
+* bwa-mem RUN
+*************************************************************************/
+
+
+
 /************************************************************************
-* runs complete segemehl workflow
+* runs complete mapping workflow
 ************************************************************************/
 workflow {
 

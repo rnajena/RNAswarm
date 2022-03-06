@@ -1,8 +1,7 @@
-name: segemehl
+name: preprocessing_fastp
 channels:
   - conda-forge
   - bioconda
   - defaults
 dependencies:
-  - fastqc
   - fastp
