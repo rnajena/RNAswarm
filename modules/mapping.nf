@@ -72,7 +72,25 @@ process segemehl {
 * bwa-mem INDEX
 *************************************************************************/
 
+process bwaIndex {
+    label 'bwa'
+    
+    cpus 8
+    time '12h'
+    executor 'slurm'
+    conda '../envs/mapping_bwa.yaml'
 
+    input:
+    tuple val(name), path(genome)
+
+    output:
+    tuple val(name), path(genome), path("${name}.idx")
+
+    script:
+    """
+    bwa index ${genome}
+    """
+}
 
 /***********************************************************************
 * bwa-mem RUN
