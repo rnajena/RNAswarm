@@ -1,6 +1,6 @@
 nextflow.enable.dsl=2
 
-params.reads = '/beegfs/ru27wav/Projects/gl_iav-splash_freiburg/data/schwemmle_group/reads'
+params.reads = '/beegfs/ru27wav/Projects/gl_iav-splash_freiburg/results/schwemmle_group/trimmed_reads'
 params.genomes = '/beegfs/ru27wav/Projects/gl_iav-splash_freiburg/data/schwemmle_group/genomes'
 params.mappings = '/beegfs/ru27wav/Projects/gl_iav-splash_freiburg/results/schwemmle_group/segemehl_mappings'
 
@@ -80,8 +80,8 @@ workflow {
                     .map{ file -> tuple(file.baseName, file) }
         
         reads_ch = Channel
-                .fromPath("${params.reads}/*/*.fastq")
-                .map{ file -> tuple(file.baseName[0..-14], file) }
+                .fromPath("${params.reads}/*.fastq")
+                .map{ file -> tuple(file.baseName[0..-22], file) }.view()
         
         segemehlIndex(genomes_ch)
 

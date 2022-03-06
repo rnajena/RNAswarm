@@ -45,7 +45,7 @@ workflow {
  
       mappings_ch = Channel
               .fromPath("$params.mappings/*.trns.txt")
-              .map{ file -> tuple(file.baseName[0..-19], file) }
+              .map{ file -> tuple(file.baseName[0..-27], file) }
 
       handleTrnsFiles_input_ch = genomes_ch.combine(mappings_ch, by: 0)
 
