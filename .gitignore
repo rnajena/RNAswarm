@@ -5,3 +5,4 @@ modules/.nextflow.log
 modules/work
 modules/.nextflow*
 bin/__pycache__
+*.pyc
