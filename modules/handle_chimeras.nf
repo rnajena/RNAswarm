@@ -9,7 +9,7 @@ params.heatmap_dir = '/beegfs/ru27wav/Projects/gl_iav-splash_freiburg/results/sc
 *************************************************************************/
 
 process handleTrnsFiles {
-  label 'handling_chimeras'
+  label 'handle_chimeras'
   
   cpus 8
   time '2h'
@@ -28,6 +28,27 @@ process handleTrnsFiles {
   """
   mkdir heatmaps_${mapping.baseName}
   python /beegfs/ru27wav/Projects/gl_iav-splash_freiburg/src/RNAswarm/bin/handle_trns_files.py ${genome} ${mapping} heatmaps_${mapping.baseName}
+  """
+}
+
+process handleBwaBamFiles {
+  label 'handle_bwa_bam_files'
+
+  cpus 8
+  time '2h'
+  executor 'slurm'
+  conda '../envs/python2.yaml'
+
+  input:
+  tuple val(name), path(mapping)
+  
+  output:
+  tuple val(name), path("heatmaps_${mapping.baseName}")
+
+  script:
+  """
+  python find_chimeras_rs.py -i ${mapping} -o chimeras_${mapping.baseName}
+  
   """
 }
 
