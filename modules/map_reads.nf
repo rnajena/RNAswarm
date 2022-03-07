@@ -1,15 +1,20 @@
 nextflow.enable.dsl=2
 
+// filepaths
 params.reads = '/beegfs/ru27wav/Projects/gl_iav-splash_freiburg/results/schwemmle_group/trimmed_reads'
-params.genomes = '../test/data/genomes'
-params.mappings = '/beegfs/ru27wav/Projects/gl_iav-splash_freiburg/results/schwemmle_group/segemehl_mappings'
+params.genomes = '/home/ru27wav/Projects/gl_iav-splash_freiburg/data/schwemmle_group/genomes'
+params.mappings = '/beegfs/ru27wav/Projects/gl_iav-splash_freiburg/results/schwemmle_group/mappings'
 
+// segemehl parameters
 params.segemehl_accuracy = 9
 params.segemehl_minfragsco = 15
 params.segemehl_minsplicecov = 80
 params.segemehl_minfraglen = 15
 params.segemehl_exclclipping = 0
 params.segemehl_threads = 48
+
+// slurm parameters
+params.slurm_queue = 'b_standard,b_fat,s_standard,s_fat'
 
 /***********************************************************************
 * segemehl INDEX
@@ -51,7 +56,7 @@ process segemehl {
     output:
     tuple val(name), path("${reads.baseName}.sam"), path("${reads.baseName}.trns.txt") 
 
-    publishDir "${params.mappings}", mode: 'copy'
+    publishDir "${params.mappings}/segemehl", mode: 'copy'
 
     script:
     """
@@ -75,23 +80,24 @@ process segemehl {
 process bwaIndex {
     label 'mapping'
     
-    // cpus 8
-    // time '12h'
-    // executor 'slurm'
-    // conda '../envs/mapping_bwa.yaml'
+    cpus 8
+    time '12h'
+    executor 'slurm'
+    conda '../envs/mapping_bwa.yaml'
 
     input:
     tuple val(name), path(genome)
 
     output:
-    tuple val(name), path("${name}_index")
+    tuple val(name), path(genome) , path("${name}_index")
 
     script:
     """
     mkdir ${name}_index
     bwa index ${genome} -p ${name}_index/${genome}
-    mv ${genome} ${name}_index
+    cp ${genome} ${name}_index
     """
+    // The cp is a bit hacky, maybe there is a more elegant way of doing this
 }
 
 /***********************************************************************
@@ -104,19 +110,20 @@ process bwaMem {
     cpus "${params.segemehl_threads}"
     time '12h'
     executor 'slurm'
+    queue 'b_standard,b_fat,s_standard,s_fat'
     conda '../envs/mapping_bwa.yaml'
 
     input:
-    tuple val(name), path(index), path(reads)
+    tuple val(name), path(genome), path(index), path(reads)
 
     output:
     tuple val(name), path("${reads.baseName}.sam")
 
-    publishDir "${params.mappings}", mode: 'copy'
+    publishDir "${params.mappings}/bwa", mode: 'copy'
 
     script:
     """
-    bwa mem -T 20 ${index} ${reads} > ${reads.baseName}.sam
+    bwa mem -T 20 ${index}/${genome} ${reads} > ${reads.baseName}.sam
     """
 }
 
@@ -127,6 +134,8 @@ process bwaMem {
 process samtoolsConvertToBam {
     label 'mapping'
 
+    cpus 8
+    time '12h'
     executor 'slurm'
     conda '../envs/mapping_samtools.yaml'
 
@@ -134,13 +143,14 @@ process samtoolsConvertToBam {
     tuple val(name), path(mappings)
 
     output:
-    tuple val(name), path("${mappings.baseName}.bam")
+    tuple val(name), path("${mappings.baseName}.bam"), 
 
-    publishDir "${params.mappings}", mode: 'copy'
+    publishDir "${params.mappings}/bwa", mode: 'copy'
 
     script:
     """
-    samtools view -bS ${mappings} > ${mappings.baseName}.bam
+    samtools sort -@ 8 ${mappings} > ${mappings.baseName}.bam
+    samtools index ${mappings.baseName}.bam
     """
 }
 
@@ -157,7 +167,7 @@ workflow {
         
         reads_ch = Channel
                 .fromPath("${params.reads}/*.fastq")
-                .map{ file -> tuple(file.baseName[0..-22], file) }.view()
+                .map{ file -> tuple(file.baseName[0..-22], file) }
         
         // segemehlIndex(genomes_ch)
 
@@ -167,7 +177,9 @@ workflow {
 
         bwaIndex( genomes_ch )
         
-        bwa_input_ch = bwaIndex.out.combine(reads_ch, by: 0).view()
+        bwa_input_ch = bwaIndex.out.combine(reads_ch, by: 0)
 
         bwaMem( bwa_input_ch )
+
+        samtoolsConvertToBam( bwaMem.out )
 }
