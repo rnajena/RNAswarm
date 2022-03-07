@@ -4,7 +4,7 @@ params.mappings = '/beegfs/ru27wav/Projects/gl_iav-splash_freiburg/results/schwe
 params.genomes = '/beegfs/ru27wav/Projects/gl_iav-splash_freiburg/data/schwemmle_group/genomes'
 params.heatmap_dir = '/beegfs/ru27wav/Projects/gl_iav-splash_freiburg/results/schwemmle_group/heatmaps'
 
-/***********************************************************************
+/************************************************************************
 * handles .trns.txt files (result from segemehl.nf workflow)
 *************************************************************************/
 
@@ -47,12 +47,11 @@ process handleBwaBamFiles {
 
   script:
   """
-  python find_chimeras_rs.py -i ${mapping} -o chimeras_${mapping.baseName}
-  
+  python find_chimeras_rs.py -i ${mapping} -o ${mapping.baseName}.chim
   """
 }
 
-/***********************************************************************
+/************************************************************************
 * runs handleTrnsFiles workflow
 *************************************************************************/
 

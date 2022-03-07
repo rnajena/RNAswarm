@@ -149,8 +149,7 @@ process samtoolsConvertToBam {
 
   script:
   """
-  samtools sort -@ 8 ${mappings} > ${mappings.baseName}.bam
-  samtools index ${mappings.baseName}.bam
+  samtools view -@ 8 -S -b ${mappings} > ${mappings.baseName}.bam
   """
 }
 
