@@ -1,6 +1,8 @@
 name: python2
 channels:
   - conda-forge
+  - bioconda
+  - defaults
 dependencies:
   - python=2
   - regex
