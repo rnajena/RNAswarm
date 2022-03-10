@@ -68,8 +68,34 @@ def parse_trns_file(trns_file):
             }
     return trns_dict
 
+def parse_chim_file(chim_file):
+    chim_dict = {}
+    line_number = 0
+    with open(chim_file) as f:
+        for line in f:
+            line = line.strip().split("\t")
+            chim_dict[line_number] = {
+                "mapping01": {
+                    "ref-chr": line[0],
+                    "ref_start_position": int(line[1]),
+                    "ref_end_position": int(line[2])
+                },
+                "mapping02": {
+                    "ref-chr": line[3],
+                    "ref_start_position": int(line[4]),
+                    "ref_end_position": int(line[5])
+                },
+            }
+            line_number += 1
+    return chim_dict
 
-def fill_combination_array(combination_arrays, trns_dict):
+def chim_dict_to_combination_array(combination_arrays, chim_dict)
+    """
+    Fill combination arrays with values from chim_dict.
+    """
+
+
+def trns_dict_to_combination_array(combination_arrays, trns_dict):
     """
     Fill combination arrays with values from trns_dict.
     """
@@ -194,8 +220,7 @@ genome_dict = parse_genome(genome_file_path)
 trns_dict = parse_trns_file(trns_file_path)
 
 interaction_arrays = make_combination_array(genome_dict)
-fill_combination_array(interaction_arrays, trns_dict)
+trns_dict_to_combination_array(interaction_arrays, trns_dict)
 
 for combination, array in interaction_arrays.items():
     plot_heatmap(array, sys.argv[3], f'{combination[0]}_{combination[1]}', combination[0], combination[1])
-    
