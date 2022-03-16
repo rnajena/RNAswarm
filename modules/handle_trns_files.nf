@@ -1,8 +1,8 @@
 nextflow.enable.dsl=2
 
-params.trns_files = '/beegfs/ru27wav/Projects/gl_iav-splash_freiburg/results/schwemmle_group/segemehl_mappings'
-params.genomes = '/beegfs/ru27wav/Projects/gl_iav-splash_freiburg/data/schwemmle_group/genomes'
-params.heatmap_dir = '/beegfs/ru27wav/Projects/gl_iav-splash_freiburg/results/schwemmle_group/heatmaps'
+params.trns_files = '/beegfs/ru27wav/Projects/gl_iav-splash_freiburg/results/dadonaite_2019/mappings'
+params.genomes = '/beegfs/ru27wav/Projects/gl_iav-splash_freiburg/data/dadonaite_2019/genomes'
+params.heatmap_dir = '/beegfs/ru27wav/Projects/gl_iav-splash_freiburg/results/dadonaite_2019/heatmaps'
 
 /************************************************************************
 * handles .trns.txt files
@@ -14,6 +14,7 @@ process handleTrnsFiles {
   cpus 8
   time '2h'
   executor 'slurm'
+  queue 'b_standard,b_fat,s_standard,s_fat'
   conda '../envs/python3.yaml'
 
   input:
@@ -27,7 +28,7 @@ process handleTrnsFiles {
   script:
   """
   mkdir heatmaps_${mapping.baseName}
-  python /beegfs/ru27wav/Projects/gl_iav-splash_freiburg/src/RNAswarm/bin/handle_trns_files.py ${genome} ${mapping} heatmaps_${mapping.baseName}
+  python /beegfs/ru27wav/Projects/gl_iav-splash_freiburg/src/RNAswarm/bin/handle_chimeras.py ${genome} ${mapping} heatmaps_${mapping.baseName}
   """
 }
 
@@ -41,11 +42,11 @@ workflow {
 
       genomes_ch = Channel
                   .fromPath("$params.genomes/*.fasta")
-                  .map{ file -> tuple(file.baseName, file) }
+                  .map{ file -> tuple(file.baseName, file) }.view()
  
       mappings_ch = Channel
-              .fromPath("$params.mappings/*.trns.txt")
-              .map{ file -> tuple(file.baseName[0..-27], file) }
+              .fromPath("$params.trns_files/*.trns.txt")
+              .map{ file -> tuple(file.baseName[0..-25], file) }.view()
 
       handleTrnsFiles_input_ch = genomes_ch.combine(mappings_ch, by: 0)
 

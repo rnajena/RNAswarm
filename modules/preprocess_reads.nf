@@ -1,7 +1,7 @@
 nextflow.enable.dsl=2
 
-params.reads = '/beegfs/ru27wav/Projects/gl_iav-splash_freiburg/data/schwemmle_group/reads'
-params.trimmed_reads = '/beegfs/ru27wav/Projects/gl_iav-splash_freiburg/results/schwemmle_group/trimmed_reads'
+params.reads = '/beegfs/ru27wav/Projects/gl_iav-splash_freiburg/data/dadonaite_2019/reads'
+params.trimmed_reads = '/beegfs/ru27wav/Projects/gl_iav-splash_freiburg/results/dadonaite_2019/trimmed_reads'
 
 /***********************************************************************
 * fasqc REPORT
@@ -89,6 +89,7 @@ process skewerTrimming {
 workflow {
 
   main:
+
     reads_ch = Channel
               .fromPath("${params.reads}/*/*.fastq")
               .map{ file -> tuple(file.baseName, file) }.view()
