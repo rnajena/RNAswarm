@@ -1,9 +1,9 @@
 nextflow.enable.dsl=2
 
 // filepaths
-params.reads = '/beegfs/ru27wav/Projects/gl_iav-splash_freiburg/results/schwemmle_group/trimmed_reads'
-params.genomes = '/home/ru27wav/Projects/gl_iav-splash_freiburg/data/schwemmle_group/genomes'
-params.mappings = '/beegfs/ru27wav/Projects/gl_iav-splash_freiburg/results/schwemmle_group/mappings'
+params.reads = '/beegfs/ru27wav/Projects/gl_iav-splash_freiburg/results/dadonaite_2019/trimmed_reads'
+params.genomes = '/home/ru27wav/Projects/gl_iav-splash_freiburg/data/dadonaite_2019/genomes'
+params.mappings = '/beegfs/ru27wav/Projects/gl_iav-splash_freiburg/results/dadonaite_2019/mappings'
 
 // segemehl parameters
 params.segemehl_accuracy = 9
@@ -163,11 +163,11 @@ workflow {
 
     genomes_ch = Channel
                 .fromPath("${params.genomes}/*.fasta")
-                .map{ file -> tuple(file.baseName, file) }
+                .map{ file -> tuple(file.baseName, file) }.view()
         
     reads_ch = Channel
               .fromPath("${params.reads}/*.fastq")
-              .map{ file -> tuple(file.baseName[0..-22], file) }
+              .map{ file -> tuple(file.baseName[0..-20], file) }.view()
         
     segemehlIndex( genomes_ch )
     
@@ -175,13 +175,13 @@ workflow {
     
     segemehl( segemehl_input_ch )
     
-    bwaIndex( genomes_ch )
+    // bwaIndex( genomes_ch )
     
-    bwa_input_ch = bwaIndex.out.combine(reads_ch, by: 0)
+    // bwa_input_ch = bwaIndex.out.combine(reads_ch, by: 0)
 
-    bwaMem( bwa_input_ch )
+    // bwaMem( bwa_input_ch )
 
-    to_convert_ch = bwaMem.out.concat(segemehl.out)
+    // to_convert_ch = bwaMem.out.concat(segemehl.out)
 
-    convertSAMtoBAM( to_convert_ch )
+    // convertSAMtoBAM( to_convert_ch )
 }
