@@ -4,6 +4,7 @@ import numpy as np
 import itertools
 import sys
 
+
 def parse_genome(genome_file):
     genome_dict = {}
     with open(genome_file) as f:  # read genome file
@@ -68,6 +69,7 @@ def parse_trns_file(trns_file):
             }
     return trns_dict
 
+
 def parse_chim_file(chim_file):
     chim_dict = {}
     line_number = 0
@@ -78,18 +80,19 @@ def parse_chim_file(chim_file):
                 "mapping01": {
                     "ref-chr": line[0],
                     "ref_start_position": int(line[1]),
-                    "ref_end_position": int(line[2])
+                    "ref_end_position": int(line[2]),
                 },
                 "mapping02": {
                     "ref-chr": line[3],
                     "ref_start_position": int(line[4]),
-                    "ref_end_position": int(line[5])
+                    "ref_end_position": int(line[5]),
                 },
             }
             line_number += 1
     return chim_dict
 
-def chim_dict_to_combination_array(combination_arrays, chim_dict)
+
+def chim_dict_to_combination_array(combination_arrays, chim_dict):
     """
     Fill combination arrays with values from chim_dict.
     """
@@ -204,23 +207,37 @@ def trns_dict_to_combination_array(combination_arrays, trns_dict):
                         read_id
                     ]["mapping01"]["ref-pos"],
                 ] += 1
-            else: print("exception caught")
+            else:
+                print("exception caught")
+
 
 def plot_heatmap(array, output_dir, filename, combination_0, combination_1):
-    heatmap = sns.heatmap(array, square=True)
+    heatmap = sns.heatmap(array, square=True, cmap="YlGnBu_r")
     heatmap.set(xlabel=str(combination_1), ylabel=str(combination_0))
     plt.figure()
     heatmap.figure.savefig(f"{output_dir}/{filename}", bbox_inches="tight")
     plt.close("all")
 
-genome_file_path = sys.argv[1]
-trns_file_path = sys.argv[2]
 
-genome_dict = parse_genome(genome_file_path)
-trns_dict = parse_trns_file(trns_file_path)
+def main():
+    genome_file_path = sys.argv[1]
+    trns_file_path = sys.argv[2]
 
-interaction_arrays = make_combination_array(genome_dict)
-trns_dict_to_combination_array(interaction_arrays, trns_dict)
+    genome_dict = parse_genome(genome_file_path)
+    trns_dict = parse_trns_file(trns_file_path)
 
-for combination, array in interaction_arrays.items():
-    plot_heatmap(array, sys.argv[3], f'{combination[0]}_{combination[1]}', combination[0], combination[1])
+    interaction_arrays = make_combination_array(genome_dict)
+    trns_dict_to_combination_array(interaction_arrays, trns_dict)
+
+    for combination, array in interaction_arrays.items():
+        plot_heatmap(
+            array,
+            sys.argv[3],
+            f"{combination[0]}_{combination[1]}",
+            combination[0],
+            combination[1],
+        )
+
+
+if __name__ == "__main__":
+    main()
