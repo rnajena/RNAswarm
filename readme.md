@@ -8,30 +8,32 @@ RNAswarm is a tool for analyzing SPLASH data. It is a Nextflow pipeline that:
 ## Installation (only tested on Linux)
 ### Install Miniconda (or Conda)
 - Download the latest version of Miniconda from [Miniconda](https://conda.io/miniconda.html).
+```bash
+$ wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
+```
 - Run the installer.
-
-### Setup channel order
-- Add the channel `bioconda`.
+```bash
+$ bash Miniconda3-latest-Linux-x86_64.sh
+```
 - Add the channel `conda-forge`.
+```bash
+$ conda config --add channels conda-forge
+```
 
 ### Create a Conda environment for Nextflow
-- Create a new Conda environment.
+- Create a new Conda environment for RNAswarm
 ```bash
-conda create -n rnaswarm
+$ conda create -n RNAswarm -c bioconda nextflow
 ```
 - Activate the environment.
 ```bash
-source activate rnaswarm
-```
-- Install Nextflow.
-```bash
-conda install -c bioconda nextflow
+$ conda activate RNAswarm
 ```
 
 ### Clone this repository
-- Clone the repository.
+- Clone the repository to a place where you can run it.
 ```bash
-git clone https://github.com/gabriellovate/RNAswarm.git
+$ git clone https://github.com/gabriellovate/RNAswarm.git
 ```
 
 ## Usage
