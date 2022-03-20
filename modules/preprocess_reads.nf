@@ -1,3 +1,5 @@
+#!/usr/bin/env nextflow
+
 nextflow.enable.dsl=2
 
 params.reads = '/beegfs/ru27wav/Projects/gl_iav-splash_freiburg/data/dadonaite_2019/reads'

@@ -1,8 +1,10 @@
+#!/usr/bin/env nextflow
+
 nextflow.enable.dsl=2
 
 params.trns_files = '/beegfs/ru27wav/Projects/gl_iav-splash_freiburg/results/dadonaite_2019/mappings'
 params.genomes = '/beegfs/ru27wav/Projects/gl_iav-splash_freiburg/data/dadonaite_2019/genomes'
-params.heatmap_dir = '/beegfs/ru27wav/Projects/gl_iav-splash_freiburg/results/dadonaite_2019/heatmaps'
+params.heatmap_dir = '/beegfs/ru27wav/Projects/gl_iav-splash_freiburg/results/dadonaite_2019/segemehl_heatmaps'
 
 /************************************************************************
 * handles .trns.txt files
@@ -28,7 +30,7 @@ process handleTrnsFiles {
   script:
   """
   mkdir heatmaps_${mapping.baseName}
-  python /beegfs/ru27wav/Projects/gl_iav-splash_freiburg/src/RNAswarm/bin/handle_chimeras.py ${genome} ${mapping} heatmaps_${mapping.baseName}
+  python /beegfs/ru27wav/Projects/gl_iav-splash_freiburg/src/RNAswarm/bin/handle_chimeras.py ${genome} ${mapping} heatmaps_${mapping.baseName} --segemehl_mode
   """
 }
 
@@ -46,7 +48,7 @@ workflow {
  
       mappings_ch = Channel
               .fromPath("$params.trns_files/*.trns.txt")
-              .map{ file -> tuple(file.baseName[0..-25], file) }.view()
+              .map{ file -> tuple(file.baseName[0..-27], file) }.view()
 
       handleTrnsFiles_input_ch = genomes_ch.combine(mappings_ch, by: 0)
 

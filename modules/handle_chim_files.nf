@@ -1,30 +1,36 @@
+#!/usr/bin/env nextflow
+
 nextflow.enable.dsl=2
 
 params.bwa_mappings = '/home/ru27wav/Projects/gl_iav-splash_freiburg/results/schwemmle_group/mappings'
 params.genomes = '/beegfs/ru27wav/Projects/gl_iav-splash_freiburg/data/schwemmle_group/genomes'
-params.heatmap_dir = '/beegfs/ru27wav/Projects/gl_iav-splash_freiburg/results/schwemmle_group/heatmaps'
+params.heatmap_dir = '/beegfs/ru27wav/Projects/gl_iav-splash_freiburg/results/schwemmle_group/bwa_heatmaps'
 
 /************************************************************************
 * handles .chim files
 *************************************************************************/
 
-process findChimeras {
-  label 'handle_bwa_bam_files'
-
+process handleChimFiles {
+  label 'handle_chimeras'
+  
   cpus 8
   time '2h'
   executor 'slurm'
-  conda '../envs/python2.yaml'
+  queue 'b_standard,b_fat,s_standard,s_fat'
+  conda '../envs/python3.yaml'
 
   input:
-  tuple val(name), path(mapping)
-  
+  tuple val(name), path(genome), path(mapping)
+
   output:
-  tuple val(name), path("${mapping.baseName}.chim")
+  tuple val(name), path("heatmaps_${mapping.baseName}")
+  
+  publishDir "${params.heatmap_dir}", mode: 'copy'
 
   script:
   """
-  python /home/ru27wav/Projects/gl_iav-splash_freiburg/src/RNAswarm/bin/find_chimeras_rs.py -i ${mapping} -o ${mapping.baseName}.chim
+  mkdir heatmaps_${mapping.baseName}
+  python /beegfs/ru27wav/Projects/gl_iav-splash_freiburg/src/RNAswarm/bin/handle_chimeras.py ${genome} ${mapping} heatmaps_${mapping.baseName} --bwa_mode
   """
 }
 
@@ -36,9 +42,15 @@ workflow {
 
   main:
 
-    bwa_mappings_ch = Channel
-                     .fromPath("${params.bwa_mappings}/*_bwa.bam")
-                     .map{ file -> tuple(file.baseName[0..-27], file) }
+      genomes_ch = Channel
+                  .fromPath("$params.genomes/*.fasta")
+                  .map{ file -> tuple(file.baseName, file) }.view()
+ 
+      mappings_ch = Channel
+              .fromPath("$params.trns_files/*.chim")
+              .map{ file -> tuple(file.baseName[0..-27], file) }.view()
 
-    findChimeras( bwa_mappings_ch )
+      handleChimFiles_input_ch = genomes_ch.combine(mappings_ch, by: 0)
+
+      handleChimFiles( handleTrnsFiles_input_ch )
 }

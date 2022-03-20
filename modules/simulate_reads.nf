@@ -1,3 +1,5 @@
+#!/usr/bin/env nextflow
+
 nextflow.enable.dsl=2
 
 params.simulated_reads = '/beegfs/ru27wav/Projects/gl_iav-splash_freiburg/results/schwemmle_group/simulated_reads'
