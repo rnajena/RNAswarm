@@ -70,165 +70,6 @@ def parse_trns_file(trns_file):
     return trns_dict
 
 
-def parse_chim_file(chim_file):
-    chim_dict = {}
-    line_number = 0
-    with open(chim_file) as f:
-        for line in f:
-            line = line.strip().split("\t")
-            chim_dict[line_number] = {
-                "mapping01": {
-                    "ref-chr": line[0],
-                    "ref_start_position": int(line[1]),
-                    "ref_end_position": int(line[2]),
-                },
-                "mapping02": {
-                    "ref-chr": line[3],
-                    "ref_start_position": int(line[4]),
-                    "ref_end_position": int(line[5]),
-                },
-            }
-            line_number += 1
-    return chim_dict
-
-
-def chim_dict_to_combination_array(combination_arrays, chim_dict):
-    """
-    Fill combination arrays with values from chim_dict.
-    """
-    for line_number in chim_dict.keys():
-        segment01_segment02 = tuple(
-            [
-                chim_dict[line_number]["mapping01"]["ref-chr"],
-                chim_dict[line_number]["mapping02"]["ref-chr"],
-            ]
-        )
-        segment02_segment01 = tuple(
-            [
-                chim_dict[line_number]["mapping02"]["ref-chr"],
-                chim_dict[line_number]["mapping01"]["ref-chr"],
-            ]
-        )
-        read01_direction = ""
-        read02_direction = ""
-        if (
-            chim_dict[line_number]["mapping01"]["ref_start_position"]
-            < chim_dict[line_number]["mapping01"]["ref_end_position"]
-        ):
-            read01_direction = "+"
-        elif (
-            chim_dict[line_number]["mapping01"]["ref_start_position"]
-            > chim_dict[line_number]["mapping01"]["ref_end_position"]
-        ):
-            read01_direction = "-"
-        else:
-            print("Error in read01 direction")
-        if (
-            chim_dict[line_number]["mapping02"]["ref_start_position"]
-            < chim_dict[line_number]["mapping02"]["ref_end_position"]
-        ):
-            read02_direction = "+"
-        elif (
-            chim_dict[line_number]["mapping02"]["ref_start_position"]
-            > chim_dict[line_number]["mapping02"]["ref_end_position"]
-        ):
-            read02_direction = "-"
-        else:
-            print("Error in read02 direction")
-        if segment01_segment02 in combination_arrays.keys():
-            if read01_direction == "+" and read02_direction == "+":
-                combination_arrays[segment01_segment02][
-                    chim_dict[line_number]["mapping01"]["ref-pos"] : chim_dict[
-                        line_number
-                    ]["mapping01"]["ref-pos"]
-                    + chim_dict[line_number]["mapping01"]["align-length"],
-                    chim_dict[line_number]["mapping02"]["ref-pos"] : chim_dict[
-                        line_number
-                    ]["mapping02"]["ref-pos"]
-                    + chim_dict[line_number]["mapping02"]["align-length"],
-                ] += 1
-            elif read01_direction == "-" and read02_direction == "-":
-                combination_arrays[segment01_segment02][
-                    chim_dict[line_number]["mapping01"]["ref-pos"]
-                    - chim_dict[line_number]["mapping01"]["align-length"] : chim_dict[
-                        line_number
-                    ]["mapping01"]["ref-pos"],
-                    chim_dict[line_number]["mapping02"]["ref-pos"]
-                    - chim_dict[line_number]["mapping02"]["align-length"] : chim_dict[
-                        line_number
-                    ]["mapping02"]["ref-pos"],
-                ] += 1
-            elif read01_direction == "-" and read02_direction == "+":
-                combination_arrays[segment01_segment02][
-                    chim_dict[line_number]["mapping01"]["ref-pos"]
-                    - chim_dict[line_number]["mapping01"]["align-length"] : chim_dict[
-                        line_number
-                    ]["mapping01"]["ref-pos"],
-                    chim_dict[line_number]["mapping02"]["ref-pos"] : chim_dict[
-                        line_number
-                    ]["ref-pos"]
-                    + chim_dict[line_number]["mapping02"]["align-length"],
-                ] += 1
-            elif read01_direction == "+" and read02_direction == "-":
-                combination_arrays[segment01_segment02][
-                    chim_dict[line_number]["mapping01"]["ref-pos"] : chim_dict[
-                        line_number
-                    ]["mapping01"]["ref-pos"]
-                    + chim_dict[line_number]["mapping01"]["align-length"],
-                    chim_dict[line_number]["mapping02"]["ref-pos"]
-                    - chim_dict[line_number]["mapping02"]["align-length"] : chim_dict[
-                        line_number
-                    ]["mapping02"]["ref-pos"],
-                ] += 1
-        elif segment02_segment01 in combination_arrays.keys():
-            if read01_direction == "+" and read02_direction == "+":
-                combination_arrays[segment02_segment01][
-                    chim_dict[line_number]["mapping02"]["ref-pos"] : chim_dict[
-                        line_number
-                    ]["mapping02"]["ref-pos"]
-                    + chim_dict[line_number]["mapping02"]["align-length"],
-                    chim_dict[line_number]["mapping01"]["ref-pos"] : chim_dict[
-                        line_number
-                    ]["mapping01"]["ref-pos"]
-                    + chim_dict[line_number]["mapping01"]["align-length"],
-                ] += 1
-            elif read01_direction == "-" and read02_direction == "-":
-                combination_arrays[segment02_segment01][
-                    chim_dict[line_number]["mapping02"]["ref-pos"]
-                    - chim_dict[line_number]["mapping02"]["align-length"] : chim_dict[
-                        line_number
-                    ]["mapping02"]["ref-pos"],
-                    chim_dict[line_number]["mapping01"]["ref-pos"]
-                    - chim_dict[line_number]["mapping01"]["align-length"] : chim_dict[
-                        line_number
-                    ]["mapping01"]["ref-pos"],
-                ] += 1
-            elif read01_direction == "-" and read02_direction == "+":
-                combination_arrays[segment02_segment01][
-                    chim_dict[line_number]["mapping02"]["ref-pos"]
-                    - chim_dict[line_number]["mapping02"]["align-length"] : chim_dict[
-                        line_number
-                    ]["mapping02"]["ref-pos"],
-                    chim_dict[line_number]["mapping01"]["ref-pos"] : chim_dict[
-                        line_number
-                    ]["mapping01"]["ref-pos"]
-                    + chim_dict[line_number]["mapping01"]["align-length"],
-                ] += 1
-            elif read01_direction == "+" and read02_direction == "-":
-                combination_arrays[segment02_segment01][
-                    chim_dict[line_number]["mapping02"]["ref-pos"] : chim_dict[
-                        line_number
-                    ]["mapping02"]["ref-pos"]
-                    + chim_dict[line_number]["mapping02"]["align-length"],
-                    chim_dict[line_number]["mapping01"]["ref-pos"]
-                    - chim_dict[line_number]["mapping01"]["align-length"] : chim_dict[
-                        line_number
-                    ]["mapping01"]["ref-pos"],
-                ] += 1
-            else:
-                print("exception caught")
-
-
 def trns_dict_to_combination_array(combination_arrays, trns_dict):
     """
     Fill combination arrays with values from trns_dict.
@@ -337,6 +178,149 @@ def trns_dict_to_combination_array(combination_arrays, trns_dict):
                     - trns_dict[read_id]["mapping01"]["align-length"] : trns_dict[
                         read_id
                     ]["mapping01"]["ref-pos"],
+                ] += 1
+            else:
+                print("exception caught")
+
+
+def parse_chim_file(chim_file):
+    chim_dict = {}
+    line_number = 0
+    with open(chim_file) as f:
+        for line in f:
+            line = line.strip().split("\t")
+            chim_dict[line_number] = {
+                "mapping01": {
+                    "ref-chr": line[0],
+                    "ref_start_position": int(line[1]),
+                    "ref_end_position": int(line[2]),
+                },
+                "mapping02": {
+                    "ref-chr": line[3],
+                    "ref_start_position": int(line[4]),
+                    "ref_end_position": int(line[5]),
+                },
+            }
+            line_number += 1
+    return chim_dict
+
+
+def chim_dict_to_combination_array(combination_arrays, chim_dict):
+    """
+    Fill combination arrays with values from chim_dict.
+    """
+    for line_number in chim_dict.keys():
+        segment01_segment02 = tuple(
+            [
+                chim_dict[line_number]["mapping01"]["ref-chr"],
+                chim_dict[line_number]["mapping02"]["ref-chr"],
+            ]
+        )
+        segment02_segment01 = tuple(
+            [
+                chim_dict[line_number]["mapping02"]["ref-chr"],
+                chim_dict[line_number]["mapping01"]["ref-chr"],
+            ]
+        )
+        read01_direction = ""
+        read02_direction = ""
+        if (
+            chim_dict[line_number]["mapping01"]["ref_start_position"]
+            < chim_dict[line_number]["mapping01"]["ref_end_position"]
+        ):
+            read01_direction = "+"
+        elif (
+            chim_dict[line_number]["mapping01"]["ref_start_position"]
+            > chim_dict[line_number]["mapping01"]["ref_end_position"]
+        ):
+            read01_direction = "-"
+        else:
+            print("Error in read01 direction")
+        if (
+            chim_dict[line_number]["mapping02"]["ref_start_position"]
+            < chim_dict[line_number]["mapping02"]["ref_end_position"]
+        ):
+            read02_direction = "+"
+        elif (
+            chim_dict[line_number]["mapping02"]["ref_start_position"]
+            > chim_dict[line_number]["mapping02"]["ref_end_position"]
+        ):
+            read02_direction = "-"
+        else:
+            print("Error in read02 direction")
+        if segment01_segment02 in combination_arrays.keys():
+            if read01_direction == "+" and read02_direction == "+":
+                combination_arrays[segment01_segment02][
+                    chim_dict[line_number]["mapping01"][
+                        "ref_start_position"
+                    ] : chim_dict[line_number]["mapping01"]["ref_end_position"],
+                    chim_dict[line_number]["mapping02"][
+                        "ref_start_position"
+                    ] : chim_dict[line_number]["mapping02"]["ref_end_position"],
+                ] += 1
+            elif read01_direction == "-" and read02_direction == "-":
+                combination_arrays[segment01_segment02][
+                    chim_dict[line_number]["mapping01"]["ref_end_position"] : chim_dict[
+                        line_number
+                    ]["mapping01"]["ref_start_position"],
+                    chim_dict[line_number]["mapping02"]["ref_end_position"] : chim_dict[
+                        line_number
+                    ]["mapping02"]["ref_start_position"],
+                ] += 1
+            elif read01_direction == "-" and read02_direction == "+":
+                combination_arrays[segment01_segment02][
+                    chim_dict[line_number]["mapping01"]["ref_end_position"] : chim_dict[
+                        line_number
+                    ]["mapping01"]["ref_start_position"],
+                    chim_dict[line_number]["mapping02"][
+                        "ref_start_position"
+                    ] : chim_dict[line_number]["mapping02"]["ref_end_position"],
+                ] += 1
+            elif read01_direction == "+" and read02_direction == "-":
+                combination_arrays[segment01_segment02][
+                    chim_dict[line_number]["mapping01"]["ref_end_position"] : chim_dict[
+                        line_number
+                    ]["mapping01"]["ref_start_position"],
+                    chim_dict[line_number]["mapping02"]["ref_end_position"] : chim_dict[
+                        line_number
+                    ]["mapping02"]["ref_start_position"],
+                ] += 1
+        elif segment02_segment01 in combination_arrays.keys():
+            if read01_direction == "+" and read02_direction == "+":
+                combination_arrays[segment01_segment02][
+                    chim_dict[line_number]["mapping02"][
+                        "ref_start_position"
+                    ] : chim_dict[line_number]["mapping02"]["ref_end_position"],
+                    chim_dict[line_number]["mapping01"][
+                        "ref_start_position"
+                    ] : chim_dict[line_number]["mapping01"]["ref_end_position"],
+                ] += 1
+            elif read01_direction == "-" and read02_direction == "-":
+                combination_arrays[segment01_segment02][
+                    chim_dict[line_number]["mapping02"]["ref_end_position"] : chim_dict[
+                        line_number
+                    ]["mapping02"]["ref_start_position"],
+                    chim_dict[line_number]["mapping01"]["ref_end_position"] : chim_dict[
+                        line_number
+                    ]["mapping01"]["ref_start_position"],
+                ] += 1
+            elif read01_direction == "-" and read02_direction == "+":
+                combination_arrays[segment01_segment02][
+                    chim_dict[line_number]["mapping02"][
+                        "ref_start_position"
+                    ] : chim_dict[line_number]["mapping02"]["ref_end_position"],
+                    chim_dict[line_number]["mapping01"]["ref_end_position"] : chim_dict[
+                        line_number
+                    ]["mapping01"]["ref_start_position"],
+                ] += 1
+            elif read01_direction == "+" and read02_direction == "-":
+                combination_arrays[segment01_segment02][
+                    chim_dict[line_number]["mapping02"]["ref_end_position"] : chim_dict[
+                        line_number
+                    ]["mapping02"]["ref_start_position"],
+                    chim_dict[line_number]["mapping01"]["ref_end_position"] : chim_dict[
+                        line_number
+                    ]["mapping01"]["ref_start_position"],
                 ] += 1
             else:
                 print("exception caught")
