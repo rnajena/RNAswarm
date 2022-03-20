@@ -96,6 +96,137 @@ def chim_dict_to_combination_array(combination_arrays, chim_dict):
     """
     Fill combination arrays with values from chim_dict.
     """
+    for line_number in chim_dict.keys():
+        segment01_segment02 = tuple(
+            [
+                chim_dict[line_number]["mapping01"]["ref-chr"],
+                chim_dict[line_number]["mapping02"]["ref-chr"],
+            ]
+        )
+        segment02_segment01 = tuple(
+            [
+                chim_dict[line_number]["mapping02"]["ref-chr"],
+                chim_dict[line_number]["mapping01"]["ref-chr"],
+            ]
+        )
+        read01_direction = ""
+        read02_direction = ""
+        if (
+            chim_dict[line_number]["mapping01"]["ref_start_position"]
+            < chim_dict[line_number]["mapping01"]["ref_end_position"]
+        ):
+            read01_direction = "+"
+        elif (
+            chim_dict[line_number]["mapping01"]["ref_start_position"]
+            > chim_dict[line_number]["mapping01"]["ref_end_position"]
+        ):
+            read01_direction = "-"
+        else:
+            print("Error in read01 direction")
+        if (
+            chim_dict[line_number]["mapping02"]["ref_start_position"]
+            < chim_dict[line_number]["mapping02"]["ref_end_position"]
+        ):
+            read02_direction = "+"
+        elif (
+            chim_dict[line_number]["mapping02"]["ref_start_position"]
+            > chim_dict[line_number]["mapping02"]["ref_end_position"]
+        ):
+            read02_direction = "-"
+        else:
+            print("Error in read02 direction")
+        if segment01_segment02 in combination_arrays.keys():
+            if read01_direction == "+" and read02_direction == "+":
+                combination_arrays[segment01_segment02][
+                    chim_dict[line_number]["mapping01"]["ref-pos"] : chim_dict[
+                        line_number
+                    ]["mapping01"]["ref-pos"]
+                    + chim_dict[line_number]["mapping01"]["align-length"],
+                    chim_dict[line_number]["mapping02"]["ref-pos"] : chim_dict[
+                        line_number
+                    ]["mapping02"]["ref-pos"]
+                    + chim_dict[line_number]["mapping02"]["align-length"],
+                ] += 1
+            elif read01_direction == "-" and read02_direction == "-":
+                combination_arrays[segment01_segment02][
+                    chim_dict[line_number]["mapping01"]["ref-pos"]
+                    - chim_dict[line_number]["mapping01"]["align-length"] : chim_dict[
+                        line_number
+                    ]["mapping01"]["ref-pos"],
+                    chim_dict[line_number]["mapping02"]["ref-pos"]
+                    - chim_dict[line_number]["mapping02"]["align-length"] : chim_dict[
+                        line_number
+                    ]["mapping02"]["ref-pos"],
+                ] += 1
+            elif read01_direction == "-" and read02_direction == "+":
+                combination_arrays[segment01_segment02][
+                    chim_dict[line_number]["mapping01"]["ref-pos"]
+                    - chim_dict[line_number]["mapping01"]["align-length"] : chim_dict[
+                        line_number
+                    ]["mapping01"]["ref-pos"],
+                    chim_dict[line_number]["mapping02"]["ref-pos"] : chim_dict[
+                        line_number
+                    ]["ref-pos"]
+                    + chim_dict[line_number]["mapping02"]["align-length"],
+                ] += 1
+            elif read01_direction == "+" and read02_direction == "-":
+                combination_arrays[segment01_segment02][
+                    chim_dict[line_number]["mapping01"]["ref-pos"] : chim_dict[
+                        line_number
+                    ]["mapping01"]["ref-pos"]
+                    + chim_dict[line_number]["mapping01"]["align-length"],
+                    chim_dict[line_number]["mapping02"]["ref-pos"]
+                    - chim_dict[line_number]["mapping02"]["align-length"] : chim_dict[
+                        line_number
+                    ]["mapping02"]["ref-pos"],
+                ] += 1
+        elif segment02_segment01 in combination_arrays.keys():
+            if read01_direction == "+" and read02_direction == "+":
+                combination_arrays[segment02_segment01][
+                    chim_dict[line_number]["mapping02"]["ref-pos"] : chim_dict[
+                        line_number
+                    ]["mapping02"]["ref-pos"]
+                    + chim_dict[line_number]["mapping02"]["align-length"],
+                    chim_dict[line_number]["mapping01"]["ref-pos"] : chim_dict[
+                        line_number
+                    ]["mapping01"]["ref-pos"]
+                    + chim_dict[line_number]["mapping01"]["align-length"],
+                ] += 1
+            elif read01_direction == "-" and read02_direction == "-":
+                combination_arrays[segment02_segment01][
+                    chim_dict[line_number]["mapping02"]["ref-pos"]
+                    - chim_dict[line_number]["mapping02"]["align-length"] : chim_dict[
+                        line_number
+                    ]["mapping02"]["ref-pos"],
+                    chim_dict[line_number]["mapping01"]["ref-pos"]
+                    - chim_dict[line_number]["mapping01"]["align-length"] : chim_dict[
+                        line_number
+                    ]["mapping01"]["ref-pos"],
+                ] += 1
+            elif read01_direction == "-" and read02_direction == "+":
+                combination_arrays[segment02_segment01][
+                    chim_dict[line_number]["mapping02"]["ref-pos"]
+                    - chim_dict[line_number]["mapping02"]["align-length"] : chim_dict[
+                        line_number
+                    ]["mapping02"]["ref-pos"],
+                    chim_dict[line_number]["mapping01"]["ref-pos"] : chim_dict[
+                        line_number
+                    ]["mapping01"]["ref-pos"]
+                    + chim_dict[line_number]["mapping01"]["align-length"],
+                ] += 1
+            elif read01_direction == "+" and read02_direction == "-":
+                combination_arrays[segment02_segment01][
+                    chim_dict[line_number]["mapping02"]["ref-pos"] : chim_dict[
+                        line_number
+                    ]["mapping02"]["ref-pos"]
+                    + chim_dict[line_number]["mapping02"]["align-length"],
+                    chim_dict[line_number]["mapping01"]["ref-pos"]
+                    - chim_dict[line_number]["mapping01"]["align-length"] : chim_dict[
+                        line_number
+                    ]["mapping01"]["ref-pos"],
+                ] += 1
+            else:
+                print("exception caught")
 
 
 def trns_dict_to_combination_array(combination_arrays, trns_dict):
@@ -220,23 +351,42 @@ def plot_heatmap(array, output_dir, filename, combination_0, combination_1):
 
 
 def main():
-    genome_file_path = sys.argv[1]
-    trns_file_path = sys.argv[2]
+    if sys.argv[4] == "--segemehl_mode":
+        genome_file_path = sys.argv[1]
+        trns_file_path = sys.argv[2]
 
-    genome_dict = parse_genome(genome_file_path)
-    trns_dict = parse_trns_file(trns_file_path)
+        genome_dict = parse_genome(genome_file_path)
+        trns_dict = parse_trns_file(trns_file_path)
 
-    interaction_arrays = make_combination_array(genome_dict)
-    trns_dict_to_combination_array(interaction_arrays, trns_dict)
+        interaction_arrays = make_combination_array(genome_dict)
+        trns_dict_to_combination_array(interaction_arrays, trns_dict)
 
-    for combination, array in interaction_arrays.items():
-        plot_heatmap(
-            array,
-            sys.argv[3],
-            f"{combination[0]}_{combination[1]}",
-            combination[0],
-            combination[1],
-        )
+        for combination, array in interaction_arrays.items():
+            plot_heatmap(
+                array,
+                sys.argv[3],
+                f"{combination[0]}_{combination[1]}",
+                combination[0],
+                combination[1],
+            )
+    elif sys.argv[4] == "--bwa_mode":
+        genome_file_path = sys.argv[1]
+        chim_file_path = sys.argv[2]
+
+        genome_dict = parse_genome(genome_file_path)
+        chim_dict = parse_chim_file(chim_file_path)
+
+        interaction_arrays = make_combination_array(genome_dict)
+        chim_dict_to_combination_array(interaction_arrays, chim_dict)
+
+        for combination, array in interaction_arrays.items():
+            plot_heatmap(
+                array,
+                sys.argv[3],
+                f"{combination[0]}_{combination[1]}",
+                combination[0],
+                combination[1],
+            )
 
 
 if __name__ == "__main__":
