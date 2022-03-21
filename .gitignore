@@ -7,3 +7,4 @@ modules/.nextflow*
 bin/__pycache__
 *.pyc
 test/*
+.vscode/*
