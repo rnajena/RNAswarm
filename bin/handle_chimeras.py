@@ -287,7 +287,7 @@ def chim_dict_to_combination_array(combination_arrays, chim_dict):
                 ] += 1
         elif segment02_segment01 in combination_arrays.keys():
             if read01_direction == "+" and read02_direction == "+":
-                combination_arrays[segment01_segment02][
+                combination_arrays[segment02_segment01][
                     chim_dict[line_number]["mapping02"][
                         "ref_start_position"
                     ] : chim_dict[line_number]["mapping02"]["ref_end_position"],
@@ -296,7 +296,7 @@ def chim_dict_to_combination_array(combination_arrays, chim_dict):
                     ] : chim_dict[line_number]["mapping01"]["ref_end_position"],
                 ] += 1
             elif read01_direction == "-" and read02_direction == "-":
-                combination_arrays[segment01_segment02][
+                combination_arrays[segment02_segment01][
                     chim_dict[line_number]["mapping02"]["ref_end_position"] : chim_dict[
                         line_number
                     ]["mapping02"]["ref_start_position"],
@@ -305,7 +305,7 @@ def chim_dict_to_combination_array(combination_arrays, chim_dict):
                     ]["mapping01"]["ref_start_position"],
                 ] += 1
             elif read01_direction == "-" and read02_direction == "+":
-                combination_arrays[segment01_segment02][
+                combination_arrays[segment02_segment01][
                     chim_dict[line_number]["mapping02"][
                         "ref_start_position"
                     ] : chim_dict[line_number]["mapping02"]["ref_end_position"],
@@ -314,7 +314,7 @@ def chim_dict_to_combination_array(combination_arrays, chim_dict):
                     ]["mapping01"]["ref_start_position"],
                 ] += 1
             elif read01_direction == "+" and read02_direction == "-":
-                combination_arrays[segment01_segment02][
+                combination_arrays[segment02_segment01][
                     chim_dict[line_number]["mapping02"]["ref_end_position"] : chim_dict[
                         line_number
                     ]["mapping02"]["ref_start_position"],
