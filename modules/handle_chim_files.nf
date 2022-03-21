@@ -2,7 +2,7 @@
 
 nextflow.enable.dsl=2
 
-params.bwa_mappings = '/home/ru27wav/Projects/gl_iav-splash_freiburg/results/schwemmle_group/mappings'
+params.chim_files = '/home/ru27wav/Projects/gl_iav-splash_freiburg/results/schwemmle_group/mappings'
 params.genomes = '/beegfs/ru27wav/Projects/gl_iav-splash_freiburg/data/schwemmle_group/genomes'
 params.heatmap_dir = '/beegfs/ru27wav/Projects/gl_iav-splash_freiburg/results/schwemmle_group/bwa_heatmaps'
 
@@ -47,10 +47,10 @@ workflow {
                   .map{ file -> tuple(file.baseName, file) }.view()
  
       mappings_ch = Channel
-              .fromPath("$params.trns_files/*.chim")
-              .map{ file -> tuple(file.baseName[0..-27], file) }.view()
+              .fromPath("$params.chim_files/*.chim")
+              .map{ file -> tuple(file.baseName[0..-26], file) }.view()
 
-      handleChimFiles_input_ch = genomes_ch.combine(mappings_ch, by: 0)
+      handleChimFiles_input_ch = genomes_ch.combine(mappings_ch, by: 0).view()
 
-      handleChimFiles( handleTrnsFiles_input_ch )
+      handleChimFiles( handleChimFiles_input_ch )
 }
