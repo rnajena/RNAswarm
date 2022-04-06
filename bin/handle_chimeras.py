@@ -6,6 +6,10 @@ import sys
 
 
 def parse_genome(genome_file):
+    # ? Is this method only for singleline fastas?
+    # ? It seems to break for multiline, doesn't it?
+    # ToDo: if this breaks for multiline, we need to fix it.
+    # Todo: I have a piece of code flying around for that
     genome_dict = {}
     with open(genome_file) as f:  # read genome file
         for line in f:  # parse genome file
@@ -24,11 +28,18 @@ def make_combination_array(genome_dict):
     """
     combination_arrays = {}
     segments = list(genome_dict.keys())
-    segment_combinations = [
-        segment_combination
-        for segment_combination in itertools.combinations_with_replacement(segments, 2)
-    ]
+
+    # segment_combinations = [
+    #     segment_combination
+    #     for segment_combination in itertools.combinations_with_replacement(segments, 2)
+    # ]
+    # * while I usually appreciate the usage of list comprehensions, you can directly transform
+    # * the iterator to a list. Actually, we also could just put the iterator in the for loop.
+    # * should work as well. Is a tad more memory efficient.
+    segment_combinations = list(itertools.combinations_with_replacement(segments,2))
+
     for segment_combination in segment_combinations:
+    # for segment_combination in itertools.combinations_with_replacement(segments,2): # * this should work as well
         combination_arrays[segment_combination] = np.zeros(
             (
                 len(genome_dict[segment_combination[0]]),
@@ -75,7 +86,8 @@ def trns_dict_to_combination_array(combination_arrays, trns_dict):
     Fill combination arrays with values from trns_dict.
     """
     for read_id in trns_dict.keys():
-        segment01_segment02 = tuple(
+        segment01_segment02 = tuple( # ? are those tuples with length 1?  Do we need the tuple? Or could be a list in the first place?
+        # ? e.g. segment01_segment02 = [trns_dict[read_id][mapping][ref-chr], trns_dict[read_id][mapping02][ref-chr]] ?
             [
                 trns_dict[read_id]["mapping01"]["ref-chr"],
                 trns_dict[read_id]["mapping02"]["ref-chr"],
@@ -100,7 +112,7 @@ def trns_dict_to_combination_array(combination_arrays, trns_dict):
                         "mapping02"
                     ]["ref-pos"]
                     + trns_dict[read_id]["mapping02"]["align-length"],
-                ] += 1
+                ] += 1  # ? was bin ich lesend?
             elif read01_direction == "-" and read02_direction == "-":
                 combination_arrays[segment01_segment02][
                     trns_dict[read_id]["mapping01"]["ref-pos"]
@@ -335,43 +347,43 @@ def plot_heatmap(array, output_dir, filename, combination_0, combination_1):
 
 
 def main():
+    # * see below. I put these lines here as they do not
+    # * change, no matter the if result.
+    genome_file_path = sys.argv[1]
+    genome_dict = parse_genome(genome_file_path)
+    interaction_arrays = make_combination_array(genome_dict)
+    readsOfInterest = sys.argv[2]
+
+    # ! We can use argparse (or docopt, but thats an extra library)
+    # ! to handle the input parsing and optional parameter better
     if sys.argv[4] == "--segemehl_mode":
-        genome_file_path = sys.argv[1]
-        trns_file_path = sys.argv[2]
-
-        genome_dict = parse_genome(genome_file_path)
-        trns_dict = parse_trns_file(trns_file_path)
-
-        interaction_arrays = make_combination_array(genome_dict)
+        # ! This is redundant. It does not matter whether
+        # ! argv[4] is segemehl oder bwa, you are reading the genome anyway.
+        #! I moved it in front of the if condition
+        trns_dict = parse_trns_file(readsOfInterest)
         trns_dict_to_combination_array(interaction_arrays, trns_dict)
-
-        for combination, array in interaction_arrays.items():
-            plot_heatmap(
-                array,
-                sys.argv[3],
-                f"{combination[0]}_{combination[1]}",
-                combination[0],
-                combination[1],
-            )
     elif sys.argv[4] == "--bwa_mode":
-        genome_file_path = sys.argv[1]
-        chim_file_path = sys.argv[2]
-
-        genome_dict = parse_genome(genome_file_path)
-        chim_dict = parse_chim_file(chim_file_path)
-
-        interaction_arrays = make_combination_array(genome_dict)
+        chim_dict = parse_chim_file(readsOfInterest)
         chim_dict_to_combination_array(interaction_arrays, chim_dict)
 
-        for combination, array in interaction_arrays.items():
-            plot_heatmap(
-                array,
-                sys.argv[3],
-                f"{combination[0]}_{combination[1]}",
-                combination[0],
-                combination[1],
-            )
+    # * same as above. the for loop is the same
+    # * for both if conditions. So, it can be outside the if clause
+    for combination, array in interaction_arrays.items():
+     plot_heatmap(
+         array,
+         sys.argv[3],
+         f"{combination[0]}_{combination[1]}",
+         combination[0],
+         combination[1],
+     )
 
 
 if __name__ == "__main__":
     main()
+
+# * general remark / notes:
+# * It feels like we are doing way to much parsing here.
+# * In the end, we just need to know which reads maps to what segment
+# * and where it mapped. The alignment length and everything can be calculated that way.
+# * By parsing every field from the trns.splice.txt and chimera.txt respectively, 
+# * your dictionaries are bloated as hell which, in turn, leads to the spaghetti code.
