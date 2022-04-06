@@ -1,5 +1,5 @@
-import seaborn as sns
-import matplotlib.pyplot as plt
+# import seaborn as sns
+# import matplotlib.pyplot as plt
 import numpy as np
 import itertools
 import sys
@@ -379,7 +379,9 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    test = parse_genome(sys.argv[1])
+    print(test)
+    #main()
 
 # * general remark / notes:
 # * It feels like we are doing way to much parsing here.
