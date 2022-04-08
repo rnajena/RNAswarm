@@ -267,11 +267,8 @@ def fill_heatmap(interaction, interaction_arrays):
     """
     firstSegment = interaction[0]
     secondSegment = interaction[3]
-    try:
-        interaction_arrays[(firstSegment,secondSegment)][int(interaction[1]):int(interaction[2]),int(interaction[4]):int(interaction[5])] += 1
-    except KeyError:
-        print(interaction)
-        exit(1)
+    interaction_arrays[(firstSegment,secondSegment)][interaction[1] : interaction[2], interaction[4] : interaction[5]] += 1
+
 
 def chim_dict_to_combination_array(combination_arrays, chim_dict):
     """
