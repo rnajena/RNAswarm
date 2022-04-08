@@ -1,5 +1,5 @@
-# import seaborn as sns
-# import matplotlib.pyplot as plt
+import seaborn as sns
+import matplotlib.pyplot as plt
 import numpy as np
 import itertools
 import sys
@@ -233,6 +233,46 @@ def parse_chim_file(chim_file):
     return chim_dict
 
 
+def __convert_to_int(element):
+    if element.isdigit():
+        return int(element)
+    else:
+        return element
+
+def bwaChimera2heatmap(chimFile,interaction_arrays):
+    """
+    """
+    with open(chimFile) as inputStream:
+        for idx, line in enumerate(inputStream):
+            currentRow = line.strip().split("\t")
+            currentRow = list(map(__convert_to_int, currentRow))
+            interaction = []
+            if currentRow[1] > currentRow[2]:
+                interaction += currentRow[0] + currentRow[2] + currentRow[1]
+            else:
+                interaction += currentRow[:3]
+           
+            if currentRow[4] > currentRow[5]:
+                interaction += [currentRow[3]] + [currentRow[5]] + [currentRow[4]]
+            else:
+                interaction += currentRow[3:]
+
+            if (interaction[0],interaction[3]) not in interaction_arrays:
+                interaction = interaction[3:] + interaction[0:3]
+            fill_heatmap(interaction,interaction_arrays)
+
+
+def fill_heatmap(interaction, interaction_arrays):
+    """
+    """
+    firstSegment = interaction[0]
+    secondSegment = interaction[3]
+    try:
+        interaction_arrays[(firstSegment,secondSegment)][int(interaction[1]):int(interaction[2]),int(interaction[4]):int(interaction[5])] += 1
+    except KeyError:
+        print(interaction)
+        exit(1)
+
 def chim_dict_to_combination_array(combination_arrays, chim_dict):
     """
     Fill combination arrays with values from chim_dict.
@@ -379,8 +419,9 @@ def main():
         trns_dict = parse_trns_file(readsOfInterest)
         trns_dict_to_combination_array(interaction_arrays, trns_dict)
     elif sys.argv[4] == "--bwa_mode":
-        chim_dict = parse_chim_file(readsOfInterest)
-        chim_dict_to_combination_array(interaction_arrays, chim_dict)
+        bwaChimera2heatmap(readsOfInterest,interaction_arrays)
+        #chim_dict = parse_chim_file(readsOfInterest)
+        #chim_dict_to_combination_array(interaction_arrays, chim_dict)
 
     # * same as above. the for loop is the same
     # * for both if conditions. So, it can be outside the if clause
@@ -395,9 +436,7 @@ def main():
 
 
 if __name__ == "__main__":
-    test = parse_genome(sys.argv[1])
-    print(test)
-    #main()
+    main()
 
 # * general remark / notes:
 # * It feels like we are doing way to much parsing here.
