@@ -243,6 +243,7 @@ def __check_interaction(currentRow, interaction_arrays):
     """
     """
     interaction = []
+    currentRow = list(map(__convert_to_int, currentRow))
     if currentRow[1] > currentRow[2]:
         interaction += [currentRow[0]] + [currentRow[2]] + [currentRow[1]]
     else:
@@ -264,7 +265,6 @@ def bwaChimera2heatmap(chimFile, interaction_arrays):
     with open(chimFile) as inputStream:
         for line in inputStream:
             currentRow = line.strip().split("\t")
-            currentRow = list(map(__convert_to_int, currentRow))
             interaction = __check_interaction(currentRow, interaction_arrays)    
             fill_heatmap(interaction,interaction_arrays)
 
