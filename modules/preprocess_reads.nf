@@ -2,8 +2,8 @@
 
 nextflow.enable.dsl=2
 
-params.reads = '/beegfs/ru27wav/Projects/gl_iav-splash_freiburg/data/dadonaite_2019/reads'
-params.trimmed_reads = '/beegfs/ru27wav/Projects/gl_iav-splash_freiburg/results/dadonaite_2019/trimmed_reads'
+params.reads = '../test_results/reads'
+params.trimmed_reads = '../test_results/trimmed_reads'
 
 /***********************************************************************
 * fasqc REPORT
@@ -93,7 +93,7 @@ workflow {
   main:
 
     reads_ch = Channel
-              .fromPath("${params.reads}/*/*.fastq")
+              .fromPath("${params.reads}/*.fastq")
               .map{ file -> tuple(file.baseName, file) }.view()
     
     fastpTrimming( reads_ch )

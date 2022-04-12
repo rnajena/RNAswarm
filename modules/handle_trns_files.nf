@@ -2,9 +2,9 @@
 
 nextflow.enable.dsl=2
 
-params.trns_files = '/beegfs/ru27wav/Projects/gl_iav-splash_freiburg/results/dadonaite_2019/mappings'
-params.genomes = '/beegfs/ru27wav/Projects/gl_iav-splash_freiburg/data/dadonaite_2019/genomes'
-params.heatmap_dir = '/beegfs/ru27wav/Projects/gl_iav-splash_freiburg/results/dadonaite_2019/segemehl_heatmaps'
+params.trns_files = '../test_results/mappings'
+params.genomes = '../test_data'
+params.heatmap_dir = '../test_results/segemehl_heatmaps'
 
 /************************************************************************
 * handles .trns.txt files
@@ -44,13 +44,13 @@ workflow {
 
       genomes_ch = Channel
                   .fromPath("$params.genomes/*.fasta")
-                  .map{ file -> tuple(file.baseName, file) }.view()
+                  .map{ file -> tuple(file.baseName[0..2], file) }.view()
  
       mappings_ch = Channel
               .fromPath("$params.trns_files/*.trns.txt")
-              .map{ file -> tuple(file.baseName[0..-27], file) }.view()
+              .map{ file -> tuple(file.baseName[0..2], file) }.view()
 
-      handleTrnsFiles_input_ch = genomes_ch.combine(mappings_ch, by: 0)
+      handleTrnsFiles_input_ch = genomes_ch.combine(mappings_ch, by: 0).view()
 
       handleTrnsFiles( handleTrnsFiles_input_ch )
 }

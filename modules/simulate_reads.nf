@@ -3,15 +3,15 @@
 nextflow.enable.dsl=2
 
 // filepaths
-params.reads = '../test_results'
+params.reads = '../test_results/reads'
 params.genomes = '../test_data'
 params.read_len = 150
-params.fold_coverage = 72
+params.fold_coverage = 11000
 
 /***********************************************************************
 * ART simulator SIMULATE ILLUMINA READS
 ***********************************************************************/
-process inSilicoSeq_simulate_reads {
+process art_simulate_reads {
   label "simulate_reads"
 
   cpus 8
@@ -23,13 +23,14 @@ process inSilicoSeq_simulate_reads {
   tuple val(name), path(genome)
 
   output:
-  tuple val(name), path(genome), path("${name}.fq")
+  tuple val(name), path("${name}.fastq")
 
   publishDir "${params.reads}", mode: 'copy'
 
   script:
   """
   art_illumina -i ${genome} -l ${params.read_len} -f ${params.fold_coverage} -o ${name}
+  mv ${name}.fq ${name}.fastq
   """
 }
 
