@@ -1,0 +1,7 @@
+name: simulate_reads
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - art

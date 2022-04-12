@@ -3,9 +3,9 @@
 nextflow.enable.dsl=2
 
 // filepaths
-params.reads = '/beegfs/ru27wav/Projects/gl_iav-splash_freiburg/results/schwemmle_group/trimmed_reads'
-params.genomes = '/beegfs/ru27wav/Projects/gl_iav-splash_freiburg/data/schwemmle_group/genomes'
-params.mappings = '/beegfs/ru27wav/Projects/gl_iav-splash_freiburg/results/schwemmle_group/mappings'
+params.reads = '../test_results/trimmed_reads'
+params.genomes = '../test_data'
+params.mappings = '../test_results/mappings'
 
 // segemehl parameters
 params.segemehl_accuracy = 9
@@ -191,11 +191,11 @@ workflow bwa_mapping {
 
     genomes_ch = Channel
                 .fromPath("${params.genomes}/*.fasta")
-                .map{ file -> tuple(file.baseName, file) }.view()
+                .map{ file -> tuple(file.baseName[0..2], file) }.view()
 
     reads_ch = Channel
               .fromPath("${params.reads}/*.fastq")
-              .map{ file -> tuple(file.baseName[0..-22], file) }.view()
+              .map{ file -> tuple(file.baseName[0..2], file) }.view()
 
     bwaIndex( genomes_ch )
 
@@ -217,11 +217,11 @@ workflow segemehl_mapping {
 
     genomes_ch = Channel
                 .fromPath("${params.genomes}/*.fasta")
-                .map{ file -> tuple(file.baseName, file) }.view()
+                .map{ file -> tuple(file.baseName[0..2], file) }.view()
         
     reads_ch = Channel
               .fromPath("${params.reads}/*.fastq")
-              .map{ file -> tuple(file.baseName[0..-22], file) }.view()
+              .map{ file -> tuple(file.baseName[0..2], file) }.view()
         
     segemehlIndex( genomes_ch )
     

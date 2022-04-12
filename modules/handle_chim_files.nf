@@ -2,9 +2,9 @@
 
 nextflow.enable.dsl=2
 
-params.chim_files = '/home/ru27wav/Projects/gl_iav-splash_freiburg/results/schwemmle_group/mappings'
-params.genomes = '/beegfs/ru27wav/Projects/gl_iav-splash_freiburg/data/schwemmle_group/genomes'
-params.heatmap_dir = '/beegfs/ru27wav/Projects/gl_iav-splash_freiburg/results/schwemmle_group/bwa_heatmaps'
+params.chim_files = '../test_results/mappings'
+params.genomes = '../test_data'
+params.heatmap_dir = '../test_results/bwa_heatmaps'
 
 /************************************************************************
 * handles .chim files
@@ -44,11 +44,11 @@ workflow {
 
       genomes_ch = Channel
                   .fromPath("$params.genomes/*.fasta")
-                  .map{ file -> tuple(file.baseName, file) }.view()
+                  .map{ file -> tuple(file.baseName[0..2], file) }.view()
  
       mappings_ch = Channel
               .fromPath("$params.chim_files/*.chim")
-              .map{ file -> tuple(file.baseName[0..-26], file) }.view()
+              .map{ file -> tuple(file.baseName[0..2], file) }.view()
 
       handleChimFiles_input_ch = genomes_ch.combine(mappings_ch, by: 0).view()
 
