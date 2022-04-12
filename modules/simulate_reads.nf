@@ -39,5 +39,5 @@ workflow {
                 .fromPath("${params.genomes}/*.fasta")
                 .map{ file -> tuple(file.baseName, file) }.view()
 
-  inSilicoSeq_simulate_reads( genomes_ch )
+  art_simulate_reads( genomes_ch )
 }
