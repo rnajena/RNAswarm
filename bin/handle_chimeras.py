@@ -3,44 +3,13 @@ import matplotlib.pyplot as plt
 import numpy as np
 import itertools
 import sys
-
-
-def parse_genome(genome_file):
-    """
-    """
-    genome_dict = {}
-
-    header = ""
-    seq = ""
-
-    with open(genome_file) as f:  # read genome file
-        for line in f:  # parse genome file
-            if line.startswith(">"):  # parse header
-            #* if there is a header already, we store the current sequence
-            #* to this header.
-                if header:
-                    genome_dict[header] = seq
-                    #* then we flush the sequence
-                    seq = ""
-                #* and parse the new header
-                header = line.strip().split(" ")[0][1:]  # remove '>' and ' '
-            #elif line != "\n":  # parse sequence and skips newlines
-            else:
-                #* if no header is detected, we append the new line
-                #* to the current sequence
-                seq += line.strip()
-                #genome_dict[name] = line.strip()  # append sequence to entry
-        #* after the last line, we have to store
-        #* the last sequence as well. Since no new line with ">" occurs, we
-        #* do this manually
-        genome_dict[header] = seq
-    return genome_dict
+import helper
 
 
 def make_combination_array(genome_dict):
     """
     Creates a dictionarry of numpy array of all possible genome segement combinations.
-    Use parse_genome() to create genome_dict.
+    Use helper.parse_genome() to create genome_dict.
     """
     combination_arrays = {}
     segments = list(genome_dict.keys())
@@ -430,7 +399,7 @@ def main():
     # * see below. I put these lines here as they do not
     # * change, no matter the if result.
     genome_file_path = sys.argv[1]
-    genome_dict = parse_genome(genome_file_path)
+    genome_dict = helper.parse_genome(genome_file_path)
     interaction_arrays = make_combination_array(genome_dict)
     readsOfInterest = sys.argv[2]
 
