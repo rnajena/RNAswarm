@@ -9,3 +9,4 @@ bin/__pycache__
 test/*
 .vscode/*
 test_results/*
+.DS_Store
