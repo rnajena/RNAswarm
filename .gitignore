@@ -1,12 +1,9 @@
-scripts/__pycache__/handle_trns_files.cpython-310.pyc
-scripts/__pycache__/visualize_data.cpython-310.pyc
 modules/.nextflow
 modules/.nextflow.log
 modules/work
 modules/.nextflow*
 bin/__pycache__
 *.pyc
-test/*
 .vscode/*
 test_results/*
 .DS_Store
