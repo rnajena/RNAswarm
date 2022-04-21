@@ -6,34 +6,6 @@ import sys
 import helper
 
 
-def make_combination_array(genome_dict):
-    """
-    Creates a dictionarry of numpy array of all possible genome segement combinations.
-    Use helper.parse_genome() to create genome_dict.
-    """
-    combination_arrays = {}
-    segments = list(genome_dict.keys())
-
-    # segment_combinations = [
-    #     segment_combination
-    #     for segment_combination in itertools.combinations_with_replacement(segments, 2)
-    # ]
-    # * while I usually appreciate the usage of list comprehensions, you can directly transform
-    # * the iterator to a list. Actually, we also could just put the iterator in the for loop.
-    # * should work as well. Is a tad more memory efficient.
-    segment_combinations = list(itertools.combinations_with_replacement(segments, 2))
-
-    for segment_combination in segment_combinations:
-        # for segment_combination in itertools.combinations_with_replacement(segments,2): # * this should work as well
-        combination_arrays[segment_combination] = np.zeros(
-            (
-                len(genome_dict[segment_combination[0]]),
-                len(genome_dict[segment_combination[1]]),
-            )
-        )
-    return combination_arrays
-
-
 def __convert_to_int(element):
     if element.isdigit():
         return int(element)
@@ -114,7 +86,7 @@ def main():
     # * change, no matter the if result.
     genome_file_path = sys.argv[1]
     genome_dict = helper.parse_genome(genome_file_path)
-    interaction_arrays = make_combination_array(genome_dict)
+    interaction_arrays = helper.make_combination_array(genome_dict)
     readsOfInterest = sys.argv[2]
 
     # ! We can use argparse (or docopt, but thats an extra library)
