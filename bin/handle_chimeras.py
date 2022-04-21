@@ -1,5 +1,4 @@
 import seaborn as sns
-import matplotlib.pyplot as plt
 import numpy as np
 import itertools
 import sys
@@ -73,14 +72,6 @@ def fill_heatmap(interaction, interaction_arrays):
     ] += 1
 
 
-def plot_heatmap(array, output_dir, filename, combination_0, combination_1):
-    heatmap = sns.heatmap(array, square=True, cmap="YlGnBu_r")
-    heatmap.set(xlabel=str(combination_1), ylabel=str(combination_0))
-    plt.figure()
-    heatmap.figure.savefig(f"{output_dir}/{filename}", bbox_inches="tight")
-    plt.close("all")
-
-
 def main():
     # * see below. I put these lines here as they do not
     # * change, no matter the if result.
@@ -106,7 +97,7 @@ def main():
     # * same as above. the for loop is the same
     # * for both if conditions. So, it can be outside the if clause
     for combination, array in interaction_arrays.items():
-        plot_heatmap(
+        helper.plot_heatmap(
             array,
             sys.argv[3],
             f"{combination[0]}_{combination[1]}",
