@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import itertools
+import seaborn as sns
 
 def parse_genome(genome_file):
     """
@@ -9,8 +10,8 @@ def parse_genome(genome_file):
     header = ""
     seq = ""
 
-    with open(genome_file[1:]) as f:  # read genome file
-        for line in f:  # parse genome file
+    with open(genome_file) as file:  # read genome file
+        for line in file:  # parse genome file
             if line.startswith(">"):  # parse header
             #* if there is a header already, we store the current sequence
             #* to this header.
@@ -32,7 +33,7 @@ def parse_genome(genome_file):
 
 def make_combination_array(genome_dict):
     """
-    Creates a dictionarry of numpy array of all possible genome segement combinations.
+    Creates a dictionary of numpy array of all possible genome segment combinations.
     Use helper.parse_genome() to create genome_dict.
     """
     combination_arrays = {}
