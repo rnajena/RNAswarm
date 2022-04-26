@@ -12,7 +12,6 @@ Options:
 
 """
 from docopt import docopt
-import numpy as np
 import helper
 
 
