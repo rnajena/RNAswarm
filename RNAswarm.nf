@@ -1,111 +1,45 @@
 #!/usr/bin/env nextflow
 
 /* 
-* RNAswarm RNA crosslinking-based differential RNA-RNA interaction probing pipeline
+* RNAswarm: differential RNA-RNA interaction probing pipeline based on RNA proximity ligation data
 *
-* Authors: gabriel.lencioni.lovate@uni-jena.de kevin.lamkiewicz@uni-jena.de
+* Authors: 
+* - Gabriel Lencioni Lovate <gabriel.lencioni.lovate@uni-jena.de>
+* - Kevin Lamkiewicz <kevin.lamkiewicz@uni-jena.de>
 */
 
 nextflow.enable.dsl=2
 
-params.reads = '/beegfs/ru27wav/Projects/gl_iav-splash_freiburg/data/schwemmle_group/reads'
-params.trimmed_reads = '/beegfs/ru27wav/Projects/gl_iav-splash_freiburg/results/schwemmle_group/trimmed_reads'
+/************************** 
+* MODULES
+**************************/
 
-/***********************************************************************
-* fasqc REPORT
-***********************************************************************/
-process fastqcReport {
-  label 'preprocessing'
+// interaction simulation
+include { simulate_interactions } from './modules/simulate_interactions.nf'
 
-  cpus 8
-  time '12h'
-  executor 'slurm'
-  conda '../envs/preprocessing_qc.yaml'
+workflow sim_interactions {
+    main:
+        interaction_tables_ch  = Channel
+                                 .fromPath("${params.input}/*.csv")
+                                .map{ file -> tuple(file.baseName, file)}.view()
 
-  input:
-  tuple val(name), path(reads)
-
-  output:
-  tuple val(name), path("${reads.baseName}_fastqc")
+        genomes_ch = Channel
+                    .fromPath("${params.input}/*.fasta")
+                     .map{ file -> tuple(file.baseName, file) }.view()
   
-  publishDir "${params.trimmed_reads}", mode: 'copy'
+        input_ch = interaction_tables_ch.combine(genomes_ch, by: 0).view()
 
-  script:
-  """
-  mkdir ${reads.baseName}_fastqc
-  fastqc ${reads} -t 8 -o ${reads.baseName}_fastqc
-  """
-}
-
-/***********************************************************************
-* fastp TRIMMING
-***********************************************************************/
-process fastpTrimming {
-  label 'preprocessing'
-
-  cpus 8
-  time '12h'
-  executor 'slurm'
-  conda '../envs/preprocessing_fastp.yaml'
-
-  input:
-  tuple val(name), path(reads)
-
-  output:
-  tuple val(name), path("${reads.baseName}_trimmed.fastq")
-  
-  publishDir "${params.trimmed_reads}", mode: 'copy'
-
-  script:
-  """
-  fastp -i ${reads} -o ${reads.baseName}_trimmed.fastq\
-        --failed_out ${reads.baseName}_failed_out.fastq\
-        --json ${reads.baseName}.json\
-        --html ${reads.baseName}.html\
-  """
-}
-
-/***********************************************************************
-* skewer TRIMMING
-***********************************************************************/
-process skewerTrimming {
-  label 'preprocessing'
-
-  cpus 8
-  time '12h'
-  executor 'slurm'
-  conda '../envs/preprocessing_skewer.yaml'
-
-  input:
-  tuple val(name), path(reads)
-
-  output:
-  tuple val(name), path("${reads.baseName}_trimmed.fastq")
-  
-  publishDir "${params.trimmed_reads}", mode: 'copy'
-
-  script:
-  """
-  skewer -o ${reads.baseName}_trimmed.fastq\
-         ${reads}
-  """
-}
-
-/************************************************************************
-* runs complete preprocessing workflow
-************************************************************************/
-workflow preprocess_reads {
-
-  main:
-
-    reads_ch = Channel
-              .fromPath("${params.reads}/*/*.fastq")
-              .map{ file -> tuple(file.baseName, file) }.view()
+        simulate_interactions( input_ch )
     
-    fastpTrimming( reads_ch )
-
-    qc_ch = fastpTrimming.out.concat(reads_ch).view()
-
-    fastqcReport( qc_ch )
+    //emit:
+        //simulate_interactions.out
 }
 
+/************************** 
+* WORKFLOW ENTRY POINT
+**************************/
+
+workflow {
+    // read_simulation
+    sim_interactions()
+}

@@ -1,43 +1,38 @@
-#!/usr/bin/env nextflow
-
-nextflow.enable.dsl=2
-
-// filepaths
-params.reads = '../test_results/reads'
-params.genomes = '../test_data'
-params.read_len = 150
-params.fold_coverage = 11000
-
 /***********************************************************************
 * ART simulator SIMULATE ILLUMINA READS
 ***********************************************************************/
-process art_simulate_reads {
-  label "simulate_reads"
 
-  cpus 8
-  time '12h'
-  executor 'slurm'
-  conda '../envs/simulate_reads.yaml'
+process make_templates {
+  label "python3"
 
   input:
-  tuple val(name), path(genome)
+  tuple val(name), path(interactions), path(genome)
 
   output:
-  tuple val(name), path("${name}.fastq")
-
-  publishDir "${params.reads}", mode: 'copy'
+  tuple val(name), path("${name}_interactions.fasta")
 
   script:
   """
-  art_illumina -i ${genome} -l ${params.read_len} -f ${params.fold_coverage} -o ${name}
-  mv ${name}.fq ${name}.fastq
+  art_templater.py -i ${interactions} -f ${genome} > ${name}.fasta
   """
+
 }
 
-workflow {
-  genomes_ch = Channel
-                .fromPath("${params.genomes}/*.fasta")
-                .map{ file -> tuple(file.baseName, file) }.view()
+process simulate_interactions {
+  label "simulate_interactions"
 
-  art_simulate_reads( genomes_ch )
+  input:
+  tuple val(name), path(interactions), path(genome)
+
+  output:
+  tuple val(name), path("${name}_concat.fastq")
+
+  publishDir "${params.output}/00-simulated_reads", mode: 'copy'
+
+  script:
+  """
+  art_illumina -i ${name}_interactions.fasta -l ${params.read_len} -c ${params.rcount_interaction} -o ${name}_interactions.fastq
+  art_illumina -i ${genome} -l ${params.read_len} -c ${params.rcount_genome} -o ${name}_genome.fastq
+  cat ${name}_genome.fastq ${name}_interactions.fastq > ${name}_concat.fastq
+  """
 }
