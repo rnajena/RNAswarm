@@ -7,3 +7,6 @@ bin/__pycache__
 .vscode/*
 test_results/*
 .DS_Store
+.nextflow/*
+.nextflow.log*
+work/*
