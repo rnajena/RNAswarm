@@ -15,24 +15,27 @@ nextflow.enable.dsl=2
 **************************/
 
 // interaction simulation
-include { simulate_interactions } from './modules/simulate_interactions.nf'
+include { simulate_interaction_reads; simulate_genome_reads; concatenate_reads } from './modules/interaction_simulator.nf'
 
-workflow sim_interactions {
+workflow simulate_interactions {
     main:
         interaction_tables_ch  = Channel
                                  .fromPath("${params.input}/*.csv")
-                                .map{ file -> tuple(file.baseName, file)}.view()
+                                 .map{ file -> tuple(file.baseName, file)}
 
         genomes_ch = Channel
                     .fromPath("${params.input}/*.fasta")
-                     .map{ file -> tuple(file.baseName, file) }.view()
+                    .map{ file -> tuple(file.baseName, file) }
   
-        input_ch = interaction_tables_ch.combine(genomes_ch, by: 0).view()
+        interaction_reads_ch = interaction_tables_ch.combine(genomes_ch, by: 0)
 
-        simulate_interactions( input_ch )
-    
-    //emit:
-        //simulate_interactions.out
+        simulate_interaction_reads( interaction_reads_ch )
+
+        simulate_genome_reads( genomes_ch )
+
+        concat_ch = simulate_genome_reads.out.join(simulate_interaction_reads.out, by: 0).view()
+
+        concatenate_reads( concat_ch )
 }
 
 /************************** 
@@ -40,6 +43,5 @@ workflow sim_interactions {
 **************************/
 
 workflow {
-    // read_simulation
-    sim_interactions()
+    simulate_interactions()
 }

@@ -5,3 +5,8 @@ channels:
   - defaults
 dependencies:
   - art
+  - python
+  - numpy
+  - seaborn
+  - matplotlib
+  - docopt
