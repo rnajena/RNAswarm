@@ -1,7 +1,0 @@
-name: preprocessing_skewer
-channels:
-  - conda-forge
-  - bioconda
-  - defaults
-dependencies:
-  - skewer
