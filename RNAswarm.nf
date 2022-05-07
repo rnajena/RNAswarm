@@ -36,6 +36,23 @@ workflow simulate_interactions {
         concat_ch = simulate_genome_reads.out.join(simulate_interaction_reads.out, by: 0).view()
 
         concatenate_reads( concat_ch )
+    emit:
+        concatenate_reads.out
+}
+
+include { fastpTrimming; fastqcReport } from './modules/preprocess_reads.nf'
+
+// preprocessing
+workflow preprocessing {
+    take: reads_ch
+    main:    
+        fastpTrimming( reads_ch )
+
+        qc_ch = fastpTrimming.out.concat(reads_ch).view()
+
+        fastqcReport( qc_ch )
+    emit:
+        fastpTrimming.out
 }
 
 /************************** 
@@ -44,4 +61,5 @@ workflow simulate_interactions {
 
 workflow {
     simulate_interactions()
+    preprocessing(simulate_interactions.out)
 }

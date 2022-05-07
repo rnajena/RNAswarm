@@ -1,20 +1,8 @@
-#!/usr/bin/env nextflow
-
-nextflow.enable.dsl=2
-
-params.reads = '../test_results/reads'
-params.trimmed_reads = '../test_results/trimmed_reads'
-
 /***********************************************************************
 * fasqc REPORT
 ***********************************************************************/
 process fastqcReport {
   label 'preprocessing'
-
-  cpus 8
-  time '12h'
-  executor 'slurm'
-  conda '../envs/preprocessing_qc.yaml'
 
   input:
   tuple val(name), path(reads)
@@ -22,7 +10,7 @@ process fastqcReport {
   output:
   tuple val(name), path("${reads.baseName}_fastqc")
   
-  publishDir "${params.trimmed_reads}", mode: 'copy'
+  publishDir "${params.output}/01-trimmed_reads", mode: 'copy'
 
   script:
   """
@@ -37,18 +25,13 @@ process fastqcReport {
 process fastpTrimming {
   label 'preprocessing'
 
-  cpus 8
-  time '12h'
-  executor 'slurm'
-  conda '../envs/preprocessing_fastp.yaml'
-
   input:
   tuple val(name), path(reads)
 
   output:
   tuple val(name), path("${reads.baseName}_trimmed.fastq")
   
-  publishDir "${params.trimmed_reads}", mode: 'copy'
+  publishDir "${params.output}/01-trimmed_reads", mode: 'copy'
 
   script:
   """
@@ -57,48 +40,4 @@ process fastpTrimming {
         --json ${reads.baseName}.json\
         --html ${reads.baseName}.html\
   """
-}
-
-/***********************************************************************
-* skewer TRIMMING
-***********************************************************************/
-process skewerTrimming {
-  label 'preprocessing'
-
-  cpus 8
-  time '12h'
-  executor 'slurm'
-  conda '../envs/preprocessing_skewer.yaml'
-
-  input:
-  tuple val(name), path(reads)
-
-  output:
-  tuple val(name), path("${reads.baseName}_trimmed.fastq")
-  
-  publishDir "${params.trimmed_reads}", mode: 'copy'
-
-  script:
-  """
-  skewer -o ${reads.baseName}_trimmed.fastq\
-         ${reads}
-  """
-}
-
-/************************************************************************
-* runs complete preprocessing workflow
-************************************************************************/
-workflow {
-
-  main:
-
-    reads_ch = Channel
-              .fromPath("${params.reads}/*.fastq")
-              .map{ file -> tuple(file.baseName, file) }.view()
-    
-    fastpTrimming( reads_ch )
-
-    qc_ch = fastpTrimming.out.concat(reads_ch).view()
-
-    fastqcReport( qc_ch )
 }
