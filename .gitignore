@@ -5,7 +5,6 @@ modules/.nextflow*
 bin/__pycache__
 *.pyc
 .vscode/*
-test_results/*
 .DS_Store
 .nextflow/*
 .nextflow.log*
