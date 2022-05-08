@@ -40,9 +40,9 @@ workflow simulate_interactions {
         concatenate_reads.out
 }
 
+// preprocessing
 include { fastpTrimming; fastqcReport } from './modules/preprocess_reads.nf'
 
-// preprocessing
 workflow preprocessing {
     take: reads_ch
     main:    
@@ -55,6 +55,53 @@ workflow preprocessing {
         fastpTrimming.out
 }
 
+// mapping with segemehl
+include { segemehlIndex; segemehl; convertSAMtoBAM } from './modules/map_reads.nf'
+
+workflow segemehl_mapping {
+    take: preprocessed_reads_ch
+    main:
+        genomes_ch = Channel
+                    .fromPath("${params.input}/*.fasta")
+                    .map{ file -> tuple(file.baseName, file) }
+        
+        segemehlIndex( genomes_ch )
+    
+        segemehl_input_ch = segemehlIndex.out.combine(preprocessed_reads_ch, by: 0)
+    
+        segemehl( segemehl_input_ch )
+
+        sam_files_ch = segemehl.out
+
+        convertSAMtoBAM( sam_files_ch )
+    emit:
+        convertSAMtoBAM.out
+}
+
+// mapping with bwa-mem
+include { bwaIndex; bwaMem; findChimeras } from './modules/map_reads.nf'
+workflow bwa_mapping {
+    take: preprocessed_reads_ch
+    main:
+        genomes_ch = Channel
+                    .fromPath("${params.input}/*.fasta")
+                    .map{ file -> tuple(file.baseName, file) }
+
+        bwaIndex( genomes_ch )
+
+        bwa_input_ch = bwaIndex.out.combine(preprocessed_reads_ch, by: 0)
+
+        bwaMem( bwa_input_ch )
+
+        sam_files_ch = bwaMem.out
+
+        convertSAMtoBAM( sam_files_ch )
+
+        findChimeras( convertSAMtoBAM.out )
+    emit:
+        findChimeras.out
+}
+
 /************************** 
 * WORKFLOW ENTRY POINT
 **************************/
@@ -62,4 +109,6 @@ workflow preprocessing {
 workflow {
     simulate_interactions()
     preprocessing(simulate_interactions.out)
+    bwa_mapping(preprocessing.out)
+    segemehl_mapping(preprocessing.out)
 }

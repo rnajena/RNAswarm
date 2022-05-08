@@ -1,33 +1,8 @@
-#!/usr/bin/env nextflow
-
-nextflow.enable.dsl=2
-
-// filepaths
-params.reads = '../test_results/trimmed_reads'
-params.genomes = '../test_data'
-params.mappings = '../test_results/mappings'
-
-// segemehl parameters
-params.segemehl_accuracy = 9
-params.segemehl_minfragsco = 15
-params.segemehl_minsplicecov = 80
-params.segemehl_minfraglen = 15
-params.segemehl_exclclipping = 0
-params.segemehl_threads = 48
-
-// slurm parameters
-params.slurm_queue = 'b_standard,b_fat,s_standard,s_fat'
-
 /*************************************************************************
 * segemehl INDEX
 *************************************************************************/
 process segemehlIndex {
-  label 'mapping'
-  
-  cpus 8
-  time '12h'
-  executor 'slurm'
-  conda '../envs/mapping_segemehl.yaml'
+  label 'mapping_segemehl'
 
   input:
   tuple val(name), path(genome)
@@ -45,13 +20,7 @@ process segemehlIndex {
 * segemehl RUN
 *************************************************************************/
 process segemehl {
-  label 'mapping'
-  
-  cpus "${params.segemehl_threads}"
-  time '12h'
-  executor 'slurm'
-  queue 'b_standard,b_fat,s_standard,s_fat'
-  conda '../envs/mapping_segemehl.yaml'
+  label 'mapping_segemehl'
 
   input:
   tuple val(name), path(genome), path(index), path(reads)
@@ -59,7 +28,8 @@ process segemehl {
   output:
   tuple val(name), path("${reads.baseName}_segemehl.sam"), path("${reads.baseName}.trns.txt") 
 
-  publishDir "${params.mappings}", mode: 'copy'
+  
+  publishDir "${params.output}/02-mappings/segemehl", mode: 'copy'
 
   script:
   """
@@ -71,7 +41,7 @@ process segemehl {
              -U ${params.segemehl_minfragsco}\
              -W ${params.segemehl_minsplicecov}\
              -Z ${params.segemehl_minfraglen}\
-             -t ${params.segemehl_threads}\
+             -t ${params.max_cpus}\
              > ${reads.baseName}_segemehl.sam
     """
 }
@@ -81,12 +51,7 @@ process segemehl {
 *************************************************************************/
 
 process bwaIndex {
-  label 'mapping'
-  
-  cpus 8
-  time '12h'
-  executor 'slurm'
-  conda '../envs/mapping_bwa.yaml'
+  label 'mapping_bwa'
 
   input:
   tuple val(name), path(genome)
@@ -108,13 +73,7 @@ process bwaIndex {
 *************************************************************************/
 
 process bwaMem {
-  label 'mapping'
-
-  cpus "${params.segemehl_threads}"
-  time '12h'
-  executor 'slurm'
-  queue 'b_standard,b_fat,s_standard,s_fat'
-  conda '../envs/mapping_bwa.yaml'
+  label 'mapping_bwa'
 
   input:
   tuple val(name), path(genome), path(index), path(reads)
@@ -122,11 +81,11 @@ process bwaMem {
   output:
   tuple val(name), path("${reads.baseName}_bwa.sam")
 
-  publishDir "${params.mappings}", mode: 'copy'
+  publishDir "${params.output}/02-mappings/bwa-mem", mode: 'copy'
 
   script:
   """
-  bwa mem -t ${params.segemehl_threads} -T 20 ${index}/${genome} ${reads} > ${reads.baseName}_bwa.sam
+  bwa mem -t ${params.max_cpus} -T 20 ${index}/${genome} ${reads} > ${reads.baseName}_bwa.sam
   """
 }
 
@@ -135,12 +94,7 @@ process bwaMem {
 *************************************************************************/
 
 process convertSAMtoBAM {
-  label 'mapping'
-
-  cpus 8
-  time '12h'
-  executor 'slurm'
-  conda '../envs/mapping_samtools.yaml'
+  label 'mapping_samtools'
 
   input:
   tuple val(name), path(mappings)
@@ -148,7 +102,7 @@ process convertSAMtoBAM {
   output:
   tuple val(name), path("${mappings.baseName}.bam")
 
-  publishDir "${params.mappings}", mode: 'copy'
+  publishDir "${params.output}/02-mappings/segemehl", mode: 'copy'
 
   script:
   """
@@ -161,12 +115,7 @@ process convertSAMtoBAM {
 *************************************************************************/
 
 process findChimeras {
-  label 'handle_bwa_bam_files'
-
-  cpus 8
-  time '2h'
-  executor 'slurm'
-  conda '../envs/python2.yaml'
+  label 'python2'
 
   input:
   tuple val(name), path(mapping)
@@ -174,68 +123,11 @@ process findChimeras {
   output:
   tuple val(name), path("${mapping.baseName}.chim")
   
-  publishDir "${params.mappings}", mode: 'copy'
+  
+  publishDir "${params.output}/02-mappings/chim_files", mode: 'copy'
   
   script:
   """
-  python /home/ru27wav/Projects/gl_iav-splash_freiburg/src/RNAswarm/bin/find_chimeras_rs.py -i ${mapping} -o ${mapping.baseName}.chim
+  find_chimeras_rs.py -i ${mapping} -o ${mapping.baseName}.chim
   """
-}
-
-/************************************************************************
-* runs complete mapping workflow
-************************************************************************/
-workflow bwa_mapping {
-
-  main:
-
-    genomes_ch = Channel
-                .fromPath("${params.genomes}/*.fasta")
-                .map{ file -> tuple(file.baseName[0..2], file) }.view()
-
-    reads_ch = Channel
-              .fromPath("${params.reads}/*.fastq")
-              .map{ file -> tuple(file.baseName[0..2], file) }.view()
-
-    bwaIndex( genomes_ch )
-
-    bwa_input_ch = bwaIndex.out.combine(reads_ch, by: 0)
-
-    bwaMem( bwa_input_ch )
-
-    sam_files_ch = bwaMem.out
-
-    convertSAMtoBAM( sam_files_ch )
-
-    findChimeras( convertSAMtoBAM.out )
-
-}
-
-workflow segemehl_mapping {
-
-  main:
-
-    genomes_ch = Channel
-                .fromPath("${params.genomes}/*.fasta")
-                .map{ file -> tuple(file.baseName[0..2], file) }.view()
-        
-    reads_ch = Channel
-              .fromPath("${params.reads}/*.fastq")
-              .map{ file -> tuple(file.baseName[0..2], file) }.view()
-        
-    segemehlIndex( genomes_ch )
-    
-    segemehl_input_ch = segemehlIndex.out.combine(reads_ch, by: 0)
-    
-    segemehl( segemehl_input_ch )
-
-    sam_files_ch = segemehl.out
-
-    convertSAMtoBAM( sam_files_ch )
-
-}
-
-workflow {
-  bwa_mapping()
-  segemehl_mapping()
 }
