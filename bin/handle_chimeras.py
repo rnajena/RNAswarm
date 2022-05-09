@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
 
-import seaborn as sns
-import numpy as np
-import itertools
 import sys
 import helper
 
@@ -39,6 +36,7 @@ def bwaChimera2heatmap(chimFile, interaction_arrays):
     with open(chimFile) as inputStream:
         for line in inputStream:
             currentRow = line.strip().split("\t")
+            currentRow = [item.split("|")[0] for item in currentRow]
             interaction = __check_interaction(currentRow, interaction_arrays)
             fill_heatmap(interaction, interaction_arrays)
 
@@ -79,7 +77,7 @@ def main():
     # * change, no matter the if result.
     genome_file_path = sys.argv[1]
     genome_dict = helper.parse_genome(genome_file_path)
-    interaction_arrays = helper.make_combination_array(genome_dict)
+    combination_array = helper.make_combination_array(genome_dict)
     readsOfInterest = sys.argv[2]
 
     # ! We can use argparse (or docopt, but thats an extra library)
@@ -88,17 +86,17 @@ def main():
         # ! This is redundant. It does not matter whether
         # ! argv[4] is segemehl oder bwa, you are reading the genome anyway.
         #! I moved it in front of the if condition
-        segemehlTrans2heatmap(readsOfInterest, interaction_arrays)
+        segemehlTrans2heatmap(readsOfInterest, combination_array)
         # trns_dict = parse_trns_file(readsOfInterest)
         # trns_dict_to_combination_array(interaction_arrays, trns_dict)
     elif sys.argv[4] == "--bwa_mode":
-        bwaChimera2heatmap(readsOfInterest, interaction_arrays)
+        bwaChimera2heatmap(readsOfInterest, combination_array)
         # chim_dict = parse_chim_file(readsOfInterest)
         # chim_dict_to_combination_array(interaction_arrays, chim_dict)
 
     # * same as above. the for loop is the same
     # * for both if conditions. So, it can be outside the if clause
-    for combination, array in interaction_arrays.items():
+    for combination, array in combination_array.items():
         helper.plot_heatmap(
             array,
             sys.argv[3],

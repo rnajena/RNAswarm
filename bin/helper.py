@@ -1,6 +1,8 @@
 import matplotlib.pyplot as plt
 import itertools
 import seaborn as sns
+import numpy as np
+import itertools
 
 def parse_genome(genome_file):
     """

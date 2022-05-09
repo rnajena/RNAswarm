@@ -31,7 +31,7 @@ workflow simulate_interactions {
 
         simulate_genome_reads( genomes_ch )
 
-        concat_ch = simulate_genome_reads.out.join(simulate_interaction_reads.out, by: 0).view()
+        concat_ch = simulate_genome_reads.out.join(simulate_interaction_reads.out, by: 0)
 
         concatenate_reads( concat_ch )
     emit:
