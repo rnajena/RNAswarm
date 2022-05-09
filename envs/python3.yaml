@@ -2,7 +2,7 @@ name: python3
 channels:
   - conda-forge
 dependencies:
-  - python
+  - python=3.9
   - numpy
   - seaborn
   - matplotlib
