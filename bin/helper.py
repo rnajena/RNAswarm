@@ -22,7 +22,7 @@ def parse_genome(genome_file):
                     #* then we flush the sequence
                     seq = ""
                 #* and parse the new header
-                header = line.strip().split("|")[0][1:]
+                header = line.strip()[1:]
             else:
                 #* if no header is detected, we append the new line
                 #* to the current sequence

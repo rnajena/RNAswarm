@@ -5,7 +5,9 @@ import helper
 
 
 def __convert_to_int(element):
-    if element.isdigit():
+    if type(element) == int:
+        return element
+    elif element.isdigit():
         return int(element)
     else:
         return element
@@ -36,7 +38,6 @@ def bwaChimera2heatmap(chimFile, interaction_arrays):
     with open(chimFile) as inputStream:
         for line in inputStream:
             currentRow = line.strip().split("\t")
-            currentRow = [item.split("|")[0] for item in currentRow]
             interaction = __check_interaction(currentRow, interaction_arrays)
             fill_heatmap(interaction, interaction_arrays)
 
