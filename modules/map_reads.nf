@@ -26,10 +26,10 @@ process segemehl {
   tuple val(name), path(genome), path(index), path(reads)
 
   output:
-  tuple val(name), path("${reads.baseName}_segemehl.sam"), path("${reads.baseName}.trns.txt") 
+  tuple val(name), path("${reads.baseName}.trns.txt") 
 
   
-  publishDir "${params.output}/02-mappings/segemehl", mode: 'copy'
+  publishDir "${params.output}/02-mappings/trns_files", mode: 'copy'
 
   script:
   """
@@ -81,8 +81,6 @@ process bwaMem {
   output:
   tuple val(name), path("${reads.baseName}_bwa.sam")
 
-  publishDir "${params.output}/02-mappings/bwa-mem", mode: 'copy'
-
   script:
   """
   bwa mem -t ${params.max_cpus} -T 20 ${index}/${genome} ${reads} > ${reads.baseName}_bwa.sam
@@ -102,8 +100,6 @@ process convertSAMtoBAM {
   output:
   tuple val(name), path("${mappings.baseName}.bam")
 
-  publishDir "${params.output}/02-mappings/segemehl", mode: 'copy'
-
   script:
   """
   samtools view -@ 8 -S -b ${mappings} > ${mappings.baseName}.bam
@@ -122,7 +118,6 @@ process findChimeras {
   
   output:
   tuple val(name), path("${mapping.baseName}.chim")
-  
   
   publishDir "${params.output}/02-mappings/chim_files", mode: 'copy'
   
