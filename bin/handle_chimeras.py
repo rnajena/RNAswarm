@@ -38,7 +38,7 @@ def bwaChimera2heatmap(chimFile, interaction_arrays):
     with open(chimFile) as inputStream:
         for line in inputStream:
             currentRow = line.strip().split("\t")
-            interaction = __check_interaction(currentRow, interaction_arrays)
+            interaction = __check_interaction(currentRow[1:6], interaction_arrays)
             fill_heatmap(interaction, interaction_arrays)
 
 
