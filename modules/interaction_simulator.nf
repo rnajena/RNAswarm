@@ -11,10 +11,12 @@ process simulate_interaction_reads {
   output:
   tuple val(name), path("${name}_interactions.fq")
 
+  publishDir "${params.output}/00-simulated_reads", mode: 'copy'
+
   script:
   """
   art_templater.py -i ${interactions} -f ${genome} > ${name}_interactions.fasta
-  art_illumina -i ${name}_interactions.fasta -l ${params.read_len} -c ${params.rcount_interaction} -o ${name}_interactions
+  art_illumina -sam -i ${name}_interactions.fasta -l ${params.read_len} -c ${params.rcount_interaction} -o ${name}_interactions
   """
 }
 
@@ -27,9 +29,11 @@ process simulate_genome_reads {
   output:
   tuple val(name), path("${fasta.baseName}.fq")
 
+  publishDir "${params.output}/00-simulated_reads", mode: 'copy'
+
   script:
   """
-  art_illumina -i ${fasta} -l ${params.read_len} -c ${params.rcount_genome} -o ${fasta.baseName}
+  art_illumina -sam -i ${fasta} -l ${params.read_len} -c ${params.rcount_genome} -o ${fasta.baseName}
   """
 }
 

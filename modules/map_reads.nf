@@ -20,29 +20,28 @@ process segemehlIndex {
 * segemehl RUN
 *************************************************************************/
 process segemehl {
-  label 'mapping_segemehl'
+    label 'mapping_segemehl'
 
-  input:
-  tuple val(name), path(genome), path(index), path(reads)
+    input:
+    tuple val(name), path(genome), path(index), path(reads)
 
-  output:
-  tuple val(name), path("${reads.baseName}.trns.txt") 
+    output:
+    tuple val(name), path("${reads.baseName}.trns.txt"), path("${reads.baseName}_segemehl.bam")
 
-  
-  publishDir "${params.output}/02-mappings/trns_files", mode: 'copy'
+    publishDir "${params.output}/02-mappings/segemehl", mode: 'copy'
 
-  script:
-  """
-  segemehl.x -i ${index}\
-             -d ${genome}\
-             -q ${reads}\
-             -S ${reads.baseName}\
-             -A ${params.segemehl_accuracy}\
-             -U ${params.segemehl_minfragsco}\
-             -W ${params.segemehl_minsplicecov}\
-             -Z ${params.segemehl_minfraglen}\
-             -t ${params.max_cpus}\
-             > ${reads.baseName}_segemehl.sam
+    script:
+    """
+    segemehl.x -i ${index}\
+               -d ${genome}\
+               -q ${reads}\
+               -S ${reads.baseName}\
+               -A ${params.segemehl_accuracy}\
+               -U ${params.segemehl_minfragsco}\
+               -W ${params.segemehl_minsplicecov}\
+               -Z ${params.segemehl_minfraglen}\
+               -t ${params.max_cpus}\
+               -b > ${reads.baseName}_segemehl.bam
     """
 }
 
