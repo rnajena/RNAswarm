@@ -55,6 +55,7 @@ workflow preprocessing {
 
 // mapping with segemehl
 include { segemehlIndex; segemehl; convertSAMtoBAM } from './modules/map_reads.nf'
+include { makeConfusionMatrix_trns } from './modules/handle_trns_files.nf'
 
 workflow segemehl_mapping {
     take: preprocessed_reads_ch
@@ -73,6 +74,7 @@ workflow segemehl_mapping {
 
 // mapping with bwa-mem
 include { bwaIndex; bwaMem; findChimeras } from './modules/map_reads.nf'
+include { makeConfusionMatrix_bwa } from './modules/handle_chim_files.nf'
 
 workflow bwa_mapping {
     take: preprocessed_reads_ch
@@ -91,6 +93,10 @@ workflow bwa_mapping {
         convertSAMtoBAM( sam_files_ch )
 
         findChimeras( convertSAMtoBAM.out )
+
+        confusion_matrix_ch = 
+
+        makeConfusionMatrix_bwa
     emit:
         findChimeras.out
 }

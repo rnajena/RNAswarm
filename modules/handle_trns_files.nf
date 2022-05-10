@@ -20,4 +20,17 @@ process handleTrnsFiles {
     """
 }
 
+process makeConfusionMatrix_trns{
+    label 'python3'
 
+    input:
+    tuple val(name), path(interaction_reads), path(genomic_reads), path(trns_file) path(bam_file)
+
+    output:
+    tuple val(name), path("${name}_bwa_confusion_matrix.txt")
+
+    script:
+    """
+    art_templater.py -i ${interaction_reads} -g ${genomic_reads} -t ${trns_file} -b ${bam_file} > ${name}_bwa_confusion_matrix.txt
+    """
+}
