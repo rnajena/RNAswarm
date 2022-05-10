@@ -99,6 +99,8 @@ process convertSAMtoBAM {
   output:
   tuple val(name), path("${mappings.baseName}.bam")
 
+  publishDir "${params.output}/02-mappings/bwa-mem", mode: 'copy'
+
   script:
   """
   samtools view -@ 8 -S -b ${mappings} > ${mappings.baseName}.bam
@@ -118,7 +120,7 @@ process findChimeras {
   output:
   tuple val(name), path("${mapping.baseName}.chim")
   
-  publishDir "${params.output}/02-mappings/chim_files", mode: 'copy'
+  publishDir "${params.output}/02-mappings/bwa-mem", mode: 'copy'
   
   script:
   """
