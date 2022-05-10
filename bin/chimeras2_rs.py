@@ -193,7 +193,7 @@ class Chimera(object):
 
     def __str__(self):
         """to string"""
-        return "{}\t{}{}".format(self.left, self.right, "\t{}".format(self.extra) if self.extra else "")
+        return "{}\t".format(self.qname) + "{}\t{}{}".format(self.left, self.right, "\t{}".format(self.extra) if self.extra else "")
 
         #return "{}\t{}\t{}\t{}{}".format(
             #self.qname, self.left, self.right, self.order, "\t{}".format(self.extra) if self.extra else "")
