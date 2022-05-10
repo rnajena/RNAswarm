@@ -1,4 +1,4 @@
-name: mapping_segemehl
+name: mapping_bwa
 channels:
   - conda-forge
   - bioconda
