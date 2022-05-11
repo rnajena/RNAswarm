@@ -1,0 +1,7 @@
+name: mapping_samtools
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - samtools
