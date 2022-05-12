@@ -9,7 +9,7 @@ import argparse
 import regex
 
 import pysam
-import chimeras2_rs
+import chimeras2 as chimeras2
 # https://pypi.python.org/pypi/cigar/0.1
 from cigar import Cigar
 
@@ -41,7 +41,7 @@ def query_aln_seq(queryseq, cigar):
     'GTAC'
     """
 
-    cig = chimeras2_rs.cigar_to_list(cigar)
+    cig = chimeras2.cigar_to_list(cigar)
 
     start = 0
     for (op_len, op_type) in cig:
@@ -67,7 +67,7 @@ def cigar2querylen(cigar):
     """Determine length of query sequence from cigar string
     """
 
-    cig = chimeras2_rs.cigar_to_list(cigar)
+    cig = chimeras2.cigar_to_list(cigar)
     qlen = 0
     for (op_len, op_type) in cig:
         assert not isinstance(op_type, int), (
@@ -95,7 +95,7 @@ def cigar2reflen(cigar):
     10
     """
 
-    cig = chimeras2_rs.cigar_to_list(cigar)
+    cig = chimeras2.cigar_to_list(cigar)
 
     rlen = 0
     #ref_consuming = 'MDN=X'
@@ -220,7 +220,7 @@ def find_sa_chimeras(bam, fh_out,
             #assert read.pos + cigar2rlen(ori_cigar) == read.reference_end
             assert read.pos + cigar2reflen(ori_cigar) == read.aend
 
-            chim = chimeras2_rs.Chimera()
+            chim = chimeras2.Chimera()
             chim.qname = qname
 
             # default is to assign primary to left and SA to right and then sort
