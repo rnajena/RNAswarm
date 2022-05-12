@@ -108,7 +108,8 @@ def make_confusion_matrix_segemehl(genome_fastq, interactions_fastq, bam_file):
         + confusion_matrix["false_positive"]
         + confusion_matrix["false_negative"]
         + confusion_matrix["true_positive"]
-        + confusion_matrix["unmapped"]
+        + confusion_matrix["unmapped_interaction"]
+        + confusion_matrix["unmapped_genome"]
     )
     return confusion_matrix
 
@@ -144,7 +145,7 @@ def make_confusion_matrix_bwa(genome_fastq, interactions_fastq, chim_file, bam_f
             confusion_matrix["unmapped_interaction"] += 1
         elif id in chim_ids:
             confusion_matrix["true_positive"] += 1
-        elif id not in chim_ids and id in mapped:
+        elif id not in chim_ids:
             confusion_matrix["false_negative"] += 1
 
     confusion_matrix["total"] = (
@@ -167,7 +168,7 @@ def main():
             arguments["--chim"],
             arguments["--bam"],
         )
-    elif arguments["--segemehl"]:
+    elif arguments["--trans"]:
         confusion_matrix = make_confusion_matrix_segemehl(
             arguments["--genome"], arguments["--interactions"], arguments["--bam"]
         )
