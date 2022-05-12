@@ -124,6 +124,6 @@ process findChimeras {
   
   script:
   """
-  find_chimeras_rs.py -i ${mapping} -o ${mapping.baseName}.chim
+  find_chimeras.py -i ${mapping} -o ${mapping.baseName}.chim
   """
 }
