@@ -43,7 +43,7 @@ include { fastpTrimming; fastqcReport } from './modules/preprocess_reads.nf'
 
 workflow preprocessing {
     take: reads_ch
-    main:    
+    main:
         fastpTrimming( reads_ch )
 
         qc_ch = fastpTrimming.out.concat(reads_ch)
@@ -60,7 +60,7 @@ include { makeConfusionMatrix_trns } from './modules/handle_trns_files.nf'
 workflow segemehl_mapping {
     take: preprocessed_reads_ch
     main:
-        genomes_ch = Channel.fromPath("${params.input}/*.fasta")
+        genomes_ch = Channel.fromPath("${params.input}/genomes/*.fasta")
                             .map{ file -> tuple(file.baseName, file) }
         
         segemehlIndex( genomes_ch )
@@ -79,7 +79,7 @@ include { makeConfusionMatrix_bwa } from './modules/handle_chim_files.nf'
 workflow bwa_mapping {
     take: preprocessed_reads_ch
     main:
-        genomes_ch = Channel.fromPath("${params.input}/*.fasta")
+        genomes_ch = Channel.fromPath("${params.input}/genomes/*.fasta")
                             .map{ file -> tuple(file.baseName, file) }
 
         bwaIndex( genomes_ch )
@@ -108,7 +108,7 @@ include { handleChimFiles } from './modules/handle_chim_files.nf'
 workflow chim_file_handler {
     take: chim_file_ch
     main:
-        genomes_ch = Channel.fromPath("${params.input}/*.fasta")
+        genomes_ch = Channel.fromPath("${params.input}/genomes/*.fasta")
                             .map{ file -> tuple(file.baseName, file) }
 
         handleChimFiles_input_ch = genomes_ch.combine(chim_file_ch, by: 0)
@@ -124,7 +124,7 @@ include { handleTrnsFiles } from './modules/handle_trns_files.nf'
 workflow trns_file_handler {
     take: trns_file_ch
     main:
-        genomes_ch = Channel.fromPath("${params.input}/*.fasta")
+        genomes_ch = Channel.fromPath("${params.input}/genomes/*.fasta")
                             .map{ file -> tuple(file.baseName, file) }
 
         handleTrnsFiles_input_ch = genomes_ch.combine(trns_file_ch, by: 0)
@@ -139,8 +139,10 @@ workflow trns_file_handler {
 **************************/
 
 workflow {
-    simulate_interactions()
-    preprocessing(simulate_interactions.out)
+    reads_ch = Channel.fromPath("${params.input}/reads/*/*.fastq")
+                            .map{ file -> tuple(file.baseName[0..9], file) }
+    // simulate_interactions(reads_ch)
+    preprocessing(reads_ch)
     // bwa workflow
     bwa_mapping(preprocessing.out)
     chim_file_handler(bwa_mapping.out)
