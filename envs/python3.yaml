@@ -1,6 +1,8 @@
 name: python3
 channels:
   - conda-forge
+  - bioconda
+  - defaults
 dependencies:
   - python
   - numpy
