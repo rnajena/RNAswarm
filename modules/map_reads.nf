@@ -36,10 +36,6 @@ process segemehl {
                -d ${genome}\
                -q ${reads}\
                -S ${reads.baseName}\
-               -A ${params.segemehl_accuracy}\
-               -U ${params.segemehl_minfragsco}\
-               -W ${params.segemehl_minsplicecov}\
-               -Z ${params.segemehl_minfraglen}\
                -t ${params.max_cpus}\
                -b > ${reads.baseName}_segemehl.bam
     """

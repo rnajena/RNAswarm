@@ -18,6 +18,7 @@ Options:
 """
 from docopt import docopt
 import pysam
+import helper as hp
 
 
 def get_ids(fastq_file):
@@ -172,29 +173,34 @@ def make_confusion_matrix_bwa(genome_fastq, interactions_fastq, chim_file, bam_f
     return confusion_matrix
 
 
-def make_wen_diagram(trns_file, chim_file, segemehl_bam_file, bwa_bam_file):
+def make_venn_diag(trns_file, chim_file):
+    """
+    """
     chim_ids = get_chim_ids(chim_file)
     trns_ids = get_trs_ids(trns_file)
 
-    on_both_set = set()
-    on_chim_set = set()
-    on_chim_set = set()
+    on_both_set = chim_ids & trns_ids
+    only_bwa_set = chim_ids - trns_ids
+    only_segemehl_set = trns_ids - chim_ids
 
-    for id in chim_ids:
-        if id in trns_ids:
-            on_both_set.add(id)
-        else:
-            on_chim_set.add(id)
-    for id in trns_ids:
-        if id in chim_ids:
-            on_both_set.add(id)
-        if True:
-            pass
+    return {
+        "only bwa-mem" : only_bwa_set,
+        "on both" : on_both_set,
+        "only segemehl": only_segemehl_set
+    }
+
+
+
+    print(f"""| only bwa-mem | both | only segemehl |
+    | {len(only_bwa_set)} | {len(on_both_set)} | {len(only_segemehl_set)} |""")
+
 
 
 def main():
     arguments = docopt(__doc__)
-    if arguments["--chim"] and not arguments["--trans"]:
+    if arguments["--trans"] and arguments["--chim"]:
+        pass
+    elif arguments["--chim"]:
         confusion_matrix = make_confusion_matrix_bwa(
             arguments["--genome"],
             arguments["--interactions"],
@@ -202,25 +208,24 @@ def main():
             arguments["--bam"],
         )
         print(
-            f'''| | interaction | genome |
+            f"""| | interaction | genome |
             |----------------------|-------------|---------|
             | chimeric mapping | {confusion_matrix['true_positive']} | {confusion_matrix['false_positive']} |
             | non-chimeric mapping | {confusion_matrix['false_negative']} | {confusion_matrix['true_negative']} |
-            | unmapped | {confusion_matrix['unmapped_interaction']} | {confusion_matrix['unmapped_genome']} |'''
+            | unmapped | {confusion_matrix['unmapped_interaction']} | {confusion_matrix['unmapped_genome']} |"""
         )
-    elif arguments["--trans"] and not arguments["--chim"]:
+    elif arguments["--trans"]:
         confusion_matrix = make_confusion_matrix_segemehl(
             arguments["--genome"], arguments["--interactions"], arguments["--bam"]
         )
         print(
-            f'''| | interaction | genome |
+            f"""| | interaction | genome |
             |----------------------|-------------|---------|
             | chimeric mapping | {confusion_matrix['true_positive']} | {confusion_matrix['false_positive']} |
             | non-chimeric mapping | {confusion_matrix['false_negative']} | {confusion_matrix['true_negative']} |
-            | unmapped | {confusion_matrix['unmapped_interaction']} | {confusion_matrix['unmapped_genome']} |'''
+            | unmapped | {confusion_matrix['unmapped_interaction']} | {confusion_matrix['unmapped_genome']} |"""
         )
-    elif arguments["--trans"] and arguments["--chim"]:
-        pass
+    
 
 
 if __name__ == "__main__":
