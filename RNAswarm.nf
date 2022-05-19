@@ -134,19 +134,27 @@ workflow trns_file_handler {
         handleTrnsFiles.out
 }
 
+// generate reports
+include { getStats } from './modules/generate_reports.nf'
+
 /************************** 
 * WORKFLOW ENTRY POINT
 **************************/
 
 workflow {
-    reads_ch = Channel.fromPath("${params.input}/reads/*/*.fastq")
+    if( params.simulate_interactions ) {
+        simulate_interactions()
+        reads_ch = simulate_interactions.out
+    }
+    else {
+        reads_ch = Channel.fromPath("${params.input}/*.fastq")
                             .map{ file -> tuple(file.baseName[0..9], file) }
-    // simulate_interactions(reads_ch)
-    preprocessing(reads_ch)
+    }
+    preprocessing( reads_ch )
     // bwa workflow
-    bwa_mapping(preprocessing.out)
-    chim_file_handler(bwa_mapping.out)
+    bwa_mapping( preprocessing.out )
+    chim_file_handler( bwa_mapping.out )
     // segemehl workflow
-    segemehl_mapping(preprocessing.out)
-    trns_file_handler(segemehl_mapping.out)
+    segemehl_mapping( preprocessing.out )
+    trns_file_handler( segemehl_mapping.out )
 }
