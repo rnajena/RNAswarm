@@ -6,6 +6,7 @@ channels:
 dependencies:
   - python
   - numpy
+  - scipy
   - seaborn
   - matplotlib
   - docopt

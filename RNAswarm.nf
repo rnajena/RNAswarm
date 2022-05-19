@@ -20,10 +20,10 @@ include { simulate_interaction_reads; simulate_genome_reads; concatenate_reads }
 workflow simulate_interactions {
     main:
         interaction_tables_ch  = Channel.fromPath("${params.input}/*.csv")
-                                        .map{ file -> tuple(file.baseName, file)}
+                                        .map{ file -> tuple(file.baseName, file)}.view()
 
         genomes_ch = Channel.fromPath("${params.input}/*.fasta")
-                            .map{ file -> tuple(file.baseName, file) }
+                            .map{ file -> tuple(file.baseName, file) }.view()
   
         interaction_reads_ch = interaction_tables_ch.combine(genomes_ch, by: 0)
 
@@ -60,7 +60,7 @@ include { makeConfusionMatrix_trns } from './modules/handle_trns_files.nf'
 workflow segemehl_mapping {
     take: preprocessed_reads_ch
     main:
-        genomes_ch = Channel.fromPath("${params.input}/genomes/*.fasta")
+        genomes_ch = Channel.fromPath("${params.input}/*.fasta")
                             .map{ file -> tuple(file.baseName, file) }
         
         segemehlIndex( genomes_ch )
@@ -79,7 +79,7 @@ include { makeConfusionMatrix_bwa } from './modules/handle_chim_files.nf'
 workflow bwa_mapping {
     take: preprocessed_reads_ch
     main:
-        genomes_ch = Channel.fromPath("${params.input}/genomes/*.fasta")
+        genomes_ch = Channel.fromPath("${params.input}/*.fasta")
                             .map{ file -> tuple(file.baseName, file) }
 
         bwaIndex( genomes_ch )
@@ -108,7 +108,7 @@ include { handleChimFiles } from './modules/handle_chim_files.nf'
 workflow chim_file_handler {
     take: chim_file_ch
     main:
-        genomes_ch = Channel.fromPath("${params.input}/genomes/*.fasta")
+        genomes_ch = Channel.fromPath("${params.input}/*.fasta")
                             .map{ file -> tuple(file.baseName, file) }
 
         handleChimFiles_input_ch = genomes_ch.combine(chim_file_ch, by: 0)
@@ -124,7 +124,7 @@ include { handleTrnsFiles } from './modules/handle_trns_files.nf'
 workflow trns_file_handler {
     take: trns_file_ch
     main:
-        genomes_ch = Channel.fromPath("${params.input}/genomes/*.fasta")
+        genomes_ch = Channel.fromPath("${params.input}/*.fasta")
                             .map{ file -> tuple(file.baseName, file) }
 
         handleTrnsFiles_input_ch = genomes_ch.combine(trns_file_ch, by: 0)
@@ -151,6 +151,7 @@ workflow {
                             .map{ file -> tuple(file.baseName[0..9], file) }
     }
     preprocessing( reads_ch )
+    preprocessing.out.view()
     // bwa workflow
     bwa_mapping( preprocessing.out )
     chim_file_handler( bwa_mapping.out )
