@@ -3,7 +3,7 @@ import itertools
 import seaborn as sns
 import numpy as np
 import itertools
-from matplotlib_venn import venn3
+# from matplotlib_venn import venn3
 
 def parse_genome(genome_file):
     """
@@ -68,5 +68,5 @@ def plot_heatmap(array, output_dir, filename, combination_0, combination_1):
     heatmap.figure.savefig(f"{output_dir}/{filename}", bbox_inches="tight")
     plt.close("all")
 
-def plot_venn_diag(sets_dict):
-    pass
+# def plot_venn_diag(sets_dict):
+#     pass
