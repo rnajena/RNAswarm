@@ -5,7 +5,7 @@
 Usage:
   art_templater.py -i <interaction_reads> -g <genomic_reads> -t <trans_file> -bs <segemehl_bam_file>
   art_templater.py -i <interaction_reads> -g <genomic_reads> -c <chim_file> -bb <bwa_bam_file> 
-  art_templater.py -t <trans_file> -c <chim_file> -bs <segemehl_bam_file> -bb <bwa_bam_file> 
+  art_templater.py -bs <segemehl_bam_file> -t <trans_file> -bb <bwa_bam_file> -c <chim_file>
 
 Options:
   -h --help                               Show this screen.
@@ -19,70 +19,6 @@ Options:
 from docopt import docopt
 import pysam
 import helper as hp
-
-
-def get_ids(fastq_file):
-    """
-    get the ids of the reads in the fastq file
-    """
-    id_list = []
-    with open(fastq_file, "r") as fastq:
-        for line in fastq:
-            if line.startswith("@"):
-                id_list.append(line.split()[0][1:])
-    return id_list
-
-
-def get_yz_flags(bam_file):
-    """
-    get the YZ:Z: flags of the reads in the bam file
-    Args:
-        bam_file (str): Path to BAM file.
-
-    Returns:
-        dict: Dictionary of flags, with read id as key and YZ:Z: flag as value.
-    """
-    yz_tags_dict = {}
-    with pysam.AlignmentFile(bam_file, "rb") as bam:
-        for read in bam:
-            for tag in read.tags:
-                if tag[0] == "YZ":
-                    yz_tags_dict[read.query_name] = int(tag[1])
-    return yz_tags_dict
-
-
-def get_unmapped_reads(bam_file):
-    """
-    get the ids of the unmapped reads in the bam file
-    """
-    unmapped_reads = set()
-    with pysam.AlignmentFile(bam_file, "rb") as bam:
-        for read in bam:
-            if read.is_unmapped:
-                unmapped_reads.add(read.query_name)
-    return unmapped_reads
-
-
-def get_chim_ids(chim_file):
-    """
-    get the ids of the chimeric reads in the chim file
-    """
-    chim_ids = set()
-    with open(chim_file, "r") as chim_file:
-        for line in chim_file:
-            chim_ids.add(line.strip().split("\t")[0])
-    return chim_ids
-
-
-def get_trs_ids(trns_file):
-    """
-    get the ids of the chimeric reads in the trns file
-    """
-    trns_ids = set()
-    with open(trns_file, "r") as trns_file:
-        for line in trns_file:
-            trns_ids.add(line.strip().split("\t")[-1])
-    return trns_ids
 
 
 def make_confusion_matrix_segemehl(genome_fastq, interactions_fastq, bam_file):
@@ -173,7 +109,7 @@ def make_confusion_matrix_bwa(genome_fastq, interactions_fastq, chim_file, bam_f
     return confusion_matrix
 
 
-def make_venn_diag(trns_file, chim_file):
+def make_summary_table(trns_file, chim_file):
     """
     """
     chim_ids = get_chim_ids(chim_file)
@@ -188,12 +124,6 @@ def make_venn_diag(trns_file, chim_file):
         "on both" : on_both_set,
         "only segemehl": only_segemehl_set
     }
-
-
-
-    print(f"""| only bwa-mem | both | only segemehl |
-    | {len(only_bwa_set)} | {len(on_both_set)} | {len(only_segemehl_set)} |""")
-
 
 
 def main():

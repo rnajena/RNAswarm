@@ -107,6 +107,18 @@ def detect_peaks(interaction_array):
 
     return detected_peaks
 
+def make_summary_table(segemehl_mapping, trns_file, bwa_mapping, chim_file):
+    """
+    Takes segemehl and bwa mappings and custom files. Generates a csv table
+    sumarising preprocessing, mappings, split mappings and number of identified
+    interactions
+    """
+    segemehl_unmapped = helper.get_unmapped_reads(segemehl_mapping)
+    bwa_unmapped = helper.get_unmapped_reads(bwa_mapping)
+    
+    chim_ids = helper.get_chim_ids(chim_file)
+    trns_ids = helper.get_trs_ids(trns_file)
+
 def main():
     # * see below. I put these lines here as they do not
     # * change, no matter the if result.

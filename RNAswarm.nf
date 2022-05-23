@@ -56,6 +56,7 @@ workflow preprocessing {
 // mapping with segemehl
 include { segemehlIndex; segemehl; convertSAMtoBAM } from './modules/map_reads.nf'
 include { makeConfusionMatrix_trns } from './modules/handle_trns_files.nf'
+include { getStats } from './modules/generate_reports.nf'
 
 workflow segemehl_mapping {
     take: preprocessed_reads_ch
@@ -68,13 +69,16 @@ workflow segemehl_mapping {
         segemehl_input_ch = segemehlIndex.out.combine(preprocessed_reads_ch, by: 0)
     
         segemehl( segemehl_input_ch )
+
+        bam_file_only_ch = segemehl.out.map{ items -> tuple(item[0], item[2]) }
+
+        getStats( convertSAMtoBAM.out )
     emit:
         segemehl.out
 }
 
 // mapping with bwa-mem
 include { bwaIndex; bwaMem; findChimeras } from './modules/map_reads.nf'
-include { makeConfusionMatrix_bwa } from './modules/handle_chim_files.nf'
 
 workflow bwa_mapping {
     take: preprocessed_reads_ch
@@ -92,11 +96,9 @@ workflow bwa_mapping {
 
         convertSAMtoBAM( sam_files_ch )
 
+        getStats( convertSAMtoBAM.out )
+
         findChimeras( convertSAMtoBAM.out )
-
-        confusion_matrix_ch = 
-
-        makeConfusionMatrix_bwa
     emit:
         findChimeras.out
 }
@@ -135,7 +137,15 @@ workflow trns_file_handler {
 }
 
 // generate reports
-include { getStats } from './modules/generate_reports.nf'
+// include { runTableMaker } from './modules/generate_reports.nf'
+
+// workflow generate_reports {
+//     take: segemehl_mapping.out, bwa_mapping.out, chim_file_ch, trns_file_ch
+//     main:
+//         runTableMaker( segemehl_mapping.out, bwa_mapping.out, chim_file_ch, trns_file_ch )
+//     emit:
+//         runTableMaker.out
+// }
 
 /************************** 
 * WORKFLOW ENTRY POINT

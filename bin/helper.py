@@ -68,5 +68,65 @@ def plot_heatmap(array, output_dir, filename, combination_0, combination_1):
     heatmap.figure.savefig(f"{output_dir}/{filename}", bbox_inches="tight")
     plt.close("all")
 
-# def plot_venn_diag(sets_dict):
-#     pass
+def get_ids(fastq_file):
+    """
+    get the ids of the reads in the fastq file
+    """
+    id_list = []
+    with open(fastq_file, "r") as fastq:
+        for line in fastq:
+            if line.startswith("@"):
+                id_list.append(line.split()[0][1:])
+    return id_list
+
+
+def get_yz_flags(bam_file):
+    """
+    get the YZ:Z: flags of the reads in the bam file
+    Args:
+        bam_file (str): Path to BAM file.
+
+    Returns:
+        dict: Dictionary of flags, with read id as key and YZ:Z: flag as value.
+    """
+    yz_tags_dict = {}
+    with pysam.AlignmentFile(bam_file, "rb") as bam:
+        for read in bam:
+            for tag in read.tags:
+                if tag[0] == "YZ":
+                    yz_tags_dict[read.query_name] = int(tag[1])
+    return yz_tags_dict
+
+
+def get_unmapped_reads(bam_file):
+    """
+    get the ids of the unmapped reads in the bam file
+    """
+    unmapped_reads = set()
+    with pysam.AlignmentFile(bam_file, "rb") as bam:
+        for read in bam:
+            if read.is_unmapped:
+                unmapped_reads.add(read.query_name)
+    return unmapped_reads
+
+
+def get_chim_ids(chim_file):
+    """
+    get the ids of the chimeric reads in the chim file
+    """
+    chim_ids = set()
+    with open(chim_file, "r") as chim_file:
+        for line in chim_file:
+            chim_ids.add(line.strip().split("\t")[0])
+    return chim_ids
+
+
+def get_trs_ids(trns_file):
+    """
+    get the ids of the chimeric reads in the trns file
+    """
+    trns_ids = set()
+    with open(trns_file, "r") as trns_file:
+        for line in trns_file:
+            trns_ids.add(line.strip().split("\t")[-1])
+    return trns_ids

@@ -6,16 +6,16 @@ process runTableMaker {
   label "simulate_interactions"
 
   input:
-  tuple val(name)
+  tuple val(name), path(segemehl_mapping), path(trns_file), path(bwa_mapping), path(chim_file)
 
   output:
-  tuple val(name)
+  tuple val(name), path("${name}_summary.csv")
 
   publishDir "${params.output}/04-stats_and_plots", mode: 'copy'
 
   script:
   """
-  art_templater.py -t <trans_file> -c <chim_file> -bs <segemehl_bam_file> -bb <bwa_bam_file> 
+  art_templater.py -bs ${segemehl_mapping} -t ${trns_file} -bb ${bwa_mapping} -c ${chim_file} >> ${name}_summary.csv
   """
 }
 
@@ -32,7 +32,7 @@ process getStats {
   output:
   tuple val(name), path("${mappings.baseName}.log")
 
-  publishDir "${params.output}/02-mappings/bwa-mem", mode: 'copy'
+  publishDir "${params.output}/04-stats_and_plots", mode: 'copy'
 
   script:
   """
