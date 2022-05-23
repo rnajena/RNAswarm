@@ -1,0 +1,17 @@
+name: playground
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - python
+  - numpy
+  - scipy
+  - seaborn
+  - matplotlib
+  - docopt
+  - pysam
+  - matplotlib-venn
+  - ipython
+  - notebook
+  - scikit-image
