@@ -103,19 +103,9 @@ def detect_peaks(interaction_array):
 
     labeled_array, num_features = ndimage.label(detected_peaks)
 
-    detected_peaks = ndimage.maximum_filter(detected_peaks , footprint=neighborhood)
+    detected_regions = ndimage.maximum_filter(detected_peaks , footprint=neighborhood)
 
-    return detected_peaks, labeled_array, num_features
-
-def extract_regions(labeled_array):
-    """
-    Return a list of dictionaries containing the coordinates for a square that
-    contains the center of the peak of interest
-    """
-    regions = np.argwhere(labeled_array == 1)
-    for i, j in regions.enumrate():
-        labeled_array[i, j] = 0
-
+    return detected_peaks, labeled_array, num_features, detected_regions
 
 def make_summary_table(segemehl_mapping, trns_file, bwa_mapping, chim_file):
     """
@@ -162,12 +152,14 @@ def main():
             combination[1],
         )
         helper.plot_heatmap(
-            detect_peaks(array)[0],
+            detect_peaks(array)[3],
             sys.argv[3],
-            f"{combination[0]}_{combination[1]}_peaks",
+            f"{combination[0]}_{combination[1]}_regions",
             combination[0],
             combination[1],
         )
+        np.save(f"{combination[0]}_{combination[1]}_peaks", detect_peaks(array)[0])
+        np.save(f"{combination[0]}_{combination[1]}", array)
 
 
 if __name__ == "__main__":
