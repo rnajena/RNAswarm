@@ -158,8 +158,8 @@ def main():
             combination[0],
             combination[1],
         )
-        np.save(f"{combination[0]}_{combination[1]}_peaks", detect_peaks(array)[0])
-        np.save(f"{combination[0]}_{combination[1]}", array)
+        np.save(f"{sys.argv[3]}/{combination[0]}_{combination[1]}_peaks", detect_peaks(array)[0])
+        np.save(f"{sys.argv[3]}/{combination[0]}_{combination[1]}", array)
 
 
 if __name__ == "__main__":

@@ -11,7 +11,7 @@ process handleTrnsFiles {
     output:
     tuple val(name), path("heatmaps_${trns_file.baseName}")
 
-    publishDir "${params.output}/03-heatmaps/segmehl", mode: 'copy'
+    publishDir "${params.output}/03-heatmaps/segemehl", mode: 'copy'
 
     script:
     """

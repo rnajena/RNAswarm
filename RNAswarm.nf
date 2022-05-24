@@ -20,10 +20,10 @@ include { simulate_interaction_reads; simulate_genome_reads; concatenate_reads }
 workflow simulate_interactions {
     main:
         interaction_tables_ch  = Channel.fromPath("${params.input}/*.csv")
-                                        .map{ file -> tuple(file.baseName, file)}.view()
+                                        .map{ file -> tuple(file.baseName, file)}
 
         genomes_ch = Channel.fromPath("${params.input}/*/*.fasta")
-                            .map{ file -> tuple(file.baseName, file) }.view()
+                            .map{ file -> tuple(file.baseName, file) }
   
         interaction_reads_ch = interaction_tables_ch.combine(genomes_ch, by: 0)
 
@@ -162,7 +162,6 @@ workflow {
                             .map{ file -> tuple(file.baseName[0..9], file) }
     }
     preprocessing( reads_ch )
-    preprocessing.out.view()
     // bwa workflow
     bwa_mapping( preprocessing.out )
     chim_file_handler( bwa_mapping.out )
