@@ -107,6 +107,16 @@ def detect_peaks(interaction_array):
 
     return detected_peaks, labeled_array, num_features
 
+def extract_regions(labeled_array):
+    """
+    Return a list of dictionaries containing the coordinates for a square that
+    contains the center of the peak of interest
+    """
+    regions = np.argwhere(labeled_array == 1)
+    for i, j in regions.enumrate():
+        labeled_array[i, j] = 0
+
+
 def make_summary_table(segemehl_mapping, trns_file, bwa_mapping, chim_file):
     """
     Takes segemehl and bwa mappings and custom files. Generates a csv table
