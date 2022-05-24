@@ -22,7 +22,7 @@ workflow simulate_interactions {
         interaction_tables_ch  = Channel.fromPath("${params.input}/*.csv")
                                         .map{ file -> tuple(file.baseName, file)}.view()
 
-        genomes_ch = Channel.fromPath("${params.input}/*.fasta")
+        genomes_ch = Channel.fromPath("${params.input}/*/*.fasta")
                             .map{ file -> tuple(file.baseName, file) }.view()
   
         interaction_reads_ch = interaction_tables_ch.combine(genomes_ch, by: 0)
@@ -61,7 +61,7 @@ include { getStats } from './modules/generate_reports.nf'
 workflow segemehl_mapping {
     take: preprocessed_reads_ch
     main:
-        genomes_ch = Channel.fromPath("${params.input}/*.fasta")
+        genomes_ch = Channel.fromPath("${params.input}/*/*.fasta")
                             .map{ file -> tuple(file.baseName, file) }
         
         segemehlIndex( genomes_ch )
@@ -69,10 +69,11 @@ workflow segemehl_mapping {
         segemehl_input_ch = segemehlIndex.out.combine(preprocessed_reads_ch, by: 0)
     
         segemehl( segemehl_input_ch )
+        // slice tuple
 
-        bam_file_only_ch = segemehl.out.map{ items -> tuple(item[0], item[2]) }
+        bam_file_only_ch = segemehl.out.map{ item -> tuple(item[0], item[2]) }
 
-        getStats( convertSAMtoBAM.out )
+        getStats( bam_file_only_ch )
     emit:
         segemehl.out
 }
@@ -83,7 +84,7 @@ include { bwaIndex; bwaMem; findChimeras } from './modules/map_reads.nf'
 workflow bwa_mapping {
     take: preprocessed_reads_ch
     main:
-        genomes_ch = Channel.fromPath("${params.input}/*.fasta")
+        genomes_ch = Channel.fromPath("${params.input}/*/*.fasta")
                             .map{ file -> tuple(file.baseName, file) }
 
         bwaIndex( genomes_ch )
@@ -110,7 +111,7 @@ include { handleChimFiles } from './modules/handle_chim_files.nf'
 workflow chim_file_handler {
     take: chim_file_ch
     main:
-        genomes_ch = Channel.fromPath("${params.input}/*.fasta")
+        genomes_ch = Channel.fromPath("${params.input}/*/*.fasta")
                             .map{ file -> tuple(file.baseName, file) }
 
         handleChimFiles_input_ch = genomes_ch.combine(chim_file_ch, by: 0)
@@ -126,7 +127,7 @@ include { handleTrnsFiles } from './modules/handle_trns_files.nf'
 workflow trns_file_handler {
     take: trns_file_ch
     main:
-        genomes_ch = Channel.fromPath("${params.input}/*.fasta")
+        genomes_ch = Channel.fromPath("${params.input}/*/*.fasta")
                             .map{ file -> tuple(file.baseName, file) }
 
         handleTrnsFiles_input_ch = genomes_ch.combine(trns_file_ch, by: 0)
@@ -157,7 +158,7 @@ workflow {
         reads_ch = simulate_interactions.out
     }
     else {
-        reads_ch = Channel.fromPath("${params.input}/*.fastq")
+        reads_ch = Channel.fromPath("${params.input}/*/*/*.fastq")
                             .map{ file -> tuple(file.baseName[0..9], file) }
     }
     preprocessing( reads_ch )
