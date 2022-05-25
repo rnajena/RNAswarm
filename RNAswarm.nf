@@ -61,7 +61,7 @@ include { getStats } from './modules/generate_reports.nf'
 workflow segemehl_mapping {
     take: preprocessed_reads_ch
     main:
-        genomes_ch = Channel.fromPath("${params.input}/*/*.fasta")
+        genomes_ch = Channel.fromPath("${params.input}/genomes/*.fasta")
                             .map{ file -> tuple(file.baseName, file) }
         
         segemehlIndex( genomes_ch )
@@ -160,6 +160,7 @@ workflow {
     else {
         reads_ch = Channel.fromPath("${params.input}/*/*/*.fastq")
                             .map{ file -> tuple(file.baseName[0..9], file) }
+        println "processing user reads"
     }
     preprocessing( reads_ch )
     // bwa workflow

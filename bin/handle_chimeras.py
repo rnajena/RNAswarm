@@ -74,7 +74,6 @@ def fill_heatmap(interaction, interaction_arrays):
         interaction[1] : interaction[2], interaction[4] : interaction[5]
     ] += 1
 
-# ref: https://stackoverflow.com/questions/3684484/peak-detection-in-a-2d-array
 def detect_peaks(interaction_array):
     """
     Takes an image and detect the peaks using the local maximum filter.
@@ -152,7 +151,7 @@ def main():
             combination[1],
         )
         helper.plot_heatmap(
-            detect_peaks(array)[3],
+            detect_peaks(array)[0],
             sys.argv[3],
             f"{combination[0]}_{combination[1]}_regions",
             combination[0],
