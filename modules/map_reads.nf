@@ -103,7 +103,6 @@ process convertSAMtoBAM {
   """
 }
 
-
 /************************************************************************
 * generate .chim files
 *************************************************************************/
@@ -122,5 +121,43 @@ process findChimeras {
   script:
   """
   find_chimeras.py -i ${mapping} -o ${mapping.baseName}.chim
+  """
+}
+
+/*************************************************************************
+* HiSat2 INDEX
+*************************************************************************/
+
+process hiSat2 {
+  label 'mapping_hisat2'
+
+  input:
+  tuple val(name), path(genome), path(index), path(reads)
+
+  output:
+  tuple val(name), path("${reads.baseName}")
+
+  script:
+  """
+  hisat2-build -p ${params.max_cpus} ${genome} ${name}
+  """
+}
+
+/*************************************************************************
+* HiSat2 RUN
+*************************************************************************/
+
+process hiSat2 {
+  label 'mapping_hisat2'
+
+  input:
+  tuple val(name), path(genome), path(index), path(reads)
+
+  output:
+  tuple val(name), path("${reads.baseName}_bwa.sam")
+
+  script:
+  """
+  hisat2 -x ${index} - [-S <hit>]
   """
 }

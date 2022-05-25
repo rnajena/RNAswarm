@@ -1,0 +1,7 @@
+name: mapping_hisat2
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - hisat2
