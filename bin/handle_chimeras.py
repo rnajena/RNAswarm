@@ -105,7 +105,38 @@ def detect_peaks(interaction_array):
     #by removing the background from the local_max mask (xor operation)
     detected_peaks = local_max ^ eroded_background
 
-    return detected_peaks
+    detected_peaks = ndimage.maximum_filter(detected_peaks , footprint=neighborhood)
+
+    return detected_peaks, labeled_array, num_features
+
+def extract_means(labeled_array, interaction_array, combination):
+    """
+    For each unique label in labeled_array returnt the mean of the values
+    in the interaction_array, and the rectangular subarray that contains
+    the labelled values.
+    """
+    means = {}
+    for combination, array in combination_array.items():
+        
+    for label in np.unique(labeled_array):
+        if label == 0:
+            continue
+        means[label] = {"mean" : np.mean(interaction_array[labeled_array == label]),
+                        "subarray" : interaction_array[labeled_array == label]}
+    return means
+
+
+def make_summary_table(segemehl_mapping, trns_file, bwa_mapping, chim_file):
+    """
+    Takes segemehl and bwa mappings and custom files. Generates a csv table
+    sumarising preprocessing, mappings, split mappings and number of identified
+    interactions
+    """
+    segemehl_unmapped = helper.get_unmapped_reads(segemehl_mapping)
+    bwa_unmapped = helper.get_unmapped_reads(bwa_mapping)
+    
+    chim_ids = helper.get_chim_ids(chim_file)
+    trns_ids = helper.get_trs_ids(trns_file)
 
 def main():
     # * see below. I put these lines here as they do not
