@@ -32,10 +32,10 @@ process getStats {
   output:
   tuple val(name), path("${mappings.baseName}.log")
 
-  publishDir "${params.output}/02-mappings/bwa-mem", mode: 'copy'
+  publishDir "${params.output}/04-stats_and_plots", mode: 'copy'
 
   script:
   """
-  samtools stats -@ ${params.cpus} ${mappings} > ${mappings.baseName}.log
+  samtools flagstats -@ ${params.cpus} ${mappings} > ${mappings.baseName}.log
   """
 }
