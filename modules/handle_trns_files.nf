@@ -9,14 +9,14 @@ process handleTrnsFiles {
     tuple val(name), path(genome), path(trns_file), path(bam_file)
 
     output:
-    tuple val(name), path("heatmaps_${trns_file.baseName}")
+    tuple val(name), path("heatmaps_${bam_file.baseName}")
 
     publishDir "${params.output}/03-heatmaps/segmehl", mode: 'copy'
 
     script:
     """
-    mkdir heatmaps_${trns_file.baseName}
-    handle_chimeras.py ${genome} ${trns_file} heatmaps_${trns_file.baseName} --segemehl_mode
+    mkdir heatmaps_${bam_file.baseName}
+    handle_chimeras.py ${genome} ${trns_file} heatmaps_${bam_file.baseName} --segemehl_mode
     """
 }
 

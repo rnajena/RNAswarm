@@ -54,8 +54,8 @@ workflow preprocessing {
 }
 
 // mapping with segemehl
-include { segemehlIndex; segemehl; convertSAMtoBAM } from './modules/map_reads.nf'
-include { makeConfusionMatrix_trns } from './modules/handle_trns_files.nf'
+include { segemehlIndex; segemehl; prepareToGetStats } from './modules/map_reads.nf'
+include { getStats } from './modules/generate_reports.nf'
 
 workflow segemehl_mapping {
     take: preprocessed_reads_ch
@@ -68,13 +68,14 @@ workflow segemehl_mapping {
         segemehl_input_ch = segemehlIndex.out.combine(preprocessed_reads_ch, by: 0)
     
         segemehl( segemehl_input_ch )
+
+        prepareToGetStats( segemehl.out ) | getStats
     emit:
         segemehl.out
 }
 
 // mapping with bwa-mem
-include { bwaIndex; bwaMem; findChimeras } from './modules/map_reads.nf'
-include { makeConfusionMatrix_bwa } from './modules/handle_chim_files.nf'
+include { bwaIndex; bwaMem; findChimeras; convertSAMtoBAM_bwa } from './modules/map_reads.nf'
 
 workflow bwa_mapping {
     take: preprocessed_reads_ch
@@ -90,17 +91,38 @@ workflow bwa_mapping {
 
         sam_files_ch = bwaMem.out
 
-        convertSAMtoBAM( sam_files_ch )
+        convertSAMtoBAM_bwa( sam_files_ch )
 
-        findChimeras( convertSAMtoBAM.out )
+        findChimeras( convertSAMtoBAM_bwa.out )
 
-        confusion_matrix_ch = 
-
-        makeConfusionMatrix_bwa
+        getStats( convertSAMtoBAM_bwa.out )
     emit:
         findChimeras.out
 }
 
+// mapping with hisat2
+include { hiSat2Index; hiSat2; convertSAMtoBAM_hisat2 } from './modules/map_reads.nf'
+
+workflow hisat2_mapping {
+    take: preprocessed_reads_ch
+    main:
+        genomes_ch = Channel.fromPath("${params.input}/genomes/*.fasta")
+                            .map{ file -> tuple(file.baseName, file) }
+
+        hiSat2Index( genomes_ch )
+
+        hisat2_input_ch = hiSat2Index.out.combine(preprocessed_reads_ch, by: 0)
+
+        hiSat2( hisat2_input_ch )
+
+        sam_files_ch = hiSat2.out
+
+        convertSAMtoBAM_hisat2( sam_files_ch )
+        
+        getStats( convertSAMtoBAM_hisat2.out )
+    emit:
+        convertSAMtoBAM_hisat2.out
+}
 
 // handle chim files
 include { handleChimFiles } from './modules/handle_chim_files.nf'
@@ -134,9 +156,6 @@ workflow trns_file_handler {
         handleTrnsFiles.out
 }
 
-// generate reports
-include { getStats } from './modules/generate_reports.nf'
-
 /************************** 
 * WORKFLOW ENTRY POINT
 **************************/
@@ -158,4 +177,6 @@ workflow {
     // segemehl workflow
     segemehl_mapping( preprocessing.out )
     trns_file_handler( segemehl_mapping.out )
+    // hisat2 workflow
+    hisat2_mapping( preprocessing.out )
 }

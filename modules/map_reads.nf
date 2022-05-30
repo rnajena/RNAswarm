@@ -42,6 +42,27 @@ process segemehl {
 }
 
 /*************************************************************************
+* modify channel to use getStats
+*************************************************************************/
+process prepareToGetStats {
+    label 'mapping_segemehl'
+
+    input:
+    tuple val(name), val(trns_file), val(bam_file)
+
+    output:
+    tuple val(name), val(bam_file)
+
+    script:
+    """
+    """
+}
+
+
+new_ch = old_ch.map{ it -> [ it[0], it[2] ] }
+
+
+/*************************************************************************
 * bwa-mem INDEX
 *************************************************************************/
 
@@ -86,7 +107,7 @@ process bwaMem {
 * samtools CONVERT SAM TO BAM
 *************************************************************************/
 
-process convertSAMtoBAM {
+process convertSAMtoBAM_bwa {
   label 'mapping_samtools'
 
   input:
@@ -128,14 +149,14 @@ process findChimeras {
 * HiSat2 INDEX
 *************************************************************************/
 
-process hiSat2 {
+process hiSat2Index {
   label 'mapping_hisat2'
 
   input:
-  tuple val(name), path(genome), path(index), path(reads)
+  tuple val(name), path(genome)
 
   output:
-  tuple val(name), path("${reads.baseName}")
+  tuple val(name), path(genome), path("${name}*.ht2")
 
   script:
   """
@@ -154,10 +175,31 @@ process hiSat2 {
   tuple val(name), path(genome), path(index), path(reads)
 
   output:
-  tuple val(name), path("${reads.baseName}_bwa.sam")
+  tuple val(name), path("${reads.baseName}_hisat2.sam")
 
   script:
   """
-  hisat2 -x ${index} - [-S <hit>]
+  hisat2 -x ${name} -U ${reads} > ${reads.baseName}_hisat2.sam
+  """
+}
+
+/*************************************************************************
+* samtools CONVERT SAM TO BAM
+*************************************************************************/
+
+process convertSAMtoBAM_hisat2 {
+  label 'mapping_samtools'
+
+  input:
+  tuple val(name), path(mappings)
+
+  output:
+  tuple val(name), path("${mappings.baseName}.bam")
+
+  publishDir "${params.output}/02-mappings/hisat2", mode: 'copy'
+
+  script:
+  """
+  samtools view -@ 8 -S -b ${mappings} > ${mappings.baseName}.bam
   """
 }
