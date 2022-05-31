@@ -182,9 +182,7 @@ workflow {
     // hisat2 workflow
     hisat2_mapping( preprocessing.out )
     // generate reports
-    reportsInput_ch = Channel
-                        .from(bwa_mapping.out, segemehl_mapping.out, hisat2_mapping.out)
-                        .collect()
-    generate_reports( reportsInput_ch )
-    runMultiQC( generate_reports.out )
+    runMultiQC( Channel
+                    .from(bwa_mapping.out, segemehl_mapping.out, hisat2_mapping.out)
+                    .collect())
 }
