@@ -45,13 +45,14 @@ process getStats {
 *************************************************************************/
 
 process runMultiQC {
-  label 'mapping_multiqc'
+  label 'generate_report_multiqc'
 
   input:
-  path('*.log')
+  path(logs)
 
   output:
-  path("${mappings.baseName}.html")
+  path "multiqc_report.html"
+  path "multiqc_data"
 
   publishDir "${params.output}/04-stats_and_plots", mode: 'copy'
 

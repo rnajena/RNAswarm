@@ -90,7 +90,7 @@ workflow bwa_mapping {
         bwaMem( bwa_input_ch )
 
         convertSAMtoBAM( 
-            bwaMem.out.map{ it -> [ it[0], it[1], val("bwa-mem") ] }
+            bwaMem.out.map{ it -> [ it[0], it[1], 'bwa-mem' ] }
             )
 
         findChimeras( convertSAMtoBAM.out )
@@ -116,7 +116,7 @@ workflow hisat2_mapping {
         hiSat2( hisat2_input_ch )
 
         convertSAMtoBAM( 
-            hiSat2.out.map{ it -> [ it[0], it[1], val("hisat2") ] }
+            hiSat2.out.map{ it -> [ it[0], it[1], 'hisat2' ] }
             )
         
         getStats( convertSAMtoBAM.out )
@@ -182,7 +182,9 @@ workflow {
     // hisat2 workflow
     hisat2_mapping( preprocessing.out )
     // generate reports
-    runMultiQC( Channel
-                    .from(bwa_mapping.out, segemehl_mapping.out, hisat2_mapping.out)
-                    .collect())
+    logs_ch = bwa_mapping
+                .out
+                .mix( segemehl_mapping.out, hisat2_mapping.out)
+                .collect()
+    runMultiQC( logs_ch )
 }
