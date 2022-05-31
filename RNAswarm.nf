@@ -103,7 +103,7 @@ workflow bwa_mapping {
 }
 
 // mapping with hisat2
-include { hiSat2Index; hiSat2; convertSAMtoBAM_hisat2 } from './modules/map_reads.nf'
+include { hiSat2Index; hiSat2 } from './modules/map_reads.nf'
 
 workflow hisat2_mapping {
     take: preprocessed_reads_ch
