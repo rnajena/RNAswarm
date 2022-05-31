@@ -1,23 +1,23 @@
-/***********************************************************************
-* make tables and plots with mapping statistics
-***********************************************************************/
+// /***********************************************************************
+// * make tables and plots with mapping statistics
+// ***********************************************************************/
 
-process runTableMaker {
-  label "simulate_interactions"
+// process runTableMaker {
+//   label "simulate_interactions"
 
-  input:
-  tuple val(name)
+//   input:
+//   tuple val(name)
 
-  output:
-  tuple val(name)
+//   output:
+//   tuple val(name)
 
-  publishDir "${params.output}/04-stats_and_plots", mode: 'copy'
+//   publishDir "${params.output}/04-stats_and_plots", mode: 'copy'
 
-  script:
-  """
-  art_templater.py -t <trans_file> -c <chim_file> -bs <segemehl_bam_file> -bb <bwa_bam_file> 
-  """
-}
+//   script:
+//   """
+//   art_templater.py -t <trans_file> -c <chim_file> -bs <segemehl_bam_file> -bb <bwa_bam_file> 
+//   """
+// }
 
 /*************************************************************************
 * samtools stats
@@ -30,12 +30,33 @@ process getStats {
   tuple val(name), path(mappings)
 
   output:
-  tuple val(name), path("${mappings.baseName}.log")
+  path("${mappings.baseName}.log")
 
   publishDir "${params.output}/04-stats_and_plots", mode: 'copy'
 
   script:
   """
   samtools flagstats -@ ${params.cpus} ${mappings} > ${mappings.baseName}.log
+  """
+}
+
+/*************************************************************************
+* Run MultiQC to generate an output HTML report
+*************************************************************************/
+
+process runMultiQC {
+  label 'mapping_multiqc'
+
+  input:
+  path('*.log')
+
+  output:
+  path("${mappings.baseName}.html")
+
+  publishDir "${params.output}/04-stats_and_plots", mode: 'copy'
+
+  script:
+  """
+  multiqc .
   """
 }

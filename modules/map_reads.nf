@@ -42,27 +42,6 @@ process segemehl {
 }
 
 /*************************************************************************
-* modify channel to use getStats
-*************************************************************************/
-process prepareToGetStats {
-    label 'mapping_segemehl'
-
-    input:
-    tuple val(name), val(trns_file), val(bam_file)
-
-    output:
-    tuple val(name), val(bam_file)
-
-    script:
-    """
-    """
-}
-
-
-new_ch = old_ch.map{ it -> [ it[0], it[2] ] }
-
-
-/*************************************************************************
 * bwa-mem INDEX
 *************************************************************************/
 
@@ -107,16 +86,16 @@ process bwaMem {
 * samtools CONVERT SAM TO BAM
 *************************************************************************/
 
-process convertSAMtoBAM_bwa {
+process convertSAMtoBAM {
   label 'mapping_samtools'
 
   input:
-  tuple val(name), path(mappings)
+  tuple val(name), path(mappings), val(mapper)
 
   output:
   tuple val(name), path("${mappings.baseName}.bam")
 
-  publishDir "${params.output}/02-mappings/bwa-mem", mode: 'copy'
+  publishDir "${params.output}/02-mappings/${mapper}", mode: 'copy'
 
   script:
   """
@@ -180,26 +159,5 @@ process hiSat2 {
   script:
   """
   hisat2 -x ${name} -U ${reads} > ${reads.baseName}_hisat2.sam
-  """
-}
-
-/*************************************************************************
-* samtools CONVERT SAM TO BAM
-*************************************************************************/
-
-process convertSAMtoBAM_hisat2 {
-  label 'mapping_samtools'
-
-  input:
-  tuple val(name), path(mappings)
-
-  output:
-  tuple val(name), path("${mappings.baseName}.bam")
-
-  publishDir "${params.output}/02-mappings/hisat2", mode: 'copy'
-
-  script:
-  """
-  samtools view -@ 8 -S -b ${mappings} > ${mappings.baseName}.bam
   """
 }

@@ -54,7 +54,7 @@ workflow preprocessing {
 }
 
 // mapping with segemehl
-include { segemehlIndex; segemehl; prepareToGetStats } from './modules/map_reads.nf'
+include { segemehlIndex; segemehl } from './modules/map_reads.nf'
 include { getStats } from './modules/generate_reports.nf'
 
 workflow segemehl_mapping {
@@ -68,14 +68,16 @@ workflow segemehl_mapping {
         segemehl_input_ch = segemehlIndex.out.combine(preprocessed_reads_ch, by: 0)
     
         segemehl( segemehl_input_ch )
+        
+        segemehl.out.map{ it -> [ it[0], it[2] ] }
 
-        prepareToGetStats( segemehl.out ) | getStats
+        getStats( getStats_ch )
     emit:
-        segemehl.out
+        getStats.out
 }
 
 // mapping with bwa-mem
-include { bwaIndex; bwaMem; findChimeras; convertSAMtoBAM_bwa } from './modules/map_reads.nf'
+include { bwaIndex; bwaMem; findChimeras; convertSAMtoBAM } from './modules/map_reads.nf'
 
 workflow bwa_mapping {
     take: preprocessed_reads_ch
@@ -89,15 +91,15 @@ workflow bwa_mapping {
 
         bwaMem( bwa_input_ch )
 
-        sam_files_ch = bwaMem.out
+        convertSAMtoBAM( 
+            bwaMem.out.map{ it -> [ it[0], it[1], val("bwa-mem") ] }
+            )
 
-        convertSAMtoBAM_bwa( sam_files_ch )
+        findChimeras( convertSAMtoBAM.out )
 
-        findChimeras( convertSAMtoBAM_bwa.out )
-
-        getStats( convertSAMtoBAM_bwa.out )
+        getStats( convertSAMtoBAM.out )
     emit:
-        findChimeras.out
+        getStats.out
 }
 
 // mapping with hisat2
@@ -115,13 +117,13 @@ workflow hisat2_mapping {
 
         hiSat2( hisat2_input_ch )
 
-        sam_files_ch = hiSat2.out
-
-        convertSAMtoBAM_hisat2( sam_files_ch )
+        convertSAMtoBAM( 
+            hiSat2.out.map{ it -> [ it[0], it[1], val("hisat2") ] }
+            )
         
-        getStats( convertSAMtoBAM_hisat2.out )
+        getStats( convertSAMtoBAM.out )
     emit:
-        convertSAMtoBAM_hisat2.out
+        getStats.out
 }
 
 // handle chim files
@@ -160,6 +162,8 @@ workflow trns_file_handler {
 * WORKFLOW ENTRY POINT
 **************************/
 
+include { runMultiQC } from './modules/generate_reports.nf'
+
 workflow {
     if( params.simulate_interactions ) {
         simulate_interactions()
@@ -179,4 +183,10 @@ workflow {
     trns_file_handler( segemehl_mapping.out )
     // hisat2 workflow
     hisat2_mapping( preprocessing.out )
+    // generate reports
+    reportsInput_ch = Channel
+                        .from(bwa_mapping.out, segemehl_mapping.out, hisat2_mapping.out)
+                        .collect()
+    generate_reports( reportsInput_ch )
+    runMultiQC( generate_reports.out )
 }
