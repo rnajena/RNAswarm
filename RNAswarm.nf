@@ -68,10 +68,8 @@ workflow segemehl_mapping {
         segemehl_input_ch = segemehlIndex.out.combine(preprocessed_reads_ch, by: 0)
     
         segemehl( segemehl_input_ch )
-        
-        segemehl.out.map{ it -> [ it[0], it[2] ] }
 
-        getStats( getStats_ch )
+        getStats( segemehl.out.map{ it -> [ it[0], it[2] ] } )
     emit:
         getStats.out
 }
