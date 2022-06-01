@@ -39,7 +39,8 @@ workflow simulate_interactions {
 }
 
 // preprocessing
-include { fastpTrimming; fastqcReport } from './modules/preprocess_reads.nf'
+include { fastpTrimming} from './modules/preprocessing.nf'
+include { fastqcReport } from './modules/generate_reports.nf'
 
 workflow preprocessing {
     take: reads_ch
@@ -51,6 +52,7 @@ workflow preprocessing {
         fastqcReport( qc_ch )
     emit:
         fastpTrimming.out
+        fastqcReport.out
 }
 
 // mapping with segemehl
@@ -172,7 +174,7 @@ workflow {
                             .map{ file -> tuple(file.baseName[0..9], file) }
         println "processing user reads"
     }
-    preprocessing( reads_ch )
+    preprocessing( fastpTrimming.out )
     // bwa workflow
     bwa_mapping( preprocessing.out )
     chim_file_handler( bwa_mapping.out )
@@ -184,7 +186,7 @@ workflow {
     // generate reports
     logs_ch = bwa_mapping
                 .out
-                .mix( segemehl_mapping.out, hisat2_mapping.out)
+                .mix( segemehl_mapping.out, hisat2_mapping.out, fastqcReport.out)
                 .collect()
     runMultiQC( logs_ch )
 }

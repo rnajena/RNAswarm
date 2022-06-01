@@ -19,6 +19,27 @@
 //   """
 // }
 
+/***********************************************************************
+* fasqc REPORT
+***********************************************************************/
+process fastqcReport {
+  label 'preprocessing'
+
+  input:
+  tuple val(name), path(reads)
+
+  output:
+  tuple val(name), path("${reads.baseName}_fastqc")
+  
+  publishDir "${params.output}//04-stats_and_plots", mode: 'copy'
+
+  script:
+  """
+  mkdir ${reads.baseName}_fastqc
+  fastqc ${reads} -t 8 -o ${reads.baseName}_fastqc
+  """
+}
+
 /*************************************************************************
 * samtools stats
 *************************************************************************/
