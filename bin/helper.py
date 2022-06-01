@@ -5,21 +5,21 @@ import numpy as np
 import itertools
 # from matplotlib_venn import venn3
 
-def parse_genome(genome_file):
+def parse_fasta(fasta_file):
     """
     """
-    genome_dict = {}
+    fasta_dict = {}
 
     header = ""
     seq = ""
 
-    with open(genome_file) as file:  # read genome file
+    with open(fasta_file) as file:  # read genome file
         for line in file:  # parse genome file
             if line.startswith(">"):  # parse header
             #* if there is a header already, we store the current sequence
             #* to this header.
                 if header:
-                    genome_dict[header] = seq
+                    fasta_dict[header] = seq
                     #* then we flush the sequence
                     seq = ""
                 #* and parse the new header
@@ -31,8 +31,8 @@ def parse_genome(genome_file):
         #* after the last line, we have to store
         #* the last sequence as well. Since no new line with ">" occurs, we
         #* do this manually
-        genome_dict[header] = seq
-    return genome_dict
+        fasta_dict[header] = seq
+    return fasta_dict
 
 def make_combination_array(genome_dict):
     """

@@ -31,9 +31,11 @@ process concatenateFasta {
   tuple val(name), path(genome)
 
   output:
-  tuple val(name), path("${genome.baseName}_concatenated.fasta")
+  tuple val(name), path("${genome.baseName}_concatenated.fasta", "${genome.baseName}_concatenated.csv")
 
   script:
+  """
+  fasta_preprocessor.py -i ${genome} -o ${genome.baseName}_concatenated.fasta
   """
 
 }

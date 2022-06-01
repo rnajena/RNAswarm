@@ -104,6 +104,7 @@ workflow bwa_mapping {
 
 // mapping with hisat2
 include { hiSat2Index; hiSat2 } from './modules/map_reads.nf'
+include { concatenateFasta } from '.modules/preprocessing.nf'
 
 workflow hisat2_mapping {
     take: preprocessed_reads_ch
@@ -111,7 +112,9 @@ workflow hisat2_mapping {
         genomes_ch = Channel.fromPath("${params.input}/genomes/*.fasta")
                             .map{ file -> tuple(file.baseName, file) }
 
-        hiSat2Index( genomes_ch )
+        concatenateFasta( genomes_ch )
+
+        hiSat2Index( concatenateFasta.out.map{ it -> [ it[0], it[1] ] } )
 
         hisat2_input_ch = hiSat2Index.out.combine(preprocessed_reads_ch, by: 0)
 
