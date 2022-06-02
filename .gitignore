@@ -10,3 +10,5 @@ bin/__pycache__
 .nextflow.log*
 work/*
 test/results/*
+test/data/pr8_concatenated.fasta
+test/data/pr8_concatenated.csv
