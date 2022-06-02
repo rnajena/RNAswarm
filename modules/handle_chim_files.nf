@@ -6,17 +6,17 @@ process handleChimFiles {
     label 'python3'
 
     input:
-    tuple val(name), path(genome), path(mapping)
+    tuple val(name), path(genome), path(chim_file)
 
     output:
-    tuple val(name), path("heatmaps_${mapping.baseName}")
+    tuple val(name), path("heatmaps_${chim_file.baseName}")
 
     publishDir "${params.output}/03-heatmaps/bwa-mem", mode: 'copy'
 
     script:
     """
-    mkdir heatmaps_${mapping.baseName}
-    handle_chimeras.py ${genome} ${mapping} heatmaps_${mapping.baseName} --bwa_mode
+    mkdir heatmaps_${chim_file.baseName}
+    handle_chimeras.py ${genome} ${chim_file} heatmaps_${chim_file.baseName} --bwa_mode
     """
 }
 

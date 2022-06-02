@@ -28,10 +28,10 @@ process concatenateFasta {
   label 'python3'
 
   input:
-  tuple val(name), path(genome)
+  tuple val(name), path(genome), val(is_genome_concatenated)
 
   output:
-  tuple val(name), path("${genome.baseName}_concatenated.fasta"), path("${genome.baseName}_concatenated.csv")
+  tuple val(name), path("${genome.baseName}_concatenated.fasta"), val(true), path("${genome.baseName}_concatenated.csv")
 
   script:
   """

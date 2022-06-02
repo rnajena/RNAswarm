@@ -50,9 +50,17 @@ workflow preprocessing {
         qc_ch = fastpTrimming.out.concat(reads_ch)
 
         fastqcReport( qc_ch )
+
+        genomes_ch = Channel.fromPath("${params.input}/genomes/*.fasta")
+                            .map{ file -> tuple(file.baseName, file, false) }
+        
+        concatenateFasta( genomes_ch )
+
+        preprocessed_genomes_ch = genomes_ch.concat( concatenateFasta.out.map{ it -> [ it[0], it[1], it[2] ] } )
     emit:
         fastpTrimming.out
         fastqcReport.out
+        preprocessed_genomes_ch
 }
 
 // mapping with segemehl
@@ -60,14 +68,11 @@ include { segemehlIndex; segemehl } from './modules/map_reads.nf'
 include { getStats } from './modules/generate_reports.nf'
 
 workflow segemehl_mapping {
-    take: preprocessed_reads_ch
+    take:
+        preprocessed_reads_ch
+        preprocessed_genomes_ch
     main:
-        genomes_ch = Channel.fromPath("${params.input}/genomes/*.fasta")
-                            .map{ file -> tuple(file.baseName, file) }
-        
-        concatenateFasta( genomes_ch )
-
-        segemehlIndex( concatenateFasta.out.map{ it -> [ it[0], it[1] ] } )
+        segemehlIndex( preprocessed_genomes_ch )
     
         segemehl_input_ch = segemehlIndex.out.combine(preprocessed_reads_ch, by: 0)
     
@@ -83,12 +88,11 @@ workflow segemehl_mapping {
 include { bwaIndex; bwaMem; findChimeras; convertSAMtoBAM } from './modules/map_reads.nf'
 
 workflow bwa_mapping {
-    take: preprocessed_reads_ch
+    take:
+        preprocessed_reads_ch
+        preprocessed_genomes_ch
     main:
-        genomes_ch = Channel.fromPath("${params.input}/genomes/*.fasta")
-                            .map{ file -> tuple(file.baseName, file) }
-
-        bwaIndex( genomes_ch )
+        bwaIndex( preprocessed_genomes_ch )
 
         bwa_input_ch = bwaIndex.out.combine(preprocessed_reads_ch, by: 0)
 
@@ -103,6 +107,7 @@ workflow bwa_mapping {
         getStats( convertSAMtoBAM.out )
     emit:
         convertSAMtoBAM.out
+        findChimeras.out
         getStats.out
 }
 
@@ -111,14 +116,11 @@ include { hiSat2Index; hiSat2 } from './modules/map_reads.nf'
 include { concatenateFasta } from './modules/preprocessing.nf'
 
 workflow hisat2_mapping {
-    take: preprocessed_reads_ch
+        take:
+        preprocessed_reads_ch
+        preprocessed_genomes_ch
     main:
-        genomes_ch = Channel.fromPath("${params.input}/genomes/*.fasta")
-                            .map{ file -> tuple(file.baseName, file) }
-
-        concatenateFasta( genomes_ch )
-
-        hiSat2Index( concatenateFasta.out.map{ it -> [ it[0], it[1] ] } )
+        hiSat2Index( preprocessed_genomes_ch )
 
         hisat2_input_ch = hiSat2Index.out.combine(preprocessed_reads_ch, by: 0)
 
@@ -183,17 +185,17 @@ workflow {
         println "processing user reads"
     }
     preprocessing( reads_ch )
-    // bwa workflow
-    bwa_mapping( preprocessing.out[0] )
-    chim_file_handler( bwa_mapping.out[0] )
     // segemehl workflow
-    segemehl_mapping( preprocessing.out[0] )
-    trns_file_handler( segemehl_mapping.out[0] )
+    segemehl_mapping( preprocessing.out[0], preprocessing.out[2] )
+    // trns_file_handler( segemehl_mapping.out[0] )
     // hisat2 workflow
-    hisat2_mapping( preprocessing.out[0] )
+    // bwa workflow
+    bwa_mapping( preprocessing.out[0], preprocessing.out[2] )
+    chim_file_handler( bwa_mapping.out[1] )
+    hisat2_mapping( preprocessing.out[0], preprocessing.out[2] )
     // generate reports
     logs_ch = bwa_mapping
-                .out[1]
+                .out[2]
                 .mix( segemehl_mapping.out[1], hisat2_mapping.out[1], preprocessing.out[1] )
                 .collect()
     runMultiQC( logs_ch )
