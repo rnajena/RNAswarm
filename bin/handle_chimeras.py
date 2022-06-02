@@ -142,7 +142,7 @@ def main():
     # * see below. I put these lines here as they do not
     # * change, no matter the if result.
     genome_file_path = sys.argv[1]
-    genome_dict = helper.parse_genome(genome_file_path)
+    genome_dict = helper.parse_fasta(genome_file_path)
     combination_array = helper.make_combination_array(genome_dict)
     readsOfInterest = sys.argv[2]
 
