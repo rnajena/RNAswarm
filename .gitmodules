@@ -1,0 +1,3 @@
+[submodule "bin/fastcov"]
+	path = bin/fastcov
+	url = https://github.com/RaverJay/fastcov
