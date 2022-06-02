@@ -116,7 +116,7 @@ include { hiSat2Index; hiSat2 } from './modules/map_reads.nf'
 include { concatenateFasta } from './modules/preprocessing.nf'
 
 workflow hisat2_mapping {
-        take:
+    take:
         preprocessed_reads_ch
         preprocessed_genomes_ch
     main:
@@ -172,7 +172,7 @@ workflow trns_file_handler {
 * WORKFLOW ENTRY POINT
 **************************/
 
-include { runMultiQC } from './modules/generate_reports.nf'
+include { runMultiQC; makeKrakenDatabase; runKraken } from './modules/generate_reports.nf'
 
 workflow {
     if( params.simulate_interactions ) {
@@ -199,4 +199,12 @@ workflow {
                 .mix( segemehl_mapping.out[1], hisat2_mapping.out[1], preprocessing.out[1] )
                 .collect()
     runMultiQC( logs_ch )
+    // run Kraken2
+    krakenGenomes_ch = Channel.fromPath("${params.input}/kraken/*.fna")
+                       .collect().view()
+    makeKrakenDatabase( krakenGenomes_ch )
+    kraken_ch = reads_ch.map( it -> tuple( it[1].baseName, it[1]) )
+                        .combine(makeKrakenDatabase.out)
+                        .view()
+    runKraken( kraken_ch )
 }

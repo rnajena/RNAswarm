@@ -61,12 +61,58 @@ process getStats {
   """
 }
 
+/*************************************************************************
+* make coverage plots
+*************************************************************************/
+
 // process makeCoveragePlots {
 //   label 'python3'
 
 //   input:
 
 // }
+
+/*************************************************************************
+* make Kraken2 database
+*************************************************************************/
+
+process makeKrakenDatabase {
+  label 'generate_report_kraken'
+
+  input:
+  path(genomes)
+
+  output:
+  path(kraken_db)
+
+  script:
+  """
+  kraken2-build --download-library viral --db kraken_db
+  kraken2-build --download-library human --db kraken_db
+  kraken2-build --download-library UniVec_Core --db kraken_db
+  kraken2-build --add-to-library ${genomes} --db kraken_db
+  kraken2-build --threads ${params.max_cpus} --build --db kraken_db
+  """
+}
+
+/*************************************************************************
+* run Kraken2
+*************************************************************************/
+
+process runKraken {
+  label 'generate_report_kraken'
+
+  input:
+  tuple val(name), path(reads), path(kraken_db)
+  
+  output:
+  tuple val(name), path("${reads.baseName}.txt")
+
+  publishDir "${params.output}/04-stats_and_plots", mode: 'copy'
+
+  script:
+  kraken2 --threads ${params.max_cpus} --db ${kraken_db} --report ${reads.baseName}.txt ${reads}
+}
 
 /*************************************************************************
 * Run MultiQC to generate an output HTML report
