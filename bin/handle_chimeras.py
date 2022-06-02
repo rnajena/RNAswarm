@@ -106,15 +106,17 @@ def detect_peaks(interaction_array):
 
     return detected_peaks, labeled_array, num_features
 
-def extract_means(labeled_array, interaction_array, combination):
+# to do: fix this function
+def extract_means(labeled_array, interaction_array, combinations):
     """
-    For each unique label in labeled_array returnt the mean of the values
+    For each unique label in labeled_array return the mean of the values
     in the interaction_array, and the rectangular subarray that contains
     the labelled values.
     """
     means = {}
-    for combination, array in combination_array.items():
-        
+    for combination, array in combinations.items():
+        pass
+
     for label in np.unique(labeled_array):
         if label == 0:
             continue
@@ -134,6 +136,7 @@ def make_summary_table(segemehl_mapping, trns_file, bwa_mapping, chim_file):
     
     chim_ids = helper.get_chim_ids(chim_file)
     trns_ids = helper.get_trs_ids(trns_file)
+
 
 def main():
     # * see below. I put these lines here as they do not
