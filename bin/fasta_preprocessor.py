@@ -12,9 +12,8 @@ Options:
     -o --output=<output_fasta>              output fasta file
 """
 
-from fileinput import filename
-from posixpath import basename
 from docopt import docopt
+from os.path import splitext, basename
 import helper
 
 
@@ -39,7 +38,6 @@ def concatenate_multifasta(fasta_file):
     fasta_dict = helper.parse_fasta(fasta_file)
     concatenated_seq = ""
     concatenated_multifasta = ""
-    fasta_filename = filename(fasta_file)
     metadata_dict = {}
     for id, seq in fasta_dict.items():
         metadata_dict[id] = {
@@ -47,8 +45,8 @@ def concatenate_multifasta(fasta_file):
             "start": len(concatenated_seq),
             "end": len(concatenated_seq) + len(seq) - 1,
         }
-        concatenated_seq += seq
-        concatenated_multifasta += f">{fasta_filename}\n{seq}\n"
+        concatenated_seq = f"{concatenated_seq}{seq}"
+    concatenated_multifasta = f">{splitext(basename(fasta_file))[0]}_concatenated\n{concatenated_seq}\n"
     return concatenated_multifasta, metadata_dict
 
 
@@ -59,7 +57,7 @@ def main():
     )
     with open(arguments["--output"], "w") as output:
         output.write(concatenated_multifasta)
-    with open(f"{arguments['--output'].basename}.csv", "w") as output:
+    with open(f"{splitext(arguments['--output'])[0]}.csv", "w") as output:
         output.write(f"id,length,start,end\n")
         for id, metadata in metadata_dict.items():
             output.write(

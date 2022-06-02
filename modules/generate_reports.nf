@@ -29,8 +29,8 @@ process fastqcReport {
   tuple val(name), path(reads)
 
   output:
-  tuple val(name), path("${reads.baseName}_fastqc")
-  
+  path("${reads.baseName}_fastqc")
+
   publishDir "${params.output}//04-stats_and_plots", mode: 'copy'
 
   script:
@@ -61,6 +61,13 @@ process getStats {
   """
 }
 
+// process makeCoveragePlots {
+//   label 'python3'
+
+//   input:
+
+// }
+
 /*************************************************************************
 * Run MultiQC to generate an output HTML report
 *************************************************************************/
@@ -79,6 +86,6 @@ process runMultiQC {
 
   script:
   """
-  multiqc .
+  multiqc -d .
   """
 }

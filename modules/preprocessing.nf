@@ -25,17 +25,16 @@ process fastpTrimming {
 * concatenate multifasta
 ***********************************************************************/
 process concatenateFasta {
-  label 'preprocessing'
+  label 'python3'
 
   input:
   tuple val(name), path(genome)
 
   output:
-  tuple val(name), path("${genome.baseName}_concatenated.fasta", "${genome.baseName}_concatenated.csv")
+  tuple val(name), path("${genome.baseName}_concatenated.fasta"), path("${genome.baseName}_concatenated.csv")
 
   script:
   """
-  fasta_preprocessor.py -i ${genome} -o ${genome.baseName}_concatenated.fasta
+  fasta_preprocessor.py -c -i ${genome} -o ${genome.baseName}_concatenated.fasta
   """
-
 }

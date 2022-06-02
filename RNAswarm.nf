@@ -65,7 +65,9 @@ workflow segemehl_mapping {
         genomes_ch = Channel.fromPath("${params.input}/genomes/*.fasta")
                             .map{ file -> tuple(file.baseName, file) }
         
-        segemehlIndex( genomes_ch )
+        concatenateFasta( genomes_ch )
+
+        segemehlIndex( concatenateFasta.out.map{ it -> [ it[0], it[1] ] } )
     
         segemehl_input_ch = segemehlIndex.out.combine(preprocessed_reads_ch, by: 0)
     
@@ -73,6 +75,7 @@ workflow segemehl_mapping {
 
         getStats( segemehl.out.map{ it -> [ it[0], it[2] ] } )
     emit:
+        segemehl.out
         getStats.out
 }
 
@@ -99,12 +102,13 @@ workflow bwa_mapping {
 
         getStats( convertSAMtoBAM.out )
     emit:
+        convertSAMtoBAM.out
         getStats.out
 }
 
 // mapping with hisat2
 include { hiSat2Index; hiSat2 } from './modules/map_reads.nf'
-include { concatenateFasta } from '.modules/preprocessing.nf'
+include { concatenateFasta } from './modules/preprocessing.nf'
 
 workflow hisat2_mapping {
     take: preprocessed_reads_ch
@@ -126,6 +130,7 @@ workflow hisat2_mapping {
         
         getStats( convertSAMtoBAM.out )
     emit:
+        convertSAMtoBAM.out
         getStats.out
 }
 
@@ -177,19 +182,19 @@ workflow {
                             .map{ file -> tuple(file.baseName[0..9], file) }
         println "processing user reads"
     }
-    preprocessing( fastpTrimming.out )
+    preprocessing( reads_ch )
     // bwa workflow
-    bwa_mapping( preprocessing.out )
-    chim_file_handler( bwa_mapping.out )
+    bwa_mapping( preprocessing.out[0] )
+    chim_file_handler( bwa_mapping.out[0] )
     // segemehl workflow
-    segemehl_mapping( preprocessing.out )
-    trns_file_handler( segemehl_mapping.out )
+    segemehl_mapping( preprocessing.out[0] )
+    trns_file_handler( segemehl_mapping.out[0] )
     // hisat2 workflow
-    hisat2_mapping( preprocessing.out )
+    hisat2_mapping( preprocessing.out[0] )
     // generate reports
     logs_ch = bwa_mapping
-                .out
-                .mix( segemehl_mapping.out, hisat2_mapping.out, fastqcReport.out)
+                .out[1]
+                .mix( segemehl_mapping.out[1], hisat2_mapping.out[1], preprocessing.out[1] )
                 .collect()
     runMultiQC( logs_ch )
 }
