@@ -83,14 +83,17 @@ process makeKrakenDatabase {
   path(genomes)
 
   output:
-  path(kraken_db)
+  path('kraken_db')
+
+  publishDir './assets/kraken2', mode: 'copy'
 
   script:
   """
-  kraken2-build --download-library viral --db kraken_db
-  kraken2-build --download-library human --db kraken_db
-  kraken2-build --download-library UniVec_Core --db kraken_db
-  kraken2-build --add-to-library ${genomes} --db kraken_db
+  kraken2-build --use-ftp --download-taxonomy --db kraken_db
+  for file in ${genomes}
+  do
+      kraken2-build --add-to-library \$file --db kraken_db
+  done
   kraken2-build --threads ${params.max_cpus} --build --db kraken_db
   """
 }
@@ -106,12 +109,18 @@ process runKraken {
   tuple val(name), path(reads), path(kraken_db)
   
   output:
-  tuple val(name), path("${reads.baseName}.txt")
+  tuple val(name), path("${reads.baseName}_kraken.txt"), path("${reads.baseName}_kraken.out"), path("${reads.baseName}_kraken_classified.txt")
 
   publishDir "${params.output}/04-stats_and_plots", mode: 'copy'
 
   script:
-  kraken2 --threads ${params.max_cpus} --db ${kraken_db} --report ${reads.baseName}.txt ${reads}
+  """
+  kraken2 --threads ${params.max_cpus}\
+          --db ${kraken_db}\
+          --report ${reads.baseName}_kraken.txt\
+          --classified-out ${reads.baseName}_kraken_classified.txt\
+          ${reads} > ${reads.baseName}_kraken.out
+  """
 }
 
 /*************************************************************************

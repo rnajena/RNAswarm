@@ -11,6 +11,13 @@
 nextflow.enable.dsl=2
 
 /************************** 
+* CHANNELS
+**************************/
+
+params.krakenLocalDB = workflow.projectDir + "/assets/kraken2/kraken_db"
+params.krakenAssets = workflow.projectDir + "/assets/kraken2/genomes"
+
+/************************** 
 * MODULES
 **************************/
 
@@ -191,7 +198,7 @@ workflow {
     // hisat2 workflow
     // bwa workflow
     bwa_mapping( preprocessing.out[0], preprocessing.out[2] )
-    chim_file_handler( bwa_mapping.out[1] )
+    // chim_file_handler( bwa_mapping.out[1] )
     hisat2_mapping( preprocessing.out[0], preprocessing.out[2] )
     // generate reports
     logs_ch = bwa_mapping
@@ -200,10 +207,9 @@ workflow {
                 .collect()
     runMultiQC( logs_ch )
     // run Kraken2
-    krakenGenomes_ch = Channel.fromPath("${params.input}/kraken/*.fna")
-                       .collect().view()
-    makeKrakenDatabase( krakenGenomes_ch )
-    kraken_ch = reads_ch.map( it -> tuple( it[1].baseName, it[1]) )
+    krakenAssets_ch = Channel.fromPath( "${params.krakenAssets}/*.fna" ).collect()
+    makeKrakenDatabase( krakenAssets_ch )
+    kraken_ch = reads_ch.map( reads_tuple -> tuple( reads_tuple[1].baseName, reads_tuple[1]) )
                         .combine(makeKrakenDatabase.out)
                         .view()
     runKraken( kraken_ch )
