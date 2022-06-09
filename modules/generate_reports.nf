@@ -79,22 +79,19 @@ process getStats {
 process makeKrakenDatabase {
   label 'generate_report_kraken'
 
-  input:
-  path(genomes)
-
   output:
   path('kraken_db')
 
-  publishDir './assets/kraken2', mode: 'copy'
+  publishDir './assets/kraken2_db', mode: 'copy'
 
   script:
   """
-  kraken2-build --use-ftp --download-taxonomy --db kraken_db
-  for file in ${genomes}
-  do
-      kraken2-build --add-to-library \$file --db kraken_db
-  done
-  kraken2-build --threads ${params.max_cpus} --build --db kraken_db
+  mkdir kraken_db
+  cd kraken_db
+  wget https://genome-idx.s3.amazonaws.com/kraken/k2_standard_20210517.tar.gz
+  gunzip k2_standard_20210517.tar.gz
+  tar -xvf k2_standard_20210517.tar
+  rm k2_standard_20210517.tar
   """
 }
 
@@ -109,7 +106,7 @@ process runKraken {
   tuple val(name), path(reads), path(kraken_db)
   
   output:
-  tuple val(name), path("${reads.baseName}_kraken.txt"), path("${reads.baseName}_kraken.out"), path("${reads.baseName}_kraken_classified.txt")
+  tuple path("${reads.baseName}_kraken.txt"), path("${reads.baseName}_kraken.out"), path("${reads.baseName}_kraken_classified.txt")
 
   publishDir "${params.output}/04-stats_and_plots", mode: 'copy'
 
@@ -120,6 +117,58 @@ process runKraken {
           --report ${reads.baseName}_kraken.txt\
           --classified-out ${reads.baseName}_kraken_classified.txt\
           ${reads} > ${reads.baseName}_kraken.out
+  """
+}
+
+/*************************************************************************
+* make Kraken2 database
+*************************************************************************/
+
+process makeSortmernaDatabase {
+  label 'generate_report_sortmerna'
+
+  output:
+  path('sortmerna_db')
+
+  publishDir './assets/sortmerna_db', mode: 'copy'
+
+  script:
+  """
+  wget https://github.com/biocore/sortmerna/archive/5458bf3774714275a561fdd4c4e6e7eccf22c769.zip
+  unzip 5458bf3774714275a561fdd4c4e6e7eccf22c769.zip
+  mv sortmerna-5458bf3774714275a561fdd4c4e6e7eccf22c769/data/rRNA_databases sortmerna_db
+  rm -rf sortmerna_db/README.txt sortmerna_db/scripts sortmerna_db/silva_ids_acc_tax.tar.gz
+  """
+}
+
+/*************************************************************************
+* run sortmerna
+*************************************************************************/
+
+process runSortmerna {
+  label 'generate_report_sortmerna'
+
+  input:
+  tuple val(name), path(reads), path(sortmerna_db)
+
+  output:
+  tuple val(name), path(reads) //output has to be fixed so that multiQC can work
+
+  publishDir "${params.output}/04-stats_and_plots", mode: 'copy'
+
+  script:
+  """
+  mkdir workdir
+  sortmerna --ref sortmerna_db/rfam-5.8s-database-id98.fasta\
+            --ref sortmerna_db/rfam-5s-database-id98.fasta\
+            --ref sortmerna_db/silva-arc-16s-id95.fasta\
+            --ref sortmerna_db/silva-arc-23s-id98.fasta\
+            --ref sortmerna_db/silva-bac-16s-id90.fasta\
+            --ref sortmerna_db/silva-bac-23s-id98.fasta\
+            --ref sortmerna_db/silva-euk-18s-id95.fasta\
+            --ref sortmerna_db/silva-euk-28s-id98.fasta\
+            --workdir workdir\
+            --reads ${reads}
   """
 }
 

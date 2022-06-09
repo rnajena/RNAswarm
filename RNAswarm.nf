@@ -179,7 +179,7 @@ workflow trns_file_handler {
 * WORKFLOW ENTRY POINT
 **************************/
 
-include { runMultiQC; makeKrakenDatabase; runKraken } from './modules/generate_reports.nf'
+include { runMultiQC; makeKrakenDatabase; runKraken; makeSortmernaDatabase; runSortmerna } from './modules/generate_reports.nf'
 
 workflow {
     if( params.simulate_interactions ) {
@@ -200,17 +200,22 @@ workflow {
     bwa_mapping( preprocessing.out[0], preprocessing.out[2] )
     // chim_file_handler( bwa_mapping.out[1] )
     hisat2_mapping( preprocessing.out[0], preprocessing.out[2] )
+    // run Kraken2
+    makeKrakenDatabase()
+    kraken_ch = reads_ch.map( reads_tuple -> tuple( reads_tuple[1].baseName, reads_tuple[1]) )
+                        .combine(makeKrakenDatabase.out)
+    runKraken( kraken_ch )
+    // run sotrmerna
+    makeSortmernaDatabase()
+    sortmerna_ch = reads_ch.map( reads_tuple -> tuple( reads_tuple[1].baseName, reads_tuple[1]) )
+                           .combine(makeSortmernaDatabase.out)
+                           .view()
+    runSortmerna( sortmerna_ch )
     // generate reports
     logs_ch = bwa_mapping
                 .out[2]
-                .mix( segemehl_mapping.out[1], hisat2_mapping.out[1], preprocessing.out[1] )
+                .mix( segemehl_mapping.out[1], hisat2_mapping.out[1], preprocessing.out[1], runKraken.out, runSortmerna.out )
                 .collect()
+                .view()
     runMultiQC( logs_ch )
-    // run Kraken2
-    krakenAssets_ch = Channel.fromPath( "${params.krakenAssets}/*.fna" ).collect()
-    makeKrakenDatabase( krakenAssets_ch )
-    kraken_ch = reads_ch.map( reads_tuple -> tuple( reads_tuple[1].baseName, reads_tuple[1]) )
-                        .combine(makeKrakenDatabase.out)
-                        .view()
-    runKraken( kraken_ch )
 }
