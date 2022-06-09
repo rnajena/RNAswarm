@@ -62,8 +62,11 @@ workflow preprocessing {
                             .map{ file -> tuple(file.baseName, file, false) }
         
         concatenateFasta( genomes_ch )
-
-        preprocessed_genomes_ch = genomes_ch.concat( concatenateFasta.out.map{ it -> [ it[0], it[1], it[2] ] } )
+        if( params.concatenate_genomes ) {
+            preprocessed_genomes_ch = genomes_ch.concat( concatenateFasta.out.map{ it -> [ it[0], it[1], it[2] ] } )
+        } else {
+            preprocessed_genomes_ch = Channel.empty
+        }
     emit:
         fastpTrimming.out
         fastqcReport.out
@@ -194,11 +197,11 @@ workflow {
     preprocessing( reads_ch )
     // segemehl workflow
     segemehl_mapping( preprocessing.out[0], preprocessing.out[2] )
-    // trns_file_handler( segemehl_mapping.out[0] )
+    trns_file_handler( segemehl_mapping.out[0] )
     // hisat2 workflow
     // bwa workflow
     bwa_mapping( preprocessing.out[0], preprocessing.out[2] )
-    // chim_file_handler( bwa_mapping.out[1] )
+    chim_file_handler( bwa_mapping.out[1] )
     hisat2_mapping( preprocessing.out[0], preprocessing.out[2] )
     // run Kraken2
     makeKrakenDatabase()
