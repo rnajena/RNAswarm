@@ -34,20 +34,26 @@ process segemehl {
     if ( is_genome_concatenated )
       """
       segemehl.x -i ${index}\
-                -d ${genome}\
-                -q ${reads}\
-                -S ${reads.baseName}\
-                -t ${params.max_cpus}\
-                -b > ${reads.baseName}_concat_segemehl.bam
+                 -d ${genome}\
+                 -q ${reads}\
+                 -S ${reads.baseName}\
+                 -t ${params.max_cpus}\
+                 > ${reads.baseName}_concat_segemehl.sam
+      samtools view -@ ${params.max_cpus}
+                    -S -b ${reads.baseName}_concat_segemehl.sam\
+                    > ${reads.baseName}_concat_segemehl.bam
       """
     else
       """
       segemehl.x -i ${index}\
-                -d ${genome}\
-                -q ${reads}\
-                -S ${reads.baseName}\
-                -t ${params.max_cpus}\
-                -b > ${reads.baseName}_segemehl.bam
+                 -d ${genome}\
+                 -q ${reads}\
+                 -S ${reads.baseName}\
+                 -t ${params.max_cpus}\
+                 > ${reads.baseName}_segemehl.sam
+      samtools view -@ ${params.max_cpus}
+                    -S -b ${reads.baseName}_segemehl.sam\
+                    > ${reads.baseName}_segemehl.bam
       """
 }
 
