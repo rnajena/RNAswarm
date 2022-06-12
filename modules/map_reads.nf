@@ -26,9 +26,7 @@ process segemehl {
     tuple val(name), path(genome), val(is_genome_concatenated), path(index), path(reads)
 
     output:
-    tuple val(name), path("${reads.baseName}.trns.txt"), path("${reads.baseName}*_segemehl.bam")
-
-    publishDir "${params.output}/02-mappings/segemehl", mode: 'copy'
+    tuple val(name), path("${reads.baseName}.trns.txt"), path("${reads.baseName}*_segemehl.sam")
 
     script:
     if ( is_genome_concatenated )
@@ -39,9 +37,6 @@ process segemehl {
                  -S ${reads.baseName}\
                  -t ${params.max_cpus}\
                  > ${reads.baseName}_concat_segemehl.sam
-      samtools view -@ ${params.max_cpus}
-                    -S -b ${reads.baseName}_concat_segemehl.sam\
-                    > ${reads.baseName}_concat_segemehl.bam
       """
     else
       """
@@ -51,10 +46,27 @@ process segemehl {
                  -S ${reads.baseName}\
                  -t ${params.max_cpus}\
                  > ${reads.baseName}_segemehl.sam
-      samtools view -@ ${params.max_cpus}
-                    -S -b ${reads.baseName}_segemehl.sam\
-                    > ${reads.baseName}_segemehl.bam
       """
+}
+
+/*************************************************************************
+* segemehl PUBLISH
+*************************************************************************/
+process segemehlPublish {
+    label 'mapping_segemehl'
+
+    input:
+    tuple val(name), path("${reads.baseName}.trns.txt"), path("${reads.baseName}*_segemehl.bam")
+
+    output:
+    tuple val(name), path("${reads.baseName}.trns.txt")
+
+    publishDir "${params.output}/02-mappings/segemehl", mode: 'copy'
+
+    script:
+    """
+    ls
+    """
 }
 
 /*************************************************************************

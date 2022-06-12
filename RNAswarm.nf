@@ -74,7 +74,7 @@ workflow preprocessing {
 }
 
 // mapping with segemehl
-include { segemehlIndex; segemehl } from './modules/map_reads.nf'
+include { segemehlIndex; segemehl; segemehlPublish } from './modules/map_reads.nf'
 include { getStats } from './modules/generate_reports.nf'
 
 workflow segemehl_mapping {
@@ -88,9 +88,17 @@ workflow segemehl_mapping {
     
         segemehl( segemehl_input_ch )
 
+        segemehlPublish( segemehl.out )
+
+        convertSAMtoBAM( 
+            segemehl.out.map{ it -> [ it[0], it[2], 'segemehl' ] }
+            )
+
+        main_output_ch = segemehlPublish.out.combine(convertSAMtoBAM.out, by: 0)
+
         getStats( segemehl.out.map{ it -> [ it[0], it[2] ] } )
     emit:
-        segemehl.out
+        main_output_ch
         getStats.out
 }
 
