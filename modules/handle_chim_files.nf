@@ -17,6 +17,7 @@ process handleChimFiles {
     """
     mkdir heatmaps_${chim_file.baseName}
     handle_chimeras.py ${genome} ${chim_file} heatmaps_${chim_file.baseName} --bwa_mode
+    echo "mock change"
     """
 }
 

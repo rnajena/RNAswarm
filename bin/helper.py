@@ -3,6 +3,7 @@ import itertools
 import seaborn as sns
 import numpy as np
 import itertools
+from matplotlib.colors import LogNorm
 # from matplotlib_venn import venn3
 
 def parse_fasta(fasta_file):
@@ -62,7 +63,14 @@ def make_combination_array(genome_dict):
     return combination_arrays
 
 def plot_heatmap(array, output_dir, filename, combination_0, combination_1):
-    heatmap = sns.heatmap(array, square=True, cmap="YlGnBu_r")
+    heatmap = sns.heatmap(array, square=True, vmin=0, cmap="YlGnBu_r")
+    heatmap.set(xlabel=str(combination_1), ylabel=str(combination_0))
+    plt.figure()
+    heatmap.figure.savefig(f"{output_dir}/{filename}", bbox_inches="tight")
+    plt.close("all")
+
+def plot_heatmap_log(array, output_dir, filename, combination_0, combination_1):
+    heatmap = sns.heatmap(array, square=True, vmin=0, cmap="PiYG", norm=LogNorm())
     heatmap.set(xlabel=str(combination_1), ylabel=str(combination_0))
     plt.figure()
     heatmap.figure.savefig(f"{output_dir}/{filename}", bbox_inches="tight")

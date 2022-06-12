@@ -65,7 +65,7 @@ workflow preprocessing {
         if( params.concatenate_genomes ) {
             preprocessed_genomes_ch = genomes_ch.concat( concatenateFasta.out.map{ it -> [ it[0], it[1], it[2] ] } )
         } else {
-            preprocessed_genomes_ch = Channel.empty
+            preprocessed_genomes_ch = genomes_ch
         }
     emit:
         fastpTrimming.out
@@ -185,6 +185,7 @@ workflow trns_file_handler {
 include { runMultiQC; makeKrakenDatabase; runKraken; makeSortmernaDatabase; runSortmerna } from './modules/generate_reports.nf'
 
 workflow {
+    // read simulation workflow
     if( params.simulate_interactions ) {
         simulate_interactions()
         reads_ch = simulate_interactions.out
@@ -194,14 +195,15 @@ workflow {
                             .map{ file -> tuple(file.baseName[0..9], file) }
         println "processing user reads"
     }
+    // preprocessing workflow
     preprocessing( reads_ch )
     // segemehl workflow
     segemehl_mapping( preprocessing.out[0], preprocessing.out[2] )
     trns_file_handler( segemehl_mapping.out[0] )
-    // hisat2 workflow
     // bwa workflow
     bwa_mapping( preprocessing.out[0], preprocessing.out[2] )
     chim_file_handler( bwa_mapping.out[1] )
+    // hisat2 workflow
     hisat2_mapping( preprocessing.out[0], preprocessing.out[2] )
     // run Kraken2
     makeKrakenDatabase()
@@ -212,13 +214,11 @@ workflow {
     makeSortmernaDatabase()
     sortmerna_ch = reads_ch.map( reads_tuple -> tuple( reads_tuple[1].baseName, reads_tuple[1]) )
                            .combine(makeSortmernaDatabase.out)
-                           .view()
     runSortmerna( sortmerna_ch )
     // generate reports
     logs_ch = bwa_mapping
                 .out[2]
-                .mix( segemehl_mapping.out[1], hisat2_mapping.out[1], preprocessing.out[1], runKraken.out, runSortmerna.out )
+                .mix( segemehl_mapping.out[1], hisat2_mapping.out[1], preprocessing.out[1], runKraken.out )
                 .collect()
-                .view()
     runMultiQC( logs_ch )
 }

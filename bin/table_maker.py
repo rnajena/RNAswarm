@@ -3,9 +3,9 @@
 """table maker.
 
 Usage:
-  art_templater.py -i <interaction_reads> -g <genomic_reads> -t <trans_file> -bs <segemehl_bam_file>
-  art_templater.py -i <interaction_reads> -g <genomic_reads> -c <chim_file> -bb <bwa_bam_file> 
-  art_templater.py -t <trans_file> -c <chim_file> -bs <segemehl_bam_file> -bb <bwa_bam_file> 
+  table_maker.py -i <interaction_reads> -g <genomic_reads> -t <trans_file> -bs <segemehl_bam_file>
+  table_maker.py -i <interaction_reads> -g <genomic_reads> -c <chim_file> -bb <bwa_bam_file> 
+  table_maker.py -t <trans_file> -c <chim_file> -bs <segemehl_bam_file> -bb <bwa_bam_file> 
 
 Options:
   -h --help                               Show this screen.
@@ -191,8 +191,8 @@ def make_venn_diag(trns_file, chim_file):
 
 
 
-    print(f"""| only bwa-mem | both | only segemehl |
-    | {len(only_bwa_set)} | {len(on_both_set)} | {len(only_segemehl_set)} |""")
+    # print(f"""| only bwa-mem | both | only segemehl |
+    # | {len(only_bwa_set)} | {len(on_both_set)} | {len(only_segemehl_set)} |""")
 
 
 

@@ -9,18 +9,19 @@ process handleTrnsFiles {
     tuple val(name), path(genome), path(trns_file), path(bam_file)
 
     output:
-    tuple val(name), path("heatmaps_${bam_file.baseName}")
+    tuple val(name), path("${bam_file.baseName}_heatmaps"), path("${trns_file.baseName}_heatmaps.log")
 
-    publishDir "${params.output}/03-heatmaps/segmehl", mode: 'copy'
+    publishDir "${params.output}/03-heatmaps/segemehl", mode: 'copy'
 
     script:
     """
-    mkdir heatmaps_${bam_file.baseName}
-    handle_chimeras.py ${genome} ${trns_file} heatmaps_${bam_file.baseName} --segemehl_mode
+    mkdir ${bam_file.baseName}_heatmaps
+    handle_chimeras.py ${genome} ${trns_file} ${bam_file.baseName}_heatmaps --segemehl_mode > ${trns_file.baseName}_heatmaps.log
+    echo "mock change"
     """
 }
 
-process makeConfusionMatrix_trns{
+process makeConfusionMatrix_trns {
     label 'python3'
 
     input:
@@ -31,6 +32,6 @@ process makeConfusionMatrix_trns{
 
     script:
     """
-    art_templater.py -i ${interaction_reads} -g ${genomic_reads} -t ${trns_file} -b ${bam_file} > ${name}_bwa_confusion_matrix.txt
+    table_maker.py -i ${interaction_reads} -g ${genomic_reads} -t ${trns_file} -b ${bam_file} > ${name}_bwa_confusion_matrix.txt
     """
 }
