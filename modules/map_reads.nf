@@ -56,10 +56,10 @@ process segemehlPublish {
     label 'mapping_segemehl'
 
     input:
-    tuple val(name), path("${reads.baseName}.trns.txt"), path("${reads.baseName}*_segemehl.bam")
+    tuple val(name), path(trns_file), path(sam_file)
 
     output:
-    tuple val(name), path("${reads.baseName}.trns.txt")
+    tuple val(name), path(trns_file)
 
     publishDir "${params.output}/02-mappings/segemehl", mode: 'copy'
 
