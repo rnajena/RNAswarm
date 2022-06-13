@@ -236,6 +236,34 @@ def main():
             combination[1],
         )
         helper.plot_heatmap(
+            array > np.power(10,1.5),
+            sys.argv[3],
+            f"{combination[0]}_{combination[1]}_cut10to1_5",
+            combination[0],
+            combination[1],
+        )
+        helper.plot_heatmap(
+            array > np.power(10,2),
+            sys.argv[3],
+            f"{combination[0]}_{combination[1]}_cut10to2",
+            combination[0],
+            combination[1],
+        )
+        helper.plot_heatmap(
+            array > np.power(10,2.5),
+            sys.argv[3],
+            f"{combination[0]}_{combination[1]}_cut10to2_5",
+            combination[0],
+            combination[1],
+        )
+        helper.plot_heatmap(
+            array > np.power(10,3),
+            sys.argv[3],
+            f"{combination[0]}_{combination[1]}_cut10to3",
+            combination[0],
+            combination[1],
+        )
+        helper.plot_heatmap(
             detect_peaks(array)[0],
             sys.argv[3],
             f"{combination[0]}_{combination[1]}_peaks",

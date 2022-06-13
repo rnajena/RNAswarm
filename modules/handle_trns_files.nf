@@ -17,7 +17,7 @@ process handleTrnsFiles {
     """
     mkdir ${bam_file.baseName}_heatmaps
     handle_chimeras.py ${genome} ${trns_file} ${bam_file.baseName}_heatmaps --segemehl_mode > ${trns_file.baseName}_heatmaps.log
-    echo "mock change"
+    echo "mock mokaka change"
     """
 }
 

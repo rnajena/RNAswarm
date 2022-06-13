@@ -27,10 +27,10 @@ include { simulate_interaction_reads; simulate_genome_reads; concatenate_reads }
 workflow simulate_interactions {
     main:
         interaction_tables_ch  = Channel.fromPath("${params.input}/*.csv")
-                                        .map{ file -> tuple(file.baseName, file)}.view()
+                                        .map{ file -> tuple(file.baseName, file)}
 
         genomes_ch = Channel.fromPath("${params.input}/*.fasta")
-                            .map{ file -> tuple(file.baseName, file) }.view()
+                            .map{ file -> tuple(file.baseName, file) }
   
         interaction_reads_ch = interaction_tables_ch.combine(genomes_ch, by: 0)
 
@@ -60,9 +60,9 @@ workflow preprocessing {
 
         genomes_ch = Channel.fromPath("${params.input}/genomes/*.fasta")
                             .map{ file -> tuple(file.baseName, file, false) }
-        
-        concatenateFasta( genomes_ch )
+
         if( params.concatenate_genomes ) {
+            concatenateFasta( genomes_ch )
             preprocessed_genomes_ch = genomes_ch.concat( concatenateFasta.out.map{ it -> [ it[0], it[1], it[2] ] } )
         } else {
             preprocessed_genomes_ch = genomes_ch
@@ -94,11 +94,10 @@ workflow segemehl_mapping {
             segemehl.out.map{ it -> [ it[0], it[2], 'segemehl' ] }
             )
 
-        main_output_ch = segemehlPublish.out.combine(convertSAMtoBAM.out, by: 0)
-
         getStats( segemehl.out.map{ it -> [ it[0], it[2] ] } )
     emit:
-        main_output_ch
+        segemehl.out
+        convertSAMtoBAM.out
         getStats.out
 }
 
@@ -226,7 +225,7 @@ workflow {
     // generate reports
     logs_ch = bwa_mapping
                 .out[2]
-                .mix( segemehl_mapping.out[1], hisat2_mapping.out[1], preprocessing.out[1], runKraken.out )
+                .mix( segemehl_mapping.out[2], hisat2_mapping.out[1], preprocessing.out[1], runKraken.out )
                 .collect()
     runMultiQC( logs_ch )
 }
