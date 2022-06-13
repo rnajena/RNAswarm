@@ -98,17 +98,18 @@ def fill_heatmap(interaction, interaction_arrays):
     return 1
 
 
-# def get_diversity(interaction_arrays):
-#     diversity_dict = {}
-#     for interaction_array in interaction_arrays.values():
-#         highest_point = int(interaction_array.max())
-#         for i in range(0, highest_point):
-#             if i in diversity_dict.keys():
-#                 diversity_dict[i] = diversity_dict[i] + (interaction_array == i).sum()
-#             else:
-#                 diversity_dict[i] = (interaction_array == i).sum()
+def get_diversity(interaction_arrays):
+    diversity_dict = {}
+    for combination, interaction_array in interaction_arrays.items():
+        highest_point = int(np.nanmax(interaction_array))
+        print(highest_point)
+        for i in range(0, highest_point):
+            if i in diversity_dict.keys():
+                diversity_dict[i] = diversity_dict[i] + (interaction_array == i).sum()
+            else:
+                diversity_dict[i] = (interaction_array == i).sum()
 
-#     return diversity_dict
+    return diversity_dict
 
 
 def detect_peaks(interaction_array):
@@ -187,7 +188,6 @@ def main():
     genome_file_path = sys.argv[1]
     genome_dict = helper.parse_fasta(genome_file_path)
     combination_array = helper.make_combination_array(genome_dict)
-    # diversity_dict = get_diversity(combination_array)
     readsOfInterest = sys.argv[2]
     print(
         f"Genome file: {genome_file_path}\n",
@@ -208,12 +208,15 @@ def main():
         # chim_dict = parse_chim_file(readsOfInterest)
         # chim_dict_to_combination_array(interaction_arrays, chim_dict)
 
-    # # Creating the diversity plot
-    # diversity_plot = sns.lineplot(x=diversity_dict.keys(), y=diversity_dict.values)
-    # diversity_plot.set(yscale='log')
-    # plt.figure()
-    # diversity_plot.figure.savefig(f"{sys.argv[3]}/{splitext(readsOfInterest)[0]}_diversity.png", bbox_inches="tight")
-    # plt.close("all")
+    # Creating the diversity plot
+    diversity_dict = get_diversity(combination_array)
+    x_axis = list(diversity_dict.keys())
+    y_axis = list(diversity_dict.values())
+    diversity_plot = sns.lineplot(x=x_axis, y=y_axis)
+    diversity_plot.set(yscale='log')
+    plt.figure()
+    diversity_plot.figure.savefig(f"{sys.argv[3]}/{splitext(splitext(basename(readsOfInterest))[0])[0]}_diversity.png", bbox_inches="tight")
+    plt.close("all")
 
     # * same as above. the for loop is the same
     # * for both if conditions. So, it can be outside the if clause
