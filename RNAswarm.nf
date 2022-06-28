@@ -190,6 +190,7 @@ workflow trns_file_handler {
 **************************/
 
 include { runMultiQC; makeKrakenDatabase; runKraken; makeSortmernaDatabase; runSortmerna } from './modules/generate_reports.nf'
+include { makeDeseq2Table } from './modules/differential_analysis.nf'
 
 workflow {
     // read simulation workflow
@@ -207,9 +208,18 @@ workflow {
     // segemehl workflow
     segemehl_mapping( preprocessing.out[0], preprocessing.out[2] )
     trns_file_handler( segemehl_mapping.out[0] )
+    // // deseq2 workflow
+    // genomes_ch = Channel.fromPath("${params.input}/genomes/*.fasta")
+    //                     .map{ file -> tuple(file.baseName, file) }
+    // samples_ch = Channel.fromPath("${params.samples}")
+    // makeDeseq2Table_ch = segemehl_mapping.out[0]
+    //                                .map{ it -> it[1] }
+    //                                .mix( samples_ch, genomes_ch.map{ it -> it[1] } )
+    //                                .collect()
+    // makeDeseq2Table( makeDeseq2Table_ch )
     // bwa workflow
     bwa_mapping( preprocessing.out[0], preprocessing.out[2] )
-    chim_file_handler( bwa_mapping.out[1] )
+    // chim_file_handler( bwa_mapping.out[1] )
     // hisat2 workflow
     hisat2_mapping( preprocessing.out[0], preprocessing.out[2] )
     // run Kraken2
