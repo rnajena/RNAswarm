@@ -21,30 +21,6 @@ params.krakenAssets = workflow.projectDir + "/assets/kraken2/genomes"
 * MODULES
 **************************/
 
-// interaction simulation
-include { simulate_interaction_reads; simulate_genome_reads; concatenate_reads } from './modules/interaction_simulator.nf'
-
-workflow simulate_interactions {
-    main:
-        interaction_tables_ch  = Channel.fromPath("${params.input}/*.csv")
-                                        .map{ file -> tuple(file.baseName, file)}
-
-        genomes_ch = Channel.fromPath("${params.input}/*.fasta")
-                            .map{ file -> tuple(file.baseName, file) }
-  
-        interaction_reads_ch = interaction_tables_ch.combine(genomes_ch, by: 0)
-
-        simulate_interaction_reads( interaction_reads_ch )
-
-        simulate_genome_reads( genomes_ch )
-
-        concat_ch = simulate_genome_reads.out.join(simulate_interaction_reads.out, by: 0)
-
-        concatenate_reads( concat_ch )
-    emit:
-        concatenate_reads.out
-}
-
 // preprocessing
 include { fastpTrimming} from './modules/preprocessing.nf'
 include { fastqcReport } from './modules/generate_reports.nf'
@@ -52,25 +28,14 @@ include { fastqcReport } from './modules/generate_reports.nf'
 workflow preprocessing {
     take: reads_ch
     main:
+        // Trims reads with fastp
         fastpTrimming( reads_ch )
-
-        qc_ch = fastpTrimming.out.concat(reads_ch)
-
+        // Generates fastqc reports
+        qc_ch = fastpTrimming.out.concat( reads_ch )
         fastqcReport( qc_ch )
-
-        genomes_ch = Channel.fromPath("${params.input}/genomes/*.fasta")
-                            .map{ file -> tuple(file.baseName, file, false) }
-
-        if( params.concatenate_genomes ) {
-            concatenateFasta( genomes_ch )
-            preprocessed_genomes_ch = genomes_ch.concat( concatenateFasta.out.map{ it -> [ it[0], it[1], it[2] ] } )
-        } else {
-            preprocessed_genomes_ch = genomes_ch
-        }
     emit:
         fastpTrimming.out
         fastqcReport.out
-        preprocessed_genomes_ch
 }
 
 // mapping with segemehl
@@ -80,20 +45,20 @@ include { getStats } from './modules/generate_reports.nf'
 workflow segemehl_mapping {
     take:
         preprocessed_reads_ch
-        preprocessed_genomes_ch
+        genomes_ch
     main:
-        segemehlIndex( preprocessed_genomes_ch )
-    
+        // Indexes the reference genomes
+        segemehlIndex( genomes_ch )
+        // Maps the reads to the reference genomes
         segemehl_input_ch = segemehlIndex.out.combine(preprocessed_reads_ch, by: 0)
-    
         segemehl( segemehl_input_ch )
-
+        // Publishes segemehl trns files for inspection
         segemehlPublish( segemehl.out )
-
+        // Converts segemehl's SAM output to BAM file
         convertSAMtoBAM( 
             segemehl.out.map{ it -> [ it[0], it[2], 'segemehl' ] }
             )
-
+        // Runs samtools flagstats on the BAM file
         getStats( segemehl.out.map{ it -> [ it[0], it[2] ] } )
     emit:
         segemehl.out
@@ -193,49 +158,35 @@ include { runMultiQC; makeKrakenDatabase; runKraken; makeSortmernaDatabase; runS
 include { makeDeseq2Table } from './modules/differential_analysis.nf'
 
 workflow {
-    // read simulation workflow
-    if( params.simulate_interactions ) {
-        simulate_interactions()
-        reads_ch = simulate_interactions.out
-        println "simulating reads"
-    } else {
-        reads_ch = Channel.fromPath("${params.input}/reads/*/*.fastq")
-                            .map{ file -> tuple(file.baseName[0..9], file) }
-        println "processing user reads"
-    }
+    // parse sample's csv file
+    samples_input_ch = Channel
+                    .fromPath( params.samples, checkIfExists: true )
+                    .splitCsv()
+                    .map { row -> ["${row[0]}", file("${row[1]}", checkIfExists: true), file("${row[2]}", checkIfExists: true)] }
+                    // csv table with columns:  sample_name, reads, genome
+    reads_ch = samples_input_ch.map{ it -> [ it[0], it[1] ] }
+    genomes_ch = samples_input_ch.map{ it -> [ it[0], it[2] ] }
     // preprocessing workflow
     preprocessing( reads_ch )
     // segemehl workflow
-    segemehl_mapping( preprocessing.out[0], preprocessing.out[2] )
+    segemehl_mapping( preprocessing.out[0], genomes_ch )
     trns_file_handler( segemehl_mapping.out[0] )
-    // // deseq2 workflow
-    // genomes_ch = Channel.fromPath("${params.input}/genomes/*.fasta")
-    //                     .map{ file -> tuple(file.baseName, file) }
-    // samples_ch = Channel.fromPath("${params.samples}")
-    // makeDeseq2Table_ch = segemehl_mapping.out[0]
-    //                                .map{ it -> it[1] }
-    //                                .mix( samples_ch, genomes_ch.map{ it -> it[1] } )
-    //                                .collect()
-    // makeDeseq2Table( makeDeseq2Table_ch )
     // bwa workflow
-    bwa_mapping( preprocessing.out[0], preprocessing.out[2] )
-    // chim_file_handler( bwa_mapping.out[1] )
+    bwa_mapping( preprocessing.out[0], genomes_ch )
+    chim_file_handler( bwa_mapping.out[1] )
     // hisat2 workflow
-    hisat2_mapping( preprocessing.out[0], preprocessing.out[2] )
+    hisat2_mapping( preprocessing.out[0], genomes_ch )
     // run Kraken2
     makeKrakenDatabase()
-    kraken_ch = reads_ch.map( reads_tuple -> tuple( reads_tuple[1].baseName, reads_tuple[1]) )
-                        .combine(makeKrakenDatabase.out)
+    kraken_ch = reads_ch.combine(makeKrakenDatabase.out)
     runKraken( kraken_ch )
     // run sotrmerna
     makeSortmernaDatabase()
-    sortmerna_ch = reads_ch.map( reads_tuple -> tuple( reads_tuple[1].baseName, reads_tuple[1]) )
-                           .combine(makeSortmernaDatabase.out)
+    sortmerna_ch = = reads_ch.combine(makeSortmernaDatabase.out)
     runSortmerna( sortmerna_ch )
     // generate reports
-    logs_ch = bwa_mapping
-                .out[2]
-                .mix( segemehl_mapping.out[2], hisat2_mapping.out[1], preprocessing.out[1], runKraken.out )
-                .collect()
+    logs_ch = bwa_mapping.out[2]
+                         .mix( segemehl_mapping.out[2], hisat2_mapping.out[1], preprocessing.out[1], runKraken.out )
+                         .collect()
     runMultiQC( logs_ch )
 }
