@@ -5,10 +5,10 @@ process segemehlIndex {
     label 'mapping_segemehl'
 
     input:
-    tuple val(name), path(genome), val(is_genome_concatenated)
+    tuple val(name), path(genome)
 
     output:
-    tuple val(name), path(genome), val(is_genome_concatenated), path("${name}.idx")
+    tuple val(name), path(genome), path("${name}.idx")
 
     script:
     """
@@ -23,7 +23,7 @@ process segemehl {
     label 'mapping_segemehl'
 
     input:
-    tuple val(name), path(genome), val(is_genome_concatenated), path(index), path(reads)
+    tuple val(name), path(genome), path(index), path(reads)
 
     output:
     tuple val(name), path("${reads.baseName}.trns.txt"), path("${reads.baseName}*_segemehl.sam")
@@ -77,10 +77,10 @@ process bwaIndex {
     label 'mapping_bwa'
 
     input:
-    tuple val(name), path(genome), val(is_genome_concatenated)
+    tuple val(name), path(genome)
 
     output:
-    tuple val(name), path(genome), val(is_genome_concatenated) , path("${name}_index")
+    tuple val(name), path(genome), path("${name}_index")
 
     script:
     """
@@ -99,7 +99,7 @@ process bwaMem {
     label 'mapping_bwa'
 
     input:
-    tuple val(name), path(genome), val(is_genome_concatenated), path(index), path(reads)
+    tuple val(name), path(genome), path(index), path(reads)
 
     output:
     tuple val(name), path("${reads.baseName}*_bwa.sam")
@@ -165,10 +165,10 @@ process hiSat2Index {
     label 'mapping_hisat2'
 
     input:
-    tuple val(name), path(genome), val(is_genome_concatenated)
+    tuple val(name), path(genome)
 
     output:
-    tuple val(name), path(genome), val(is_genome_concatenated), path("${name}*.ht2")
+    tuple val(name), path(genome), path("${name}*.ht2")
 
     script:
     """
@@ -184,7 +184,7 @@ process hiSat2 {
     label 'mapping_hisat2'
 
     input:
-    tuple val(name), path(genome), val(is_genome_concatenated), path(index), path(reads)
+    tuple val(name), path(genome), path(index), path(reads)
 
     output:
     tuple val(name), path("${reads.baseName}*_hisat2.sam")
