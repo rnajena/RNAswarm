@@ -95,7 +95,6 @@ workflow bwa_mapping {
 
 // mapping with hisat2
 include { hiSat2Index; hiSat2 } from './modules/map_reads.nf'
-include { concatenateFasta } from './modules/preprocessing.nf'
 
 workflow hisat2_mapping {
     take:

@@ -29,24 +29,14 @@ process segemehl {
     tuple val(name), path("${reads.baseName}.trns.txt"), path("${reads.baseName}*_segemehl.sam")
 
     script:
-    if ( is_genome_concatenated )
-      """
-      segemehl.x -i ${index}\
-                 -d ${genome}\
-                 -q ${reads}\
-                 -S ${reads.baseName}\
-                 -t ${params.max_cpus}\
-                 > ${reads.baseName}_concat_segemehl.sam
-      """
-    else
-      """
-      segemehl.x -i ${index}\
-                 -d ${genome}\
-                 -q ${reads}\
-                 -S ${reads.baseName}\
-                 -t ${params.max_cpus}\
-                 > ${reads.baseName}_segemehl.sam
-      """
+    """
+    segemehl.x -i ${index}\
+               -d ${genome}\
+               -q ${reads}\
+               -S ${reads.baseName}\
+               -t ${params.max_cpus}\
+               > ${reads.baseName}_segemehl.sam
+    """
 }
 
 /*************************************************************************
@@ -105,14 +95,9 @@ process bwaMem {
     tuple val(name), path("${reads.baseName}*_bwa.sam")
 
     script:
-    if ( is_genome_concatenated )
-        """
-        bwa mem -t ${params.max_cpus} -T 20 ${index}/${genome} ${reads} > ${reads.baseName}_concat_bwa.sam
-        """
-    else
-        """
-        bwa mem -t ${params.max_cpus} -T 20 ${index}/${genome} ${reads} > ${reads.baseName}_bwa.sam
-        """
+    """
+    bwa mem -t ${params.max_cpus} -T 20 ${index}/${genome} ${reads} > ${reads.baseName}_bwa.sam
+    """
 }
 
 /*************************************************************************
@@ -190,12 +175,7 @@ process hiSat2 {
     tuple val(name), path("${reads.baseName}*_hisat2.sam")
 
     script:
-    if ( is_genome_concatenated )
-        """
-        hisat2 -x ${name} -U ${reads} > ${reads.baseName}_concat_hisat2.sam
-        """
-    else
-        """
-        hisat2 -x ${name} -U ${reads} > ${reads.baseName}_hisat2.sam
-        """
+    """
+    hisat2 -x ${name} -U ${reads} > ${reads.baseName}_hisat2.sam
+    """
 }
