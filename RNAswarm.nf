@@ -162,8 +162,8 @@ workflow {
     samples_input_ch = Channel
                     .fromPath( params.samples, checkIfExists: true )
                     .splitCsv()
-                    .map { row -> ["${row[0]}", file("${row[1]}", checkIfExists: true), file("${row[2]}", checkIfExists: true)] }
-                    // csv table with columns:  sample_name, reads, genome
+                    .map { row -> [ "${row[0]}", file("${row[1]}", checkIfExists: true), file("${row[2]}", checkIfExists: true) ] }
+                    // csv table with columns: sample_name, reads, genome
     reads_ch = samples_input_ch.map{ it -> [ it[0], it[1] ] }
     genomes_ch = samples_input_ch.map{ it -> [ it[0], it[2] ] }
     // preprocessing workflow
@@ -182,7 +182,7 @@ workflow {
     runKraken( kraken_ch )
     // run sotrmerna
     makeSortmernaDatabase()
-    sortmerna_ch = = reads_ch.combine(makeSortmernaDatabase.out)
+    sortmerna_ch = reads_ch.combine(makeSortmernaDatabase.out)
     runSortmerna( sortmerna_ch )
     // generate reports
     logs_ch = bwa_mapping.out[2]
