@@ -2,18 +2,18 @@
 * segemehl INDEX
 *************************************************************************/
 process segemehlIndex {
-  label 'mapping_segemehl'
+    label 'mapping_segemehl'
 
-  input:
-  tuple val(name), path(genome), val(is_genome_concatenated)
+    input:
+    tuple val(name), path(genome), val(is_genome_concatenated)
 
-  output:
-  tuple val(name), path(genome), val(is_genome_concatenated), path("${name}.idx")
+    output:
+    tuple val(name), path(genome), val(is_genome_concatenated), path("${name}.idx")
 
-  script:
-  """
-  segemehl.x -d ${genome} -x ${name}.idx
-  """
+    script:
+    """
+    segemehl.x -d ${genome} -x ${name}.idx
+    """
 }
 
 /*************************************************************************
@@ -74,21 +74,21 @@ process segemehlPublish {
 *************************************************************************/
 
 process bwaIndex {
-  label 'mapping_bwa'
+    label 'mapping_bwa'
 
-  input:
-  tuple val(name), path(genome), val(is_genome_concatenated)
+    input:
+    tuple val(name), path(genome), val(is_genome_concatenated)
 
-  output:
-  tuple val(name), path(genome), val(is_genome_concatenated) , path("${name}_index")
+    output:
+    tuple val(name), path(genome), val(is_genome_concatenated) , path("${name}_index")
 
-  script:
-  """
-  mkdir ${name}_index
-  bwa index ${genome} -p ${name}_index/${genome}
-  cp ${genome} ${name}_index
-  """
-  // The cp is a bit hacky, maybe there is a more elegant way of doing this
+    script:
+    """
+    mkdir ${name}_index
+    bwa index ${genome} -p ${name}_index/${genome}
+    cp ${genome} ${name}_index
+    """
+    // The cp is a bit hacky, maybe there is a more elegant way of doing this
 }
 
 /*************************************************************************
@@ -96,23 +96,23 @@ process bwaIndex {
 *************************************************************************/
 
 process bwaMem {
-  label 'mapping_bwa'
+    label 'mapping_bwa'
 
-  input:
-  tuple val(name), path(genome), val(is_genome_concatenated), path(index), path(reads)
+    input:
+    tuple val(name), path(genome), val(is_genome_concatenated), path(index), path(reads)
 
-  output:
-  tuple val(name), path("${reads.baseName}*_bwa.sam")
+    output:
+    tuple val(name), path("${reads.baseName}*_bwa.sam")
 
-  script:
-  if ( is_genome_concatenated )
-    """
-    bwa mem -t ${params.max_cpus} -T 20 ${index}/${genome} ${reads} > ${reads.baseName}_concat_bwa.sam
-    """
-  else
-    """
-    bwa mem -t ${params.max_cpus} -T 20 ${index}/${genome} ${reads} > ${reads.baseName}_bwa.sam
-    """
+    script:
+    if ( is_genome_concatenated )
+        """
+        bwa mem -t ${params.max_cpus} -T 20 ${index}/${genome} ${reads} > ${reads.baseName}_concat_bwa.sam
+        """
+    else
+        """
+        bwa mem -t ${params.max_cpus} -T 20 ${index}/${genome} ${reads} > ${reads.baseName}_bwa.sam
+        """
 }
 
 /*************************************************************************
@@ -120,20 +120,20 @@ process bwaMem {
 *************************************************************************/
 
 process convertSAMtoBAM {
-  label 'mapping_samtools'
+    label 'mapping_samtools'
 
-  input:
-  tuple val(name), path(mappings), val(mapper)
+    input:
+    tuple val(name), path(mappings), val(mapper)
 
-  output:
-  tuple val(name), path("${mappings.baseName}.bam")
+    output:
+    tuple val(name), path("${mappings.baseName}.bam")
 
-  publishDir "${params.output}/02-mappings/${mapper}", mode: 'copy'
+    publishDir "${params.output}/02-mappings/${mapper}", mode: 'copy'
 
-  script:
-  """
-  samtools view -@ 8 -S -b ${mappings} > ${mappings.baseName}.bam
-  """
+    script:
+    """
+    samtools view -@ 8 -S -b ${mappings} > ${mappings.baseName}.bam
+    """
 }
 
 /************************************************************************
@@ -141,20 +141,20 @@ process convertSAMtoBAM {
 *************************************************************************/
 
 process findChimeras {
-  label 'python2'
+    label 'python2'
 
-  input:
-  tuple val(name), path(mapping)
+    input:
+    tuple val(name), path(mapping)
   
-  output:
-  tuple val(name), path("${mapping.baseName}.chim")
+    output:
+    tuple val(name), path("${mapping.baseName}.chim")
   
-  publishDir "${params.output}/02-mappings/bwa-mem", mode: 'copy'
+    publishDir "${params.output}/02-mappings/bwa-mem", mode: 'copy'
   
-  script:
-  """
-  find_chimeras.py -i ${mapping} -o ${mapping.baseName}.chim
-  """
+    script:
+    """
+    find_chimeras.py -i ${mapping} -o ${mapping.baseName}.chim
+    """
 }
 
 /*************************************************************************
@@ -162,18 +162,18 @@ process findChimeras {
 *************************************************************************/
 
 process hiSat2Index {
-  label 'mapping_hisat2'
+    label 'mapping_hisat2'
 
-  input:
-  tuple val(name), path(genome), val(is_genome_concatenated)
+    input:
+    tuple val(name), path(genome), val(is_genome_concatenated)
 
-  output:
-  tuple val(name), path(genome), val(is_genome_concatenated), path("${name}*.ht2")
+    output:
+    tuple val(name), path(genome), val(is_genome_concatenated), path("${name}*.ht2")
 
-  script:
-  """
-  hisat2-build -p ${params.max_cpus} ${genome} ${name}
-  """
+    script:
+    """
+    hisat2-build -p ${params.max_cpus} ${genome} ${name}
+    """
 }
 
 /*************************************************************************
@@ -181,21 +181,21 @@ process hiSat2Index {
 *************************************************************************/
 
 process hiSat2 {
-  label 'mapping_hisat2'
+    label 'mapping_hisat2'
 
-  input:
-  tuple val(name), path(genome), val(is_genome_concatenated), path(index), path(reads)
+    input:
+    tuple val(name), path(genome), val(is_genome_concatenated), path(index), path(reads)
 
-  output:
-  tuple val(name), path("${reads.baseName}*_hisat2.sam")
+    output:
+    tuple val(name), path("${reads.baseName}*_hisat2.sam")
 
-  script:
-  if ( is_genome_concatenated )
-    """
-    hisat2 -x ${name} -U ${reads} > ${reads.baseName}_concat_hisat2.sam
-    """
-  else
-    """
-    hisat2 -x ${name} -U ${reads} > ${reads.baseName}_hisat2.sam
-    """
+    script:
+    if ( is_genome_concatenated )
+        """
+        hisat2 -x ${name} -U ${reads} > ${reads.baseName}_concat_hisat2.sam
+        """
+    else
+        """
+        hisat2 -x ${name} -U ${reads} > ${reads.baseName}_hisat2.sam
+        """
 }
