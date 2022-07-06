@@ -8,8 +8,21 @@ import scipy.ndimage as ndimage
 import matplotlib.pyplot as plt
 from os.path import splitext, basename
 
+"""
+
+"""
 
 def __convert_to_int(element):
+    """Return the integer value of the element
+
+    Parameters
+    ----------
+    element : str
+
+    Returns
+    -------
+    int
+    """
     if type(element) == int:
         return element
     elif element.isdigit():
@@ -19,7 +32,17 @@ def __convert_to_int(element):
 
 
 def __check_interaction(currentRow, interaction_arrays):
-    """ """
+    """Parses the current row and returns the interaction
+
+    Parameters
+    ----------
+    currentRow : str
+    interaction_arrays : dict
+
+    Returns
+    -------
+    list
+    """
     interaction = []
     currentRow = list(map(__convert_to_int, currentRow))
     if currentRow[1] > currentRow[2]:
@@ -39,7 +62,17 @@ def __check_interaction(currentRow, interaction_arrays):
 
 
 def bwaChimera2heatmap(chimFile, interaction_arrays):
-    """ """
+    """Parses the chim file and fills the interaction_arrays
+    
+    Parameters
+    ----------
+    chimFile : str
+    interaction_arrays : dict
+
+    Returns
+    -------
+    None
+    """
     with open(chimFile) as inputStream:
         for line in inputStream:
             currentRow = line.strip().split("\t")
@@ -49,7 +82,16 @@ def bwaChimera2heatmap(chimFile, interaction_arrays):
 
 
 def __extract_start_stop_segemehl(read):
-    """ """
+    """Returns the start and stop positions of the read
+    
+    Parameters
+    ----------
+    read : str
+
+    Returns
+    -------
+    list
+    """
     seg = read[0]
     start = int(read[1])
     stop = start + int(read[4])
@@ -57,12 +99,31 @@ def __extract_start_stop_segemehl(read):
 
 
 def __extract_length_segemehl(read):
-    """ """
+    """Returns the length of the read
+
+    Parameters
+    ----------
+    read : list
+
+    Returns
+    -------
+    int
+    """
     return int(read[4])
 
 
 def segemehlTrans2heatmap(trnsFile, interaction_arrays):
-    """ """
+    """Parses the trns file and fills the interaction_arrays
+    
+    Parameters
+    ----------
+    trnsFile : str
+    interaction_arrays : dict
+
+    Returns
+    -------
+    None
+    """
     total_mapped_interactions = 0
     sum_interactionArea = 0
     sum_all_matrices = 0
@@ -89,7 +150,17 @@ def segemehlTrans2heatmap(trnsFile, interaction_arrays):
 
 
 def fill_heatmap(interaction, interaction_arrays):
-    """ """
+    """Fills the interaction_arrays with the interaction
+
+    Parameters
+    ----------
+    interaction : list
+    interaction_arrays : dict
+
+    Returns
+    -------
+    int
+    """
     firstSegment = interaction[0]
     secondSegment = interaction[3]
     interaction_arrays[(firstSegment, secondSegment)][
@@ -99,6 +170,16 @@ def fill_heatmap(interaction, interaction_arrays):
 
 
 def get_diversity(interaction_arrays):
+    """Returns the diversity of the interaction_arrays
+
+    Parameters
+    ----------
+    interaction_arrays : dict
+
+    Returns
+    -------
+    dict
+    """
     diversity_dict = {}
     for combination, interaction_array in interaction_arrays.items():
         highest_point = int(np.nanmax(interaction_array))
@@ -117,6 +198,22 @@ def detect_peaks(interaction_array):
     Takes an image and detect the peaks using the local maximum filter.
     Returns a boolean mask of the peaks (i.e. 1 when
     the pixel's value is the neighborhood maximum, 0 otherwise)
+
+    Parameters
+    ----------
+    interaction_array : ndarray
+        Input array.
+
+    Returns
+    -------
+    boolean ndarray
+        A boolean mask of the peaks in the array.
+
+    ndarray
+        An array of the same shape as input array. Each peak has an unique value.
+    
+    int
+        The number of peaks detected.
     """
 
     # define a 30 by 30 neighborhood
@@ -124,7 +221,6 @@ def detect_peaks(interaction_array):
 
     # apply the local maximum filter; all pixel of maximal value
     # in their neighborhood are set to 1
-    # local_max = np.isclose(ndimage.maximum_filter(interaction_array, footprint=neighborhood), interaction_array)
     local_max = (
         ndimage.maximum_filter(interaction_array, footprint=neighborhood)
         == interaction_array
@@ -148,43 +244,17 @@ def detect_peaks(interaction_array):
     return detected_peaks, labeled_array, num_features
 
 
-# to do: fix this function
-# def extract_means(labeled_array, interaction_array, combinations):
-#     """
-#     For each unique label in labeled_array return the mean of the values
-#     in the interaction_array, and the rectangular subarray that contains
-#     the labelled values.
-#     """
-#     means = {}
-#     for combination, array in combinations.items():
-#         pass
-
-#     for label in np.unique(labeled_array):
-#         if label == 0:
-#             continue
-#         means[label] = {
-#             "mean": np.mean(interaction_array[labeled_array == label]),
-#             "subarray": interaction_array[labeled_array == label],
-#         }
-#     return means
-
-
-# def make_summary_table(segemehl_mapping, trns_file, bwa_mapping, chim_file):
-#     """
-#     Takes segemehl and bwa mappings and custom files. Generates a csv table
-#     sumarising preprocessing, mappings, split mappings and number of identified
-#     interactions
-#     """
-#     segemehl_unmapped = helper.get_unmapped_reads(segemehl_mapping)
-#     bwa_unmapped = helper.get_unmapped_reads(bwa_mapping)
-
-#     chim_ids = helper.get_chim_ids(chim_file)
-#     trns_ids = helper.get_trs_ids(trns_file)
-
-
 def main():
-    # * see below. I put these lines here as they do not
-    # * change, no matter the if result.
+    """Main function
+
+    Parameters
+    ----------
+    None
+
+    Returns
+    -------
+    None
+    """
     genome_file_path = sys.argv[1]
     genome_dict = helper.parse_fasta(genome_file_path)
     combination_array = helper.make_combination_array(genome_dict)
@@ -193,20 +263,10 @@ def main():
         f"Genome file: {genome_file_path}\n",
         f"File used for interaction parsing: {readsOfInterest}",
     )
-    # print(f"{diversity_dict}")
-    # ! We can use argparse (or docopt, but thats an extra library)
-    # ! to handle the input parsing and optional parameter better
     if sys.argv[4] == "--segemehl_mode":
-        # ! This is redundant. It does not matter whether
-        # ! argv[4] is segemehl oder bwa, you are reading the genome anyway.
-        #! I moved it in front of the if condition
         segemehlTrans2heatmap(readsOfInterest, combination_array)
-        # trns_dict = parse_trns_file(readsOfInterest)
-        # trns_dict_to_combination_array(interaction_arrays, trns_dict)
     elif sys.argv[4] == "--bwa_mode":
         bwaChimera2heatmap(readsOfInterest, combination_array)
-        # chim_dict = parse_chim_file(readsOfInterest)
-        # chim_dict_to_combination_array(interaction_arrays, chim_dict)
 
     # Creating the diversity plot
     diversity_dict = get_diversity(combination_array)
@@ -218,8 +278,6 @@ def main():
     diversity_plot.figure.savefig(f"{sys.argv[3]}/{splitext(splitext(basename(readsOfInterest))[0])[0]}_diversity.png", bbox_inches="tight")
     plt.close("all")
 
-    # * same as above. the for loop is the same
-    # * for both if conditions. So, it can be outside the if clause
     for combination, array in combination_array.items():
         helper.plot_heatmap(
             array,
@@ -274,10 +332,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-# * general remark / notes:
-# * It feels like we are doing way to much parsing here.
-# * In the end, we just need to know which reads maps to what segment
-# * and where it mapped. The alignment length and everything can be calculated that way.
-# * By parsing every field from the trns.splice.txt and chimera.txt respectively,
-# * your dictionaries are bloated as hell which, in turn, leads to the spaghetti code.
