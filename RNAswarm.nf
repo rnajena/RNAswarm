@@ -121,12 +121,11 @@ workflow hisat2_mapping {
 include { handleChimFiles } from './modules/handle_chim_files.nf'
 
 workflow chim_file_handler {
-    take: chim_file_ch
+    take:
+        chim_file_ch
+        genomes_ch
     main:
-        genomes_ch = Channel.fromPath("${params.input}/genomes/*.fasta")
-                            .map{ file -> tuple(file.baseName, file) }
-
-        handleChimFiles_input_ch = genomes_ch.combine(chim_file_ch, by: 0)
+        handleChimFiles_input_ch = genomes_ch.combine( chim_file_ch, by: 0 )
 
         handleChimFiles( handleChimFiles_input_ch )
     emit:
@@ -137,12 +136,11 @@ workflow chim_file_handler {
 include { handleTrnsFiles } from './modules/handle_trns_files.nf'
 
 workflow trns_file_handler {
-    take: trns_file_ch
+    take:
+        trns_file_ch
+        genomes_ch
     main:
-        genomes_ch = Channel.fromPath("${params.input}/genomes/*.fasta")
-                            .map{ file -> tuple(file.baseName, file) }
-
-        handleTrnsFiles_input_ch = genomes_ch.combine(trns_file_ch, by: 0)
+        handleTrnsFiles_input_ch = genomes_ch.combine( trns_file_ch, by: 0 )
 
         handleTrnsFiles( handleTrnsFiles_input_ch )
     emit:
@@ -169,10 +167,10 @@ workflow {
     preprocessing( reads_ch )
     // segemehl workflow
     segemehl_mapping( preprocessing.out[0], genomes_ch )
-    trns_file_handler( segemehl_mapping.out[0] )
+    trns_file_handler( segemehl_mapping.out[0], genomes_ch )
     // bwa workflow
     bwa_mapping( preprocessing.out[0], genomes_ch )
-    chim_file_handler( bwa_mapping.out[1] )
+    chim_file_handler( bwa_mapping.out[1], genomes_ch )
     // hisat2 workflow
     hisat2_mapping( preprocessing.out[0], genomes_ch )
     // run Kraken2
