@@ -1,17 +1,34 @@
 #!/usr/bin/env python3
 
+"""handle_chimeras.py
+
+Usage:
+  handle_chimeras.py -g <genome> -i <input_file> -o <output_folder> --bwa_mode
+  handle_chimeras.py -g <genome> -i <input_file> -o <output_folder> --segemehl_mode
+
+Options:
+  -h --help                         Show this screen.
+  --segemehl_mode                   Use this mode if you want to use a trns.txt file
+                                    outputted by segemehl.
+  --bwa_mode                        Use this mode if you want to use a chim.txt file
+                                    outputted by bwa.
+  -g --genome=<genome>              The genome filepath.
+  -i --input=<input_file>           The input filepath, either a chim.txt or trns.txt
+                                    file, depending on the mode.
+  -o --output=<output_folder>       The output folder.
+
+"""
+
+
+from docopt import docopt
+from os.path import splitext, basename
 import sys
+import itertools
 import helper
 import numpy as np
 import seaborn as sns
 import scipy.ndimage as ndimage
 import matplotlib.pyplot as plt
-from os.path import splitext, basename
-
-"""
-
-"""
-
 def __convert_to_int(element):
     """Return the integer value of the element
 
@@ -63,7 +80,7 @@ def __check_interaction(currentRow, interaction_arrays):
 
 def bwaChimera2heatmap(chimFile, interaction_arrays):
     """Parses the chim file and fills the interaction_arrays
-    
+
     Parameters
     ----------
     chimFile : str
@@ -83,7 +100,7 @@ def bwaChimera2heatmap(chimFile, interaction_arrays):
 
 def __extract_start_stop_segemehl(read):
     """Returns the start and stop positions of the read
-    
+
     Parameters
     ----------
     read : str
@@ -114,7 +131,7 @@ def __extract_length_segemehl(read):
 
 def segemehlTrans2heatmap(trnsFile, interaction_arrays):
     """Parses the trns file and fills the interaction_arrays
-    
+
     Parameters
     ----------
     trnsFile : str
@@ -183,7 +200,6 @@ def get_diversity(interaction_arrays):
     diversity_dict = {}
     for combination, interaction_array in interaction_arrays.items():
         highest_point = int(np.nanmax(interaction_array))
-        print(highest_point)
         for i in range(0, highest_point):
             if i in diversity_dict.keys():
                 diversity_dict[i] = diversity_dict[i] + (interaction_array == i).sum()
@@ -211,7 +227,7 @@ def detect_peaks(interaction_array):
 
     ndarray
         An array of the same shape as input array. Each peak has an unique value.
-    
+
     int
         The number of peaks detected.
     """
@@ -244,6 +260,56 @@ def detect_peaks(interaction_array):
     return detected_peaks, labeled_array, num_features
 
 
+def get_pairwise_arrays(interaction_arrays, genome_dict):
+    """Returns the pairwise arrays of the interaction_arrays
+
+    Parameters
+    ----------
+    interaction_arrays : dict
+
+    Returns
+    -------
+    dict
+    """
+    pairwise_arrays = {}
+
+    for segment_combination in itertools.permutations(genome_dict.keys(), 2):
+        if segment_combination in interaction_arrays.keys():
+            pairwise_arrays[segment_combination] = np.sum(interaction_arrays[segment_combination], axis=1)
+        elif (segment_combination[1], segment_combination[0]) in interaction_arrays.keys():
+            pairwise_arrays[segment_combination] = np.sum(interaction_arrays[(segment_combination[1], segment_combination[0])], axis=0)
+        else:
+            raise KeyError(f"{segment_combination} not in the interaction_arrays")
+    return pairwise_arrays
+
+
+def plot_pairwise_arrays(interaction_arrays, genome_dict, foldername):
+    """Plots the pairwise arrays of the interaction_arrays
+
+    Parameters
+    ----------
+    interaction_arrays : dict
+    genome_dict : dict
+    folderpath : str
+
+    Returns
+    -------
+    None
+    """
+    pairwise_arrays = get_pairwise_arrays(interaction_arrays, genome_dict)
+
+    # Plotting the pairwise arrays
+    for segment in genome_dict.keys():
+        for segment_combination, pairwise_array in pairwise_arrays.items():
+            if segment == segment_combination[0]:
+                filepath = f"{foldername}/{segment}_pairwise.png"
+                plt.plot(pairwise_array, label=segment_combination[1])
+        plt.title(f"{segment}")
+        plt.legend(loc='best')
+        plt.savefig(filepath)
+        plt.close("all")
+
+
 def main():
     """Main function
 
@@ -255,75 +321,87 @@ def main():
     -------
     None
     """
-    genome_file_path = sys.argv[1]
+    # Parse the command line arguments
+    arguments = docopt(__doc__)
+    genome_file_path = arguments["--genome"]
+    readsOfInterest = arguments["--input"]
+    output_folder = arguments["--output"]
+
+    # Process input files
     genome_dict = helper.parse_fasta(genome_file_path)
     combination_array = helper.make_combination_array(genome_dict)
-    readsOfInterest = sys.argv[2]
     print(
         f"Genome file: {genome_file_path}\n",
         f"File used for interaction parsing: {readsOfInterest}",
     )
-    if sys.argv[4] == "--segemehl_mode":
+    if "--segemehl_mode" in arguments:
         segemehlTrans2heatmap(readsOfInterest, combination_array)
-    elif sys.argv[4] == "--bwa_mode":
+    elif "--bwa_mode" in arguments:
         bwaChimera2heatmap(readsOfInterest, combination_array)
+
+    # Plotting the pairwise arrays
+    plot_pairwise_arrays(combination_array, genome_dict, output_folder) 
 
     # Creating the diversity plot
     diversity_dict = get_diversity(combination_array)
     x_axis = list(diversity_dict.keys())
     y_axis = list(diversity_dict.values())
     diversity_plot = sns.lineplot(x=x_axis, y=y_axis)
-    diversity_plot.set(yscale='log')
+    diversity_plot.set(yscale="log")
     plt.figure()
-    diversity_plot.figure.savefig(f"{sys.argv[3]}/{splitext(splitext(basename(readsOfInterest))[0])[0]}_diversity.png", bbox_inches="tight")
+    diversity_plot.figure.savefig(
+        f"{output_folder}/{splitext(splitext(basename(readsOfInterest))[0])[0]}_diversity.png",
+        bbox_inches="tight",
+    )
     plt.close("all")
 
+    # Plotting heatmaps
     for combination, array in combination_array.items():
         helper.plot_heatmap(
             array,
-            sys.argv[3],
+            output_folder,
             f"{combination[0]}_{combination[1]}",
             combination[0],
             combination[1],
         )
         helper.plot_heatmap_log(
             array,
-            sys.argv[3],
+            output_folder,
             f"{combination[0]}_{combination[1]}_log",
             combination[0],
             combination[1],
         )
         helper.plot_heatmap(
-            array > np.power(10,1.5),
-            sys.argv[3],
+            array > np.power(10, 1.5),
+            output_folder,
             f"{combination[0]}_{combination[1]}_cut10to1_5",
             combination[0],
             combination[1],
         )
         helper.plot_heatmap(
-            array > np.power(10,2),
-            sys.argv[3],
+            array > np.power(10, 2),
+            output_folder,
             f"{combination[0]}_{combination[1]}_cut10to2",
             combination[0],
             combination[1],
         )
         helper.plot_heatmap(
-            array > np.power(10,2.5),
-            sys.argv[3],
+            array > np.power(10, 2.5),
+            output_folder,
             f"{combination[0]}_{combination[1]}_cut10to2_5",
             combination[0],
             combination[1],
         )
         helper.plot_heatmap(
-            array > np.power(10,3),
-            sys.argv[3],
+            array > np.power(10, 3),
+            output_folder,
             f"{combination[0]}_{combination[1]}_cut10to3",
             combination[0],
             combination[1],
         )
         helper.plot_heatmap(
             detect_peaks(array)[0],
-            sys.argv[3],
+            output_folder,
             f"{combination[0]}_{combination[1]}_peaks",
             combination[0],
             combination[1],

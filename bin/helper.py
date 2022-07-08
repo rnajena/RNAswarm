@@ -7,7 +7,18 @@ from matplotlib.colors import LogNorm
 # from matplotlib_venn import venn3
 
 def parse_fasta(fasta_file):
-    """
+    """Parses a fasta file and returns a dictionary of segment names and sequences.
+
+    Parameters
+    ----------
+    fasta_file : str
+        Path to fasta file.
+
+    Returns
+    -------
+    genome_dict : dict
+        Dictionary of segment names and sequences.
+
     """
     fasta_dict = {}
 
@@ -39,6 +50,17 @@ def make_combination_array(genome_dict):
     """
     Creates a dictionary of numpy array of all possible genome segment combinations.
     Use helper.parse_genome() to create genome_dict.
+
+    Parameters
+    ----------
+    genome_dict : dict
+        Dictionary of segment names and sequences.
+
+    Returns
+    -------
+    combination_arrays : dict
+        Dictionary of numpy arrays of all relevant genome segment combinations.
+
     """
     combination_arrays = {}
     segments = list(genome_dict.keys())
@@ -63,6 +85,27 @@ def make_combination_array(genome_dict):
     return combination_arrays
 
 def plot_heatmap(array, output_dir, filename, combination_0, combination_1):
+    """
+    Plots a heatmap of the given array.
+    
+    Parameters
+    ----------
+    array : numpy array
+        Array to be plotted.
+    output_dir : str
+        Path to output directory.
+    filename : str
+        Name of output file.
+    combination_0 : str
+        First segment of combination.
+    combination_1 : str
+        Second segment of combination.
+
+    Output
+    ------
+    None
+
+    """
     heatmap = sns.heatmap(array, square=True, vmin=0, cmap="YlGnBu_r")
     heatmap.set(xlabel=str(combination_1), ylabel=str(combination_0))
     plt.figure()
@@ -70,6 +113,27 @@ def plot_heatmap(array, output_dir, filename, combination_0, combination_1):
     plt.close("all")
 
 def plot_heatmap_log(array, output_dir, filename, combination_0, combination_1):
+    """
+    Plots a heatmap of the given array in log scale.
+
+    Parameters
+    ----------
+    array : numpy array
+        Array to be plotted.
+    output_dir : str
+        Path to output directory.
+    filename : str
+        Name of output file.
+    combination_0 : str
+        First segment of combination.
+    combination_1 : str
+        Second segment of combination.
+
+    Output
+    ------
+    None
+
+    """
     heatmap = sns.heatmap(array, square=True, vmin=0, cmap="PiYG", norm=LogNorm())
     heatmap.set(xlabel=str(combination_1), ylabel=str(combination_0))
     plt.figure()
