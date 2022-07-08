@@ -9,15 +9,14 @@ process handleChimFiles {
     tuple val(name), path(genome), path(chim_file)
 
     output:
-    tuple val(name), path("heatmaps_${chim_file.baseName}")
+    tuple val(name), path("${chim_file.baseName}_plots")
 
     publishDir "${params.output}/03-heatmaps/bwa-mem", mode: 'copy'
 
     script:
     """
-    mkdir heatmaps_${chim_file.baseName}
-    handle_chimeras.py ${genome} ${chim_file} heatmaps_${chim_file.baseName} --bwa_mode
-    echo "mock change"
+    mkdir ${chim_file.baseName}_plots
+    handle_chimeras.py -g ${genome} -i ${chim_file} -o ${chim_file.baseName}_plots --bwa_mode
     """
 }
 
