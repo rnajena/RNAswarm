@@ -334,9 +334,9 @@ def main():
         f"Genome file: {genome_file_path}\n",
         f"File used for interaction parsing: {readsOfInterest}",
     )
-    if "--segemehl_mode" in arguments:
+    if arguments["--segemehl_mode"]:
         segemehlTrans2heatmap(readsOfInterest, combination_array)
-    elif "--bwa_mode" in arguments:
+    elif arguments["--bwa_mode"]:
         bwaChimera2heatmap(readsOfInterest, combination_array)
 
     # Plotting the pairwise arrays
