@@ -29,6 +29,8 @@ import numpy as np
 import seaborn as sns
 import scipy.ndimage as ndimage
 import matplotlib.pyplot as plt
+
+
 def __convert_to_int(element):
     """Return the integer value of the element
 
@@ -275,9 +277,17 @@ def get_pairwise_arrays(interaction_arrays, genome_dict):
 
     for segment_combination in itertools.permutations(genome_dict.keys(), 2):
         if segment_combination in interaction_arrays.keys():
-            pairwise_arrays[segment_combination] = np.sum(interaction_arrays[segment_combination], axis=1)
-        elif (segment_combination[1], segment_combination[0]) in interaction_arrays.keys():
-            pairwise_arrays[segment_combination] = np.sum(interaction_arrays[(segment_combination[1], segment_combination[0])], axis=0)
+            pairwise_arrays[segment_combination] = np.sum(
+                interaction_arrays[segment_combination], axis=1
+            )
+        elif (
+            segment_combination[1],
+            segment_combination[0],
+        ) in interaction_arrays.keys():
+            pairwise_arrays[segment_combination] = np.sum(
+                interaction_arrays[(segment_combination[1], segment_combination[0])],
+                axis=0,
+            )
         else:
             raise KeyError(f"{segment_combination} not in the interaction_arrays")
     return pairwise_arrays
@@ -305,7 +315,7 @@ def plot_pairwise_arrays(interaction_arrays, genome_dict, foldername):
                 filepath = f"{foldername}/{segment}_pairwise.png"
                 plt.plot(pairwise_array, label=segment_combination[1])
         plt.title(f"{segment}")
-        plt.legend(loc='best')
+        plt.legend(loc="best")
         plt.savefig(filepath)
         plt.close("all")
 
@@ -340,7 +350,7 @@ def main():
         bwaChimera2heatmap(readsOfInterest, combination_array)
 
     # Plotting the pairwise arrays
-    plot_pairwise_arrays(combination_array, genome_dict, output_folder) 
+    plot_pairwise_arrays(combination_array, genome_dict, output_folder)
 
     # Creating the diversity plot
     diversity_dict = get_diversity(combination_array)
