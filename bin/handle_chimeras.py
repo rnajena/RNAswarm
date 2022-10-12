@@ -73,8 +73,9 @@ def __check_interaction(currentRow, interaction_arrays):
         interaction += [currentRow[3]] + [currentRow[5]] + [currentRow[4]]
     else:
         interaction += currentRow[3:]
-
+    # Checks if the cobination is not in the interaction_arrays
     if (interaction[0], interaction[3]) not in interaction_arrays:
+        # If not, it reverses the interaction
         interaction = interaction[3:] + interaction[0:3]
 
     return interaction
@@ -117,21 +118,7 @@ def __extract_start_stop_segemehl(read):
     return [seg, start, stop]
 
 
-def __extract_length_segemehl(read):
-    """Returns the length of the read
-
-    Parameters
-    ----------
-    read : list
-
-    Returns
-    -------
-    int
-    """
-    return int(read[4])
-
-
-def segemehlTrans2heatmap(trnsFile, interaction_arrays):
+def segemehlTrans2heatmap(trnsFile, interaction_arrays, intra_combinations=False):
     """Parses the trns file and fills the interaction_arrays
 
     Parameters
@@ -143,9 +130,6 @@ def segemehlTrans2heatmap(trnsFile, interaction_arrays):
     -------
     None
     """
-    total_mapped_interactions = 0
-    sum_interactionArea = 0
-    sum_all_matrices = 0
     with open(trnsFile) as inputStream:
         for line in inputStream:
             line = line.strip().split()
@@ -154,18 +138,12 @@ def segemehlTrans2heatmap(trnsFile, interaction_arrays):
             currentRow = __extract_start_stop_segemehl(
                 firstRead
             ) + __extract_start_stop_segemehl(secondRead)
-            interactionArea = __extract_length_segemehl(
-                firstRead
-            ) * __extract_length_segemehl(secondRead)
             interaction = __check_interaction(currentRow, interaction_arrays)
-            fill_heatmap(interaction, interaction_arrays)
-            total_mapped_interactions += 1
-            sum_interactionArea += interactionArea
-    for array in interaction_arrays.values():
-        sum_all_matrices += array.sum()
-    print(f"Number of interactions added to the matrices: {total_mapped_interactions}")
-    print(f"Interaction area on the trns.txt file: {sum_interactionArea}")
-    print(f"Interaction area on the matrices: {sum_all_matrices}")
+            if intra_combinations:
+                fill_heatmap(interaction, interaction_arrays)
+            else:
+                if interaction[0] != interaction[3]:
+                    fill_heatmap(interaction, interaction_arrays)
 
 
 def fill_heatmap(interaction, interaction_arrays):
@@ -188,7 +166,7 @@ def fill_heatmap(interaction, interaction_arrays):
     return 1
 
 
-def get_diversity(interaction_arrays):
+def get_histogram_dict(interaction_arrays):
     """Returns the diversity of the interaction_arrays
 
     Parameters
@@ -199,16 +177,16 @@ def get_diversity(interaction_arrays):
     -------
     dict
     """
-    diversity_dict = {}
+    histogram_dict = {}
     for combination, interaction_array in interaction_arrays.items():
         highest_point = int(np.nanmax(interaction_array))
         for i in range(0, highest_point):
-            if i in diversity_dict.keys():
-                diversity_dict[i] = diversity_dict[i] + (interaction_array == i).sum()
+            if i in histogram_dict.keys():
+                histogram_dict[i] = histogram_dict[i] + (interaction_array == i).sum()
             else:
-                diversity_dict[i] = (interaction_array == i).sum()
+                histogram_dict[i] = (interaction_array == i).sum()
 
-    return diversity_dict
+    return histogram_dict
 
 
 def detect_peaks(interaction_array):
@@ -353,13 +331,13 @@ def main():
     plot_pairwise_arrays(combination_array, genome_dict, output_folder)
 
     # Creating the diversity plot
-    diversity_dict = get_diversity(combination_array)
-    x_axis = list(diversity_dict.keys())
-    y_axis = list(diversity_dict.values())
-    diversity_plot = sns.lineplot(x=x_axis, y=y_axis)
-    diversity_plot.set(yscale="log")
+    histogram_dict = get_histogram_dict(combination_array)
+    x_axis = list(histogram_dict.keys())
+    y_axis = list(histogram_dict.values())
+    histogram = sns.lineplot(x=x_axis, y=y_axis)
+    histogram.set(yscale="log")
     plt.figure()
-    diversity_plot.figure.savefig(
+    histogram.figure.savefig(
         f"{output_folder}/{splitext(splitext(basename(readsOfInterest))[0])[0]}_diversity.png",
         bbox_inches="tight",
     )
@@ -378,41 +356,6 @@ def main():
             array,
             output_folder,
             f"{combination[0]}_{combination[1]}_log",
-            combination[0],
-            combination[1],
-        )
-        helper.plot_heatmap(
-            array > np.power(10, 1.5),
-            output_folder,
-            f"{combination[0]}_{combination[1]}_cut10to1_5",
-            combination[0],
-            combination[1],
-        )
-        helper.plot_heatmap(
-            array > np.power(10, 2),
-            output_folder,
-            f"{combination[0]}_{combination[1]}_cut10to2",
-            combination[0],
-            combination[1],
-        )
-        helper.plot_heatmap(
-            array > np.power(10, 2.5),
-            output_folder,
-            f"{combination[0]}_{combination[1]}_cut10to2_5",
-            combination[0],
-            combination[1],
-        )
-        helper.plot_heatmap(
-            array > np.power(10, 3),
-            output_folder,
-            f"{combination[0]}_{combination[1]}_cut10to3",
-            combination[0],
-            combination[1],
-        )
-        helper.plot_heatmap(
-            detect_peaks(array)[0],
-            output_folder,
-            f"{combination[0]}_{combination[1]}_peaks",
             combination[0],
             combination[1],
         )
