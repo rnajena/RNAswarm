@@ -13,3 +13,4 @@ test/results/*
 test/data/pr8_concatenated.fasta
 test/data/pr8_concatenated.csv
 assets/*
+false/*
