@@ -37,3 +37,47 @@ $ git clone https://github.com/gabriellovate/RNAswarm.git
 ```
 
 ## Usage
+### Full pipeline without differential analysis
+```bash
+# Activate the environment
+$ conda activate RNAswarm
+# Run the pipeline
+$ 
+
+## Quick Start
+
+1. Install [`Nextflow`](https://www.nextflow.io/docs/latest/getstarted.html#installation)
+
+2. Install [`Conda`](https://conda.io/miniconda.html) both to install Nextflow itself and also to manage software within pipelines.
+
+3. Download the pipeline and test it on a minimal dataset with a single command (under construction):
+
+   ```bash
+   nextflow run gabriellovate/RNAswarm -profile test,YOURPROFILE --outdir <OUTDIR>
+   ```
+
+   Note that some form of configuration will be needed so that Nextflow knows how to fetch the required software. This is usually done in the form of a config profile (`YOURPROFILE` in the example command above). You can chain multiple config profiles in a comma-separated string.
+
+   > - The pipeline comes with config profiles called `conda`, `local`, `slurm`.
+
+4. Start running your own analysis (under construction)!
+
+   ```bash
+   nextflow run nf-core/rnaseq -profile slurm,conda\
+                               --output <OUTDIR>\
+                               --samples <SAMPLES_CSV_FILE>\
+                               --slurm_queue <SLURM_QUEU_AVAILABLE>
+   ```
+
+## Documentation
+
+RNAswarm comes with documentation about the pipeline [usage](docs/usage.md) and [output](docs/outpud.md) (under construction).
+
+## Contributions and Support
+
+
+
+## Citations
+
+If you use RNAswarm for your analysis, please cite it using the following doi: 
+An extensive list of references for the tools used by the pipeline can be found in the [`CITATIONS.md`](CITATIONS.md) file (under construction).
