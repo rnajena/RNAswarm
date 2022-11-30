@@ -63,10 +63,10 @@ $
 4. Start running your own analysis (under construction)!
 
    ```bash
-   nextflow run nf-core/rnaseq -profile slurm,conda\
-                               --output <OUTDIR>\
-                               --samples <SAMPLES_CSV_FILE>\
-                               --slurm_queue <SLURM_QUEU_AVAILABLE>
+   nextflow run main.nf -profile slurm,conda\
+                        --output <OUTDIR>\
+                        --samples <SAMPLES_CSV_FILE>\
+                        --slurm_queue <SLURM_QUEU_AVAILABLE>
    ```
 
 ## Documentation
