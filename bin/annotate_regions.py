@@ -3,15 +3,15 @@
 """interaction_finder.py
 
 Usage:
-  interaction_finder.py -g <genome> -i <input_file> -o <output_folder>
-  interaction_finder.py -g <genome> -i <input_file> -o <output_folder> -m <min_components> -M <max_components>
-  interaction_finder.py -g <genome> -i <input_file> -o <output_folder> --ignore_intra
-  interaction_finder.py -g <genome> -i <input_file> -o <output_folder> -m <min_components> -M <max_components> --ignore_intra
+  interaction_finder.py -g <genome> -i <input_files> -o <output_folder>
+  interaction_finder.py -g <genome> -i <input_files> -o <output_folder> -m <min_components> -M <max_components>
+  interaction_finder.py -g <genome> -i <input_files> -o <output_folder> --ignore_intra
+  interaction_finder.py -g <genome> -i <input_files> -o <output_folder> -m <min_components> -M <max_components> --ignore_intra
 
 Options:
   -h --help                             Show this screen.
   -g --genome=<genome>                  The genome filepath.
-  -i --input=<input_file>               The input trns.txt file.
+  -i --input=<input_files>              The input trns.txt files.
   -o --output=<output_folder>           The output folder.
   -m --min_components=<min_components>  The minimum number of components to use
                                         for the Gaussian Mixture Model [default: 28].
@@ -63,6 +63,7 @@ def normalize_array(array, max_value=2000000, mode="number_of_data_points"):
     else:
         raise ValueError("Invalid mode")
 
+def make_polled_matrix()
 
 def convert_to_density_array(interaction_matrix):
     """

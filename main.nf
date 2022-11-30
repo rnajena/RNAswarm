@@ -159,8 +159,7 @@ workflow {
     samples_input_ch = Channel
                     .fromPath( params.samples, checkIfExists: true )
                     .splitCsv()
-                    .map { row -> [ "${row[0]}", file("${row[1]}", checkIfExists: true), file("${row[2]}", checkIfExists: true) ] }
-                    // csv table with columns: sample_name, reads, genome
+                    .map { row -> [ "${row[0]}", file("${row[1]}", checkIfExists: true), file("${row[2]}", checkIfExists: true), "${row[3]}" ] }
     reads_ch = samples_input_ch.map{ it -> [ it[0], it[1] ] }
     genomes_ch = samples_input_ch.map{ it -> [ it[0], it[2] ] }
     // preprocessing workflow
@@ -168,19 +167,19 @@ workflow {
     // segemehl workflow
     segemehl_mapping( preprocessing.out[0], genomes_ch )
     trns_file_handler( segemehl_mapping.out[0], genomes_ch )
-    // bwa workflow
+    // // bwa workflow
     bwa_mapping( preprocessing.out[0], genomes_ch )
     chim_file_handler( bwa_mapping.out[1], genomes_ch )
-    // hisat2 workflow
-    hisat2_mapping( preprocessing.out[0], genomes_ch )
-    // run Kraken2
-    makeKrakenDatabase()
-    kraken_ch = reads_ch.combine(makeKrakenDatabase.out)
-    runKraken( kraken_ch )
-    // run sotrmerna
-    makeSortmernaDatabase()
-    sortmerna_ch = reads_ch.combine(makeSortmernaDatabase.out)
-    runSortmerna( sortmerna_ch )
+    // // hisat2 workflow
+    // hisat2_mapping( preprocessing.out[0], genomes_ch )
+    // // run Kraken2
+    // makeKrakenDatabase()
+    // kraken_ch = reads_ch.combine(makeKrakenDatabase.out)
+    // runKraken( kraken_ch )
+    // // run sotrmerna
+    // makeSortmernaDatabase()
+    // sortmerna_ch = reads_ch.combine(makeSortmernaDatabase.out)
+    // runSortmerna( sortmerna_ch )
     // generate reports
     logs_ch = bwa_mapping.out[2]
                          .mix( segemehl_mapping.out[2], hisat2_mapping.out[1], preprocessing.out[1], runKraken.out )
