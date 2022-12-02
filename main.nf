@@ -181,8 +181,8 @@ workflow {
     // sortmerna_ch = reads_ch.combine(makeSortmernaDatabase.out)
     // runSortmerna( sortmerna_ch )
     // generate reports
-    logs_ch = bwa_mapping.out[2]
-                         .mix( segemehl_mapping.out[2], hisat2_mapping.out[1], preprocessing.out[1], runKraken.out )
-                         .collect()
-    runMultiQC( logs_ch )
+    // logs_ch = bwa_mapping.out[2]
+    //                      .mix( segemehl_mapping.out[2], hisat2_mapping.out[1], preprocessing.out[1], runKraken.out )
+    //                      .collect()
+    // runMultiQC( logs_ch )
 }
