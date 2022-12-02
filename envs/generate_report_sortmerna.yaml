@@ -1,0 +1,7 @@
+name: generate_report_sortmerna
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - sortmerna

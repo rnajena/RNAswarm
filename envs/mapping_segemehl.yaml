@@ -1,0 +1,7 @@
+name: mapping_segemehl
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - segemehl

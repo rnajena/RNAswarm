@@ -1,0 +1,12 @@
+name: simulate_reads
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - art
+  - python=3.9
+  - numpy
+  - seaborn
+  - matplotlib
+  - docopt

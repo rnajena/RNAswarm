@@ -1,0 +1,7 @@
+name: mapping_multiqc
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - multiqc

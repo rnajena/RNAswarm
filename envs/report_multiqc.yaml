@@ -1,0 +1,7 @@
+name: report_multiqc
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - multiqc

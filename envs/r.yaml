@@ -1,0 +1,8 @@
+name: R
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - r-base
+  - r-essentials
+  - bioconductor-deseq2
