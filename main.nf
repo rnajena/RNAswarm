@@ -168,8 +168,8 @@ workflow {
     segemehl_mapping( preprocessing.out[0], genomes_ch )
     trns_file_handler( segemehl_mapping.out[0], genomes_ch )
     // // bwa workflow
-    bwa_mapping( preprocessing.out[0], genomes_ch )
-    chim_file_handler( bwa_mapping.out[1], genomes_ch )
+    // bwa_mapping( preprocessing.out[0], genomes_ch )
+    // chim_file_handler( bwa_mapping.out[1], genomes_ch )
     // // hisat2 workflow
     // hisat2_mapping( preprocessing.out[0], genomes_ch )
     // // run Kraken2
