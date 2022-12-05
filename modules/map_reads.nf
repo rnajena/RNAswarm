@@ -79,24 +79,3 @@ process convertSAMtoBAM {
     samtools view -@ 8 -S -b ${mappings} > ${mappings.baseName}.bam
     """
 }
-
-/************************************************************************
-* generate .chim files
-*************************************************************************/
-
-process findChimeras {
-    label 'python2'
-
-    input:
-    tuple val(name), path(mapping)
-  
-    output:
-    tuple val(name), path("${mapping.baseName}.chim")
-  
-    publishDir "${params.output}/02-mappings/bwa-mem", mode: 'copy'
-  
-    script:
-    """
-    find_chimeras.py -i ${mapping} -o ${mapping.baseName}.chim
-    """
-}
