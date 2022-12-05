@@ -23,10 +23,10 @@ process segemehl {
     label 'mapping_segemehl'
 
     input:
-    tuple val(name), path(genome), path(index), path(reads)
+    tuple val(sample_name), path(genome), path(index), path(reads)
 
     output:
-    tuple val(name), path("${reads.baseName}.trns.txt"), path("${reads.baseName}*_segemehl.sam")
+    tuple val(sample_name), path(genome), path("${reads.baseName}.trns.txt"), path("${reads.baseName}*_segemehl.sam")
 
     script:
     """

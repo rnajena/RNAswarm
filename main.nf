@@ -51,7 +51,7 @@ workflow segemehl_mapping {
         segemehlIndex( genomes_ch )
         // Maps the reads to the reference genomes
         segemehl_input_ch = segemehlIndex.out.combine(preprocessed_reads_ch, by: 0)
-        segemehl( segemehl_input_ch )
+        segemehl( segemehl_input_ch ).view()
         // Publishes segemehl trns files for inspection
         segemehlPublish( segemehl.out )
         // Converts segemehl's SAM output to BAM file
@@ -147,6 +147,20 @@ workflow trns_file_handler {
         handleTrnsFiles.out
 }
 
+// extract regions from trns files
+// include { extractRegions } from './modules/extract_regions.nf'
+
+// make plots from trns files
+// include { make_plots } from './modules/make_plots.nf'
+
+// workflow plot_trns_files {
+//     take:
+//         segemehl
+//     main:
+        
+// }
+
+
 /************************** 
 * WORKFLOW ENTRY POINT
 **************************/
@@ -167,6 +181,7 @@ workflow {
     // segemehl workflow
     segemehl_mapping( preprocessing.out[0], genomes_ch )
     trns_file_handler( segemehl_mapping.out[0], genomes_ch )
+
     // // bwa workflow
     // bwa_mapping( preprocessing.out[0], genomes_ch )
     // chim_file_handler( bwa_mapping.out[1], genomes_ch )
