@@ -60,47 +60,6 @@ process segemehlPublish {
 }
 
 /*************************************************************************
-* bwa-mem INDEX
-*************************************************************************/
-
-process bwaIndex {
-    label 'mapping_bwa'
-
-    input:
-    tuple val(name), path(genome)
-
-    output:
-    tuple val(name), path(genome), path("${name}_index")
-
-    script:
-    """
-    mkdir ${name}_index
-    bwa index ${genome} -p ${name}_index/${genome}
-    cp ${genome} ${name}_index
-    """
-    // The cp is a bit hacky, maybe there is a more elegant way of doing this
-}
-
-/*************************************************************************
-* bwa-mem RUN
-*************************************************************************/
-
-process bwaMem {
-    label 'mapping_bwa'
-
-    input:
-    tuple val(name), path(genome), path(index), path(reads)
-
-    output:
-    tuple val(name), path("${reads.baseName}*_bwa.sam")
-
-    script:
-    """
-    bwa mem -t ${params.max_cpus} -T 20 ${index}/${genome} ${reads} > ${reads.baseName}_bwa.sam
-    """
-}
-
-/*************************************************************************
 * samtools CONVERT SAM TO BAM
 *************************************************************************/
 
