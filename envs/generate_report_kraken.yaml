@@ -1,7 +1,0 @@
-name: generate_report_kraken
-channels:
-  - conda-forge
-  - bioconda
-  - defaults
-dependencies:
-  - kraken2

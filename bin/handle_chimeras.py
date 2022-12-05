@@ -3,15 +3,10 @@
 """handle_chimeras.py
 
 Usage:
-  handle_chimeras.py -g <genome> -i <input_file> -o <output_folder> --bwa_mode
-  handle_chimeras.py -g <genome> -i <input_file> -o <output_folder> --segemehl_mode
+  handle_chimeras.py -g <genome> -i <input_file> -o <output_folder>
 
 Options:
   -h --help                         Show this screen.
-  --segemehl_mode                   Use this mode if you want to use a trns.txt file
-                                    outputted by segemehl.
-  --bwa_mode                        Use this mode if you want to use a chim.txt file
-                                    outputted by bwa.
   -g --genome=<genome>              The genome filepath.
   -i --input=<input_file>           The input filepath, either a chim.txt or trns.txt
                                     file, depending on the mode.
@@ -21,13 +16,9 @@ Options:
 
 
 from docopt import docopt
-from os.path import splitext, basename
-import sys
 import itertools
 import helper
 import numpy as np
-import seaborn as sns
-import scipy.ndimage as ndimage
 import matplotlib.pyplot as plt
 
 
@@ -189,57 +180,6 @@ def get_histogram_dict(interaction_arrays):
     return histogram_dict
 
 
-def detect_peaks(interaction_array):
-    """
-    Takes an image and detect the peaks using the local maximum filter.
-    Returns a boolean mask of the peaks (i.e. 1 when
-    the pixel's value is the neighborhood maximum, 0 otherwise)
-
-    Parameters
-    ----------
-    interaction_array : ndarray
-        Input array.
-
-    Returns
-    -------
-    boolean ndarray
-        A boolean mask of the peaks in the array.
-
-    ndarray
-        An array of the same shape as input array. Each peak has an unique value.
-
-    int
-        The number of peaks detected.
-    """
-
-    # define a 30 by 30 neighborhood
-    neighborhood = np.ones((30, 30))
-
-    # apply the local maximum filter; all pixel of maximal value
-    # in their neighborhood are set to 1
-    local_max = (
-        ndimage.maximum_filter(interaction_array, footprint=neighborhood)
-        == interaction_array
-    )
-
-    # local_max is a mask that contains the peaks we are
-    # looking for, but also the background.
-    # In order to isolate the peaks we must constraint the peaks to the foreground.
-
-    # we create the mask of the foreground
-    foreground = interaction_array > 10
-
-    # we obtain the final mask, containing only peaks,
-    # by removing the background from the local_max mask (xor operation)
-    detected_peaks = local_max & foreground
-
-    labeled_array, num_features = ndimage.label(detected_peaks)
-
-    detected_peaks = ndimage.maximum_filter(detected_peaks, footprint=neighborhood)
-
-    return detected_peaks, labeled_array, num_features
-
-
 def get_pairwise_arrays(interaction_arrays, genome_dict):
     """Returns the pairwise arrays of the interaction_arrays
 
@@ -322,43 +262,7 @@ def main():
         f"Genome file: {genome_file_path}\n",
         f"File used for interaction parsing: {readsOfInterest}",
     )
-    if arguments["--segemehl_mode"]:
-        segemehlTrans2heatmap(readsOfInterest, combination_array)
-    elif arguments["--bwa_mode"]:
-        bwaChimera2heatmap(readsOfInterest, combination_array)
-
-    # Plotting the pairwise arrays
-    plot_pairwise_arrays(combination_array, genome_dict, output_folder)
-
-    # Creating the diversity plot
-    histogram_dict = get_histogram_dict(combination_array)
-    x_axis = list(histogram_dict.keys())
-    y_axis = list(histogram_dict.values())
-    histogram = sns.lineplot(x=x_axis, y=y_axis)
-    histogram.set(yscale="log")
-    plt.figure()
-    histogram.figure.savefig(
-        f"{output_folder}/{splitext(splitext(basename(readsOfInterest))[0])[0]}_diversity.png",
-        bbox_inches="tight",
-    )
-    plt.close("all")
-
-    # Plotting heatmaps
-    for combination, array in combination_array.items():
-        helper.plot_heatmap(
-            array,
-            output_folder,
-            f"{combination[0]}_{combination[1]}",
-            combination[0],
-            combination[1],
-        )
-        helper.plot_heatmap_log(
-            array,
-            output_folder,
-            f"{combination[0]}_{combination[1]}_log",
-            combination[0],
-            combination[1],
-        )
+    segemehlTrans2heatmap(readsOfInterest, combination_array)
 
 
 if __name__ == "__main__":
