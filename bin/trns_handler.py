@@ -1,23 +1,4 @@
-#!/usr/bin/env python3
-
-"""handle_chimeras.py
-
-Usage:
-  handle_chimeras.py -g <genome> -i <input_file> -o <output_folder>
-
-Options:
-  -h --help                         Show this screen.
-  -g --genome=<genome>              The genome filepath.
-  -i --input=<input_file>           The input filepath, either a chim.txt or trns.txt
-                                    file, depending on the mode.
-  -o --output=<output_folder>       The output folder.
-
-"""
-
-
-from docopt import docopt
 import itertools
-import helper
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -70,26 +51,6 @@ def __check_interaction(currentRow, interaction_arrays):
         interaction = interaction[3:] + interaction[0:3]
 
     return interaction
-
-
-def bwaChimera2heatmap(chimFile, interaction_arrays):
-    """Parses the chim file and fills the interaction_arrays
-
-    Parameters
-    ----------
-    chimFile : str
-    interaction_arrays : dict
-
-    Returns
-    -------
-    None
-    """
-    with open(chimFile) as inputStream:
-        for line in inputStream:
-            currentRow = line.strip().split("\t")
-            currentRow_sanitized = currentRow[1:7]
-            interaction = __check_interaction(currentRow_sanitized, interaction_arrays)
-            fill_heatmap(interaction, interaction_arrays)
 
 
 def __extract_start_stop_segemehl(read):
@@ -236,34 +197,3 @@ def plot_pairwise_arrays(interaction_arrays, genome_dict, foldername):
         plt.legend(loc="best")
         plt.savefig(filepath)
         plt.close("all")
-
-
-def main():
-    """Main function
-
-    Parameters
-    ----------
-    None
-
-    Returns
-    -------
-    None
-    """
-    # Parse the command line arguments
-    arguments = docopt(__doc__)
-    genome_file_path = arguments["--genome"]
-    readsOfInterest = arguments["--input"]
-    output_folder = arguments["--output"]
-
-    # Process input files
-    genome_dict = helper.parse_fasta(genome_file_path)
-    combination_array = helper.make_combination_array(genome_dict)
-    print(
-        f"Genome file: {genome_file_path}\n",
-        f"File used for interaction parsing: {readsOfInterest}",
-    )
-    segemehlTrans2heatmap(readsOfInterest, combination_array)
-
-
-if __name__ == "__main__":
-    main()

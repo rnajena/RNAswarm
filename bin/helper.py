@@ -4,7 +4,6 @@ import seaborn as sns
 import numpy as np
 import itertools
 from matplotlib.colors import LogNorm
-# from matplotlib_venn import venn3
 
 def parse_fasta(fasta_file):
     """Parses a fasta file and returns a dictionary of segment names and sequences.
@@ -148,6 +147,3 @@ def plot_heatmap_log(array, output_dir, filename, combination_0, combination_1):
     plt.figure()
     heatmap.figure.savefig(f"{output_dir}/{filename}", bbox_inches="tight")
     plt.close("all")
-
-# def plot_venn_diag(sets_dict):
-#     pass

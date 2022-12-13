@@ -1,37 +1,16 @@
-// /***********************************************************************
-// * make tables and plots with mapping statistics
-// ***********************************************************************/
-
-// process runTableMaker {
-//   label "simulate_interactions"
-
-//   input:
-//   tuple val(name)
-
-//   output:
-//   tuple val(name)
-
-//   publishDir "${params.output}/04-stats_and_plots", mode: 'copy'
-
-//   script:
-//   """
-//   art_templater.py -t <trans_file> -c <chim_file> -bs <segemehl_bam_file> -bb <bwa_bam_file> 
-//   """
-// }
-
 /***********************************************************************
-* fasqc REPORT
+* fastqc REPORT
 ***********************************************************************/
 process fastqcReport {
   label 'preprocessing'
 
   input:
-  tuple val(name), path(reads)
+  tuple val(name), path(reads), val(condition)
 
   output:
   path("${reads.baseName}_fastqc")
 
-  publishDir "${params.output}//04-stats_and_plots", mode: 'copy'
+  publishDir "${params.output}/04-stats_and_plots", mode: 'copy'
 
   script:
   """
@@ -60,17 +39,6 @@ process getStats {
   samtools flagstats -@ ${params.cpus} ${mappings} > ${mappings.baseName}.log
   """
 }
-
-/*************************************************************************
-* make coverage plots
-*************************************************************************/
-
-// process makeCoveragePlots {
-//   label 'python3'
-
-//   input:
-
-// }
 
 /*************************************************************************
 * make Kraken2 database
