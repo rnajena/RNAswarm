@@ -30,6 +30,7 @@ from docopt import docopt
 import os
 import pandas as pd
 
+
 def parse_interactions(annotation_table, genome, output_file):
     """
     Parse interactions from an annotation table and a genome file.
@@ -72,7 +73,10 @@ def parse_interactions(annotation_table, genome, output_file):
             sequence02 = genome[segment02][start02:end02]
 
             # Write to file
-            f.write(f">{id}_{segment01}\n{sequence01}\n>{id}_{segment02}\n{sequence02}\n")
+            f.write(
+                f">{id}_{segment01}\n{sequence01}\n>{id}_{segment02}\n{sequence02}\n"
+            )
+
 
 def read_genome(genome):
     """
@@ -99,6 +103,7 @@ def read_genome(genome):
 
     return genome_dict
 
+
 def main():
     # Get arguments
     arguments = docopt(__doc__)
@@ -111,6 +116,6 @@ def main():
     # Parse interactions
     parse_interactions(annotation_table, genome, output_file)
 
+
 if __name__ == "__main__":
     main()
-

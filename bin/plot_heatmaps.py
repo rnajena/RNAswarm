@@ -26,7 +26,10 @@ import helper as hp
 import trns_handler as th
 import array_handler as ah
 
-def plot_heatmaps(merged_combination_arrays, plots_folder, colour_palette="PiYG", regions=None):
+
+def plot_heatmaps(
+    merged_combination_arrays, plots_folder, colour_palette="PiYG", regions=None
+):
     """
     Plot heatmaps for manual fitting of GMMs
 
@@ -45,15 +48,47 @@ def plot_heatmaps(merged_combination_arrays, plots_folder, colour_palette="PiYG"
     """
     for combination in merged_combination_arrays:
         # Plot raw heatmap
-        plot_heatmap(merged_combination_arrays[combination], plots_folder, colour_palette, combination, colorbar_label="Read counts", regions=regions)
+        plot_heatmap(
+            merged_combination_arrays[combination],
+            plots_folder,
+            colour_palette,
+            combination,
+            colorbar_label="Read counts",
+            regions=regions,
+        )
 
         # Plot log2 transformed data
-        plot_heatmap(np.log2(merged_combination_arrays[combination] + 1), plots_folder, colour_palette, combination, colorbar_label="log2(read counts + 1)", suffix="_log2", regions=regions)
+        plot_heatmap(
+            np.log2(merged_combination_arrays[combination] + 1),
+            plots_folder,
+            colour_palette,
+            combination,
+            colorbar_label="log2(read counts + 1)",
+            suffix="_log2",
+            regions=regions,
+        )
 
         # Plot log10 transformed data
-        plot_heatmap(np.log10(merged_combination_arrays[combination] + 1), plots_folder, colour_palette, combination, colorbar_label="log10(read counts + 1", suffix="_log10", regions=regions)
+        plot_heatmap(
+            np.log10(merged_combination_arrays[combination] + 1),
+            plots_folder,
+            colour_palette,
+            combination,
+            colorbar_label="log10(read counts + 1",
+            suffix="_log10",
+            regions=regions,
+        )
 
-def plot_heatmap(combination_array, plots_folder, colour_palette, combination, regions=None, colorbar_label="Read counts", suffix=""):
+
+def plot_heatmap(
+    combination_array,
+    plots_folder,
+    colour_palette,
+    combination,
+    regions=None,
+    colorbar_label="Read counts",
+    suffix="",
+):
     """
     Plot heatmap from a given combination.
 
@@ -79,17 +114,17 @@ def plot_heatmap(combination_array, plots_folder, colour_palette, combination, r
     ax = plt.gca()
     plt.imshow(combination_array, cmap=colour_palette)
     plt.xticks(
-            np.arange(0, combination_array.shape[1], 25),
-            np.arange(0, combination_array.shape[1], 25),
-            rotation=90,
-        )
+        np.arange(0, combination_array.shape[1], 25),
+        np.arange(0, combination_array.shape[1], 25),
+        rotation=90,
+    )
     plt.yticks(
-            np.arange(0, combination_array.shape[0], 25),
-            np.arange(0, combination_array.shape[0], 25),
-        )
+        np.arange(0, combination_array.shape[0], 25),
+        np.arange(0, combination_array.shape[0], 25),
+    )
     plt.tick_params(
-            axis="both", which="major", labelsize=3, labeltop=True, labelright=True
-        )
+        axis="both", which="major", labelsize=3, labeltop=True, labelright=True
+    )
     plt.grid(which="major", axis="x", linestyle="-", linewidth="0.05", color="grey")
     plt.grid(which="major", axis="y", linestyle="-", linewidth="0.05", color="grey")
     plt.colorbar(label=colorbar_label)
@@ -99,7 +134,10 @@ def plot_heatmap(combination_array, plots_folder, colour_palette, combination, r
         suffix = f"{suffix}_annotated"
         for region in regions.itertuples():
             # check if region is in combination
-            if region.segment01 == combination[0] and region.segment02 == combination[1]:
+            if (
+                region.segment01 == combination[0]
+                and region.segment02 == combination[1]
+            ):
                 ax.add_patch(
                     Rectangle(
                         (region.start02, region.start01),
@@ -120,7 +158,10 @@ def plot_heatmap(combination_array, plots_folder, colour_palette, combination, r
                     verticalalignment="center",
                     horizontalalignment="center",
                 )
-            elif region.segment01 == combination[1] and region.segment02 == combination[0]:
+            elif (
+                region.segment01 == combination[1]
+                and region.segment02 == combination[0]
+            ):
                 ax.add_patch(
                     Rectangle(
                         (region.start01, region.start02),
@@ -142,10 +183,11 @@ def plot_heatmap(combination_array, plots_folder, colour_palette, combination, r
                     horizontalalignment="center",
                 )
     plt.savefig(
-            os.path.join(plots_folder, f"{combination[0]}_{combination[1]}{suffix}.pdf"),
-            format="pdf",
-        )
+        os.path.join(plots_folder, f"{combination[0]}_{combination[1]}{suffix}.pdf"),
+        format="pdf",
+    )
     plt.close()
+
 
 def parse_annotation_table(annotation_table):
     """
@@ -208,9 +250,17 @@ def main():
         os.mkdir(palette_folder)
         if annotation_table is not None:
             regions = parse_annotation_table(annotation_table)
-            plot_heatmaps(merged_combination_arrays, palette_folder, colour_palette=colour_palette, regions=regions)
+            plot_heatmaps(
+                merged_combination_arrays,
+                palette_folder,
+                colour_palette=colour_palette,
+                regions=regions,
+            )
         else:
-            plot_heatmaps(merged_combination_arrays, palette_folder, colour_palette=colour_palette)
+            plot_heatmaps(
+                merged_combination_arrays, palette_folder, colour_palette=colour_palette
+            )
+
 
 if __name__ == "__main__":
     main()
