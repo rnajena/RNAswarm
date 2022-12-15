@@ -74,7 +74,7 @@ def parse_interactions(annotation_table, genome, output_file):
 
             # Write to file
             f.write(
-                f">{id}_{segment01}\n{sequence01}\n>{id}_{segment02}\n{sequence02}\n"
+                f">{id}_{segment01}_{start01}_{end01}\n{sequence01}\n>{id}_{segment02}_{start02}_{end02}\n{sequence02}\n"
             )
 
 
