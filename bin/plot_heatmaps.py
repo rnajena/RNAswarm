@@ -3,8 +3,8 @@
 """plot_heatmaps.py
 
 Usage:
-    plot_heatmaps.py <trns_file> <trns_file>... -g <genome> -o <output_folder>
-    plot_heatmaps.py <trns_file> <trns_file>... -g <genome> -a <annotation_table> -o <output_folder>
+    plot_heatmaps.py <trns_file> <trns_file>... -g <genome> [-a <annotation_table>] -o <output_folder>
+    plot_heatmaps.py <trns_file> -g <genome> [-a <annotation_table>] -o <output_folder>
 
 
 Options:
@@ -220,35 +220,53 @@ def main():
     trns_files = args["<trns_file>"]
     genome_file = args["--genome"]
     output_folder = args["--output"]
-    annotation_table = args["--annotation_table"]
+    # check if --annotation_table is given
+    if args["--annotation_table"]:
+        annotation_table = args["--annotation_table"]
+    else:
+        annotation_table = None
     colour_palettes = [
         "gist_stern",
         "terrain",
     ]
-
+    
+    print("Parsing input files")
     # Process input files
     genome_dict = hp.parse_fasta(genome_file)
     combination_arrays = {}
 
-    for trns_file in trns_files:
-        # Get the name of the current trns file
+    # Check if trns_files is a list or a single file
+    if isinstance(trns_files, str):
         trns_file_name = os.path.basename(trns_file)
         trns_file_name = trns_file_name.split(".")[0]
 
         # Create and fill combination arrays
         combination_arrays[trns_file_name] = hp.make_combination_array(genome_dict)
         th.segemehlTrans2heatmap(trns_file, combination_arrays[trns_file_name])
+        merged_combination_arrays = combination_arrays
+        print("Plotting a single trns file")
+    
+    elif isinstance(trns_files, list):
+        for trns_file in trns_files:
+            # Get the name of the current trns file
+            trns_file_name = os.path.basename(trns_file)
+            trns_file_name = trns_file_name.split(".")[0]
 
-    # Normalise arrays and create density arrays for GMM fitting
-    merged_combination_arrays = ah.combine_arrays(
-        combination_arrays, normalise_array=False
-    )
+            # Create and fill combination arrays
+            combination_arrays[trns_file_name] = hp.make_combination_array(genome_dict)
+            th.segemehlTrans2heatmap(trns_file, combination_arrays[trns_file_name])
+
+        # Normalise arrays and create density arrays for GMM fitting
+        merged_combination_arrays = ah.combine_arrays(
+            combination_arrays, normalise_array=False
+        )
 
     for colour_palette in colour_palettes:
         # Create subfolder for colour palette
         palette_folder = os.path.join(output_folder, colour_palette)
         os.mkdir(palette_folder)
         if annotation_table is not None:
+            print("Plotting annotated heatmaps")
             regions = parse_annotation_table(annotation_table)
             plot_heatmaps(
                 merged_combination_arrays,

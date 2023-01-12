@@ -22,7 +22,7 @@ def __convert_to_int(element):
         return element
 
 
-def __check_interaction(currentRow, interaction_arrays):
+def __check_interaction(currentRow, interaction_arrays=None):
     """Parses the current row and returns the interaction
 
     Parameters
@@ -45,11 +45,11 @@ def __check_interaction(currentRow, interaction_arrays):
         interaction += [currentRow[3]] + [currentRow[5]] + [currentRow[4]]
     else:
         interaction += currentRow[3:]
-    # Checks if the cobination is not in the interaction_arrays
-    if (interaction[0], interaction[3]) not in interaction_arrays:
-        # If not, it reverses the interaction
-        interaction = interaction[3:] + interaction[0:3]
-
+    if interaction_arrays:
+        # Checks if the cobination is not in the interaction_arrays
+        if (interaction[0], interaction[3]) not in interaction_arrays:
+            # If not, it reverses the interaction
+            interaction = interaction[3:] + interaction[0:3]
     return interaction
 
 
