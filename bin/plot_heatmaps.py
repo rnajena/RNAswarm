@@ -203,7 +203,7 @@ def parse_annotation_table(annotation_table):
     regions : pandas.DataFrame
         A table containing the annotations for the rectangular regions.
     """
-    # First line is header and separator is a comma
+    # First line is a header and the separators are commas
     regions = pd.read_csv(annotation_table, sep=",", header=0)
     return regions
 
@@ -230,7 +230,10 @@ def main():
         "terrain",
     ]
     
-    print("Parsing input files")
+    # Check if output folder exists, if not create it
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
+
     # Process input files
     genome_dict = hp.parse_fasta(genome_file)
     combination_arrays = {}
@@ -244,7 +247,6 @@ def main():
         combination_arrays[trns_file_name] = hp.make_combination_array(genome_dict)
         th.segemehlTrans2heatmap(trns_file, combination_arrays[trns_file_name])
         merged_combination_arrays = combination_arrays
-        print("Plotting a single trns file")
     
     elif isinstance(trns_files, list):
         for trns_file in trns_files:
@@ -256,17 +258,17 @@ def main():
             combination_arrays[trns_file_name] = hp.make_combination_array(genome_dict)
             th.segemehlTrans2heatmap(trns_file, combination_arrays[trns_file_name])
 
-        # Normalise arrays and create density arrays for GMM fitting
+        # Merge combination arrays
         merged_combination_arrays = ah.combine_arrays(
             combination_arrays, normalise_array=False
         )
-
+    
     for colour_palette in colour_palettes:
-        # Create subfolder for colour palette
+        # Create subfolder for colour palette if it does not exist
         palette_folder = os.path.join(output_folder, colour_palette)
-        os.mkdir(palette_folder)
+        if not os.path.exists(palette_folder):
+            os.makedirs(palette_folder)
         if annotation_table is not None:
-            print("Plotting annotated heatmaps")
             regions = parse_annotation_table(annotation_table)
             plot_heatmaps(
                 merged_combination_arrays,
