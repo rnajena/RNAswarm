@@ -147,3 +147,35 @@ def plot_heatmap_log(array, output_dir, filename, combination_0, combination_1):
     plt.figure()
     heatmap.figure.savefig(f"{output_dir}/{filename}", bbox_inches="tight")
     plt.close("all")
+
+
+def parse_annotation_table(annotation_table):
+    """
+    Parses an annotation table and returns a dictionary of segment names and annotations.
+    The annotation table must have the following columns: id,segment01,start01,end01,segment02,start02,end02
+
+    Parameters
+    ----------
+    annotation_table : str
+        Path to annotation table.
+
+    Returns
+    -------
+    annotation_dict : dict
+        Dictionary of segment names and annotations.
+
+    """
+    annotation_dict = {}
+    with open(annotation_table) as file:
+        for line in file:
+            if not line.startswith("id"):
+                line = line.strip().split("\t")
+                annotation_dict[line[0]] = {
+                    "segment01": line[1],
+                    "start01": int(line[2]),
+                    "end01": int(line[3]),
+                    "segment02": line[4],
+                    "start02": int(line[5]),
+                    "end02": int(line[6]),
+                }
+    return annotation_dict
