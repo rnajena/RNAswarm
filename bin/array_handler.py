@@ -104,3 +104,135 @@ def convert_to_density_array(interaction_matrix):
         for i in range(int(value)):
             density_list.append((x, y))
     return np.array(density_list)
+
+def get_peak_cell(combination_arrays, annotation, genome_dict):
+    """
+    Get the peak cell of the interaction matrix.
+
+    Parameters
+    ----------
+    combination_arrays : dict
+        A dictionary of arrays, with the keys being the combination of segments.
+
+    annotation : pandas.DataFrame
+        The annotation dataframe.
+
+    Returns
+    -------
+    dict
+        A dictionary of peak cells, with the keys being the combination of segments.
+    """
+    combination = (annotation['aSeq'], annotation['bSeq'])
+    combination_reverse = (annotation['bSeq'], annotation['aSeq'])
+    transposed_annotation = negative_to_positive_strand(genome_dict, annotation['aSeq'], annotation['cai'], annotation['caj'], annotation['bSeq'], annotation['cbi'], annotation['cbj'])
+    if combination in combination_arrays:
+        # slice the array to the region of interest
+        region_of_interest = combination_arrays[combination][
+            transposed_annotation[1]:transposed_annotation[2],
+            transposed_annotation[4]:transposed_annotation[5],
+        ]
+        # get the peak cell
+        aPeak, bPeak = np.unravel_index(region_of_interest.argmax(), region_of_interest.shape)
+        valuePeak = region_of_interest[aPeak, bPeak]
+        # convert the peak cell to the original coordinates
+        aPeak += transposed_annotation[1]
+        bPeak += transposed_annotation[4]
+    elif combination_reverse in combination_arrays:
+        # slice the array to the region of interest
+        region_of_interest = combination_arrays[combination_reverse][
+            transposed_annotation[4]:transposed_annotation[5],
+            transposed_annotation[1]:transposed_annotation[2],
+        ]
+        # get the peak cell
+        bPeak, aPeak = np.unravel_index(region_of_interest.argmax(), region_of_interest.shape)
+        valuePeak = region_of_interest[aPeak, bPeak]
+        # convert the peak cell to the original coordinates
+        aPeak += transposed_annotation[4]
+        bPeak += transposed_annotation[1]
+    else:
+        raise ValueError("Combination not found")
+    peak_dict = {
+        'aPeak': positive_to_negative_strand_point(genome_dict, annotation['aSeq'], aPeak),
+        'bPeak': positive_to_negative_strand_point(genome_dict, annotation['bSeq'], bPeak),
+        'valuePeak': valuePeak
+    }
+    return peak_dict
+
+def positive_to_negative_strand_point(genome_dict, segment, position):
+    """Transpose a point from the positive to the negative strand.
+
+    Args:
+        genome_dict (dict): A dictionary containing the genome.
+        aSeq (str): The name of the segment.
+        a (int): The position of the point on the segment.
+
+    Returns:
+        int:
+            The position of the point on the negative strand.
+    """
+    # Get the length of the segment
+    aLen = len(genome_dict[segment])
+    # Get the position on the negative strand
+    return aLen - position
+
+def negative_to_positive_strand(genome_dict, aSeq, cai, caj, bSeq, cbi, cbj):
+    """Transpose the region of interest from the negative to the positive strand.
+
+    Args:
+        genome_dict (dict): A dictionary containing the genome.
+        aSeq (str): The name of the first segment.
+        bSeq (str): The name of the second segment.
+        cai (int): The start position of the first segment.
+        caj (int): The end position of the first segment.
+        cbi (int): The start position of the second segment.
+        cbj (int): The end position of the second segment.
+
+    Returns:
+        tuple: The transposed region of interest.
+    """
+    # Get the length of the first segment
+    aLen = len(genome_dict[aSeq])
+
+    # Get the length of the second segment
+    bLen = len(genome_dict[bSeq])
+
+    # Transpose the first segment
+    caj_pos = aLen - cai + 1
+    cai_pos = aLen - caj
+
+    # Transpose the second segment
+    cbj_pos = bLen - cbi + 1
+    cbi_pos = bLen - cbj
+
+    return aSeq, cai_pos, caj_pos, bSeq, cbi_pos, cbj_pos
+
+def positive_to_negative_strand(genome_dict, aSeq, cai, caj, bSeq, cbi, cbj):
+    """Transpose the region of interest from the positive to the negative strand.
+
+    Args:
+        genome_dict (dict): A dictionary containing the genome.
+        aSeq (str): The name of the first segment.
+        bSeq (str): The name of the second segment.
+        cai (int): The start position of the first segment.
+        caj (int): The end position of the first segment.
+        cbi (int): The start position of the second segment.
+        cbj (int): The end position of the second segment.
+
+    Returns:
+        tuple: The transposed region of interest.
+    """
+    # Get the length of the first segment
+    aLen = len(genome_dict[aSeq])
+
+    # Get the length of the second segment
+    bLen = len(genome_dict[bSeq])
+
+    # Transpose the first segment
+    caj_neg = aLen - cai
+    cai_neg = aLen + 1 - caj
+
+    # Transpose the second segment
+    cbj_neg = bLen - cbi
+    cbi_neg = bLen + 1 - cbj
+
+    return aSeq, cai_neg, caj_neg, bSeq, cbi_neg, cbj_neg
