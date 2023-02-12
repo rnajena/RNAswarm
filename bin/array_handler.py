@@ -105,9 +105,65 @@ def convert_to_density_array(interaction_matrix):
             density_list.append((x, y))
     return np.array(density_list)
 
-def get_peak_cell(combination_arrays, annotation, genome_dict):
+
+def get_peak_cell_from_annotation_table(combination_arrays, annotation, genome_dict):
     """
-    Get the peak cell of the interaction matrix.
+    Get the peak cell of the interaction matrix from the annotation table.
+
+    Parameters
+    ----------
+    combination_arrays : dict
+        A dictionary of arrays, with the keys being the combination of segments.
+
+    annotation : pandas.DataFrame
+        The annotation dataframe.
+
+    genome_dict : dict
+        A dictionary with keys being genome segments and values being the genome sequence.
+
+    Returns
+    -------
+    dict
+        A dictionary of peak cells, with the keys being the combination of segments.
+    """
+    combination = (annotation['segment01'], annotation['segment02'])
+    combination_reverse = (annotation['segment02'], annotation['segment01'])
+    start01 = int(annotation['start01'])
+    end01 = int(annotation['end01'])
+    start02 = int(annotation['start02'])
+    end02 = int(annotation['end02'])
+    combination_array = combination_arrays[combination]
+    if combination in combination_arrays:
+        # slice the array to the region of interest
+        region_of_interest = combination_array[
+            start01:end01,
+            start02:end02,
+        ]
+        # get the peak cell
+        segment01_peak, segment02_peak = np.unravel_index(region_of_interest.argmax(), region_of_interest.shape)
+        valuePeak = region_of_interest[segment01_peak, segment02_peak]
+    elif combination_reverse in combination_arrays:
+        # slice the array to the region of interest
+        region_of_interest = combination_array[
+            start02:end02,
+            start01:end01,
+        ]
+        # get the peak cell
+        segment01_peak, segment02_peak = np.unravel_index(region_of_interest.argmax(), region_of_interest.shape)
+        valuePeak = region_of_interest[segment01_peak, segment02_peak]
+    else:
+        raise ValueError("Combination not found")
+    peak_dict = {
+        'segment01_peak': segment01_peak + start01,
+        'segment02_peak': segment02_peak + start02,
+        'valuePeak': valuePeak
+    }
+    return peak_dict
+
+
+def get_peak_cell_from_daniels_table(combination_arrays, annotation, genome_dict):
+    """
+    Get the peak cell of the interaction matrix from daniel's annotation table.
 
     Parameters
     ----------
@@ -173,7 +229,7 @@ def positive_to_negative_strand_point(genome_dict, segment, position):
     # Get the length of the segment
     aLen = len(genome_dict[segment])
     # Get the position on the negative strand
-    return aLen - position
+    return aLen - position + 1
 
 def negative_to_positive_strand(genome_dict, aSeq, cai, caj, bSeq, cbi, cbj):
     """Transpose the region of interest from the negative to the positive strand.
