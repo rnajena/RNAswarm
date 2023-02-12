@@ -1,0 +1,13 @@
+name: circos
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - circos
+  - python
+  - numpy
+  - scipy
+  - seaborn
+  - matplotlib
+  - docopt
