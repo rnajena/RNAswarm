@@ -20,10 +20,149 @@ Options:
 
 from docopt import docopt
 import os
+import numpy as np
 import pandas as pd
 import helper as hp
 import trns_handler as th
 import array_handler as ah
+
+def get_peak_cell_from_annotation_table(combination_arrays, annotation, genome_dict):
+    """
+    Get the peak cell of the interaction matrix from the annotation table.
+
+    Parameters
+    ----------
+    combination_arrays : dict
+        A dictionary of arrays, with the keys being the combination of segments.
+
+    annotation : pandas.DataFrame
+        The annotation data frame.
+
+    genome_dict : dict
+        A dictionary with keys being genome segments and values being the genome sequence.
+
+    Returns
+    -------
+    dict
+        A dictionary of peak cells, with the keys being the combination of segments.
+    """
+    combination = (annotation['segment01'], annotation['segment02'])
+    combination_reverse = (annotation['segment02'], annotation['segment01'])
+    start01 = int(annotation['start01'])
+    end01 = int(annotation['end01'])
+    start02 = int(annotation['start02'])
+    end02 = int(annotation['end02'])
+    combination_array = combination_arrays[combination]
+    if combination in combination_arrays:
+        # slice the array to the region of interest
+        region_of_interest = combination_array[
+            start01:end01,
+            start02:end02,
+        ]
+        # segment01_peak, segment02_peak = np.unravel_index(region_of_interest.argmax(), region_of_interest.shape)
+        # value_peak = region_of_interest[segment01_peak, segment02_peak]
+        # Get the peak cell
+        peak_cell = np.argmax(region_of_interest)
+        # Get the coordinates of the peak cell
+        peak_cell_coordinates = np.unravel_index(peak_cell, region_of_interest.shape)
+        # Get the value of the peak cell
+        peak_cell_value = np.max(region_of_interest)
+        segment01_peak = peak_cell_coordinates[0] + start01
+        segment02_peak = peak_cell_coordinates[1] + start02
+        # Check if the value of the cell in the peak_cell_coordinates is the same as the value of the peak cell
+        # if not, raise an error
+        if peak_cell_value != combination_array[segment01_peak, segment02_peak]:
+            raise ValueError(
+                "The value of the peak cell is not the same as the value of the cell in the peak_cell_coordinates"
+                )
+    elif combination_reverse in combination_arrays:
+        # slice the array to the region of interest
+        region_of_interest = combination_array[
+            start02:end02,
+            start01:end01,
+        ]
+        # get the peak cell
+        # segment01_peak, segment02_peak = np.unravel_index(region_of_interest.argmax(), region_of_interest.shape)
+        # value_peak = region_of_interest[segment01_peak, segment02_peak]
+        # Get the peak cell
+        peak_cell = np.argmax(region_of_interest)
+        # Get the coordinates of the peak cell
+        peak_cell_coordinates = np.unravel_index(peak_cell, region_of_interest.shape)
+        # Get the value of the peak cell
+        peak_cell_value = np.max(region_of_interest)
+        segment01_peak = peak_cell_coordinates[1] + start01
+        segment02_peak = peak_cell_coordinates[0] + start02
+        # Check if the value of the cell in the peak_cell_coordinates is the same as the value of the peak cell
+        # if not, raise an error
+        if peak_cell_value != combination_array[segment01_peak, segment02_peak]:
+            raise ValueError(
+                "The value of the peak cell is not the same as the value of the cell in the peak_cell_coordinates"
+                )
+    else:
+        raise ValueError("Combination not found")
+    peak_dict = {
+        # 'segment01_peak': segment01_peak + start01,
+        # 'segment02_peak': segment02_peak + start02,
+        'segment01_peak': segment01_peak,
+        'segment02_peak': segment02_peak,
+        'value_peak': peak_cell_value
+    }
+    return peak_dict
+
+
+def get_peak_cell_from_daniels_table(combination_arrays, annotation, genome_dict):
+    """
+    Get the peak cell of the interaction matrix from daniel's annotation table.
+
+    Parameters
+    ----------
+    combination_arrays : dict
+        A dictionary of arrays, with the keys being the combination of segments.
+
+    annotation : pandas.DataFrame
+        The annotation dataframe.
+
+    Returns
+    -------
+    dict
+        A dictionary of peak cells, with the keys being the combination of segments.
+    """
+    combination = (annotation['aSeq'], annotation['bSeq'])
+    combination_reverse = (annotation['bSeq'], annotation['aSeq'])
+    transposed_annotation = negative_to_positive_strand(genome_dict, annotation['aSeq'], annotation['cai'], annotation['caj'], annotation['bSeq'], annotation['cbi'], annotation['cbj'])
+    if combination in combination_arrays:
+        # slice the array to the region of interest
+        region_of_interest = combination_arrays[combination][
+            transposed_annotation[1]:transposed_annotation[2],
+            transposed_annotation[4]:transposed_annotation[5],
+        ]
+        # get the peak cell
+        aPeak, bPeak = np.unravel_index(region_of_interest.argmax(), region_of_interest.shape)
+        valuePeak = region_of_interest[aPeak, bPeak]
+        # convert the peak cell to the original coordinates
+        aPeak += transposed_annotation[1]
+        bPeak += transposed_annotation[4]
+    elif combination_reverse in combination_arrays:
+        # slice the array to the region of interest
+        region_of_interest = combination_arrays[combination_reverse][
+            transposed_annotation[4]:transposed_annotation[5],
+            transposed_annotation[1]:transposed_annotation[2],
+        ]
+        # get the peak cell
+        bPeak, aPeak = np.unravel_index(region_of_interest.argmax(), region_of_interest.shape)
+        valuePeak = region_of_interest[aPeak, bPeak]
+        # convert the peak cell to the original coordinates
+        aPeak += transposed_annotation[4]
+        bPeak += transposed_annotation[1]
+    else:
+        raise ValueError("Combination not found")
+    peak_dict = {
+        'aPeak': positive_to_negative_strand_point(genome_dict, annotation['aSeq'], aPeak),
+        'bPeak': positive_to_negative_strand_point(genome_dict, annotation['bSeq'], bPeak),
+        'valuePeak': valuePeak
+    }
+    return peak_dict
+
 
 def main():
     args = docopt(__doc__)
@@ -66,7 +205,7 @@ def main():
     # Check the peak cell for each annotation
     peak_cell_dict = {}
     for index, row in annotation_table.iterrows():
-        peak_cel = ah.get_peak_cell_from_annotation_table(merged_combination_arrays, row, genome_dict)
+        peak_cel = get_peak_cell_from_annotation_table(merged_combination_arrays, row, genome_dict)
         peak_cell_dict[index] = peak_cel
         # make peak cell dict into a dataframe
         peak_cell_df = pd.DataFrame.from_dict(peak_cell_dict, orient="index")

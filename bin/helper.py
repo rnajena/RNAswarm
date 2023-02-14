@@ -179,3 +179,83 @@ def parse_annotation_table(annotation_table):
                     "end02": int(line[6]),
                 }
     return annotation_dict
+
+
+def positive_to_negative_strand_point(genome_dict, segment, position):
+    """Transpose a point from the positive to the negative strand.
+
+    Args:
+        genome_dict (dict): A dictionary containing the genome.
+        aSeq (str): The name of the segment.
+        a (int): The position of the point on the segment.
+
+    Returns:
+        int:
+            The position of the point on the negative strand.
+    """
+    # Get the length of the segment
+    aLen = len(genome_dict[segment])
+    # Get the position on the negative strand
+    return aLen - position + 1
+
+def negative_to_positive_strand(genome_dict, aSeq, cai, caj, bSeq, cbi, cbj):
+    """Transpose the region of interest from the negative to the positive strand.
+
+    Args:
+        genome_dict (dict): A dictionary containing the genome.
+        aSeq (str): The name of the first segment.
+        bSeq (str): The name of the second segment.
+        cai (int): The start position of the first segment.
+        caj (int): The end position of the first segment.
+        cbi (int): The start position of the second segment.
+        cbj (int): The end position of the second segment.
+
+    Returns:
+        tuple: The transposed region of interest.
+    """
+    # Get the length of the first segment
+    aLen = len(genome_dict[aSeq])
+
+    # Get the length of the second segment
+    bLen = len(genome_dict[bSeq])
+
+    # Transpose the first segment
+    caj_pos = aLen - cai + 1
+    cai_pos = aLen - caj
+
+    # Transpose the second segment
+    cbj_pos = bLen - cbi + 1
+    cbi_pos = bLen - cbj
+
+    return aSeq, cai_pos, caj_pos, bSeq, cbi_pos, cbj_pos
+
+def positive_to_negative_strand(genome_dict, aSeq, cai, caj, bSeq, cbi, cbj):
+    """Transpose the region of interest from the positive to the negative strand.
+
+    Args:
+        genome_dict (dict): A dictionary containing the genome.
+        aSeq (str): The name of the first segment.
+        bSeq (str): The name of the second segment.
+        cai (int): The start position of the first segment.
+        caj (int): The end position of the first segment.
+        cbi (int): The start position of the second segment.
+        cbj (int): The end position of the second segment.
+
+    Returns:
+        tuple: The transposed region of interest.
+    """
+    # Get the length of the first segment
+    aLen = len(genome_dict[aSeq])
+
+    # Get the length of the second segment
+    bLen = len(genome_dict[bSeq])
+
+    # Transpose the first segment
+    caj_neg = aLen - cai
+    cai_neg = aLen + 1 - caj
+
+    # Transpose the second segment
+    cbj_neg = bLen - cbi
+    cbi_neg = bLen + 1 - cbj
+
+    return aSeq, cai_neg, caj_neg, bSeq, cbi_neg, cbj_neg
