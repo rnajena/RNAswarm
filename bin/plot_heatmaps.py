@@ -57,17 +57,6 @@ def plot_heatmaps(
             regions=regions,
         )
 
-        # Plot log2 transformed data
-        plot_heatmap(
-            np.log2(merged_combination_arrays[combination] + 1),
-            plots_folder,
-            colour_palette,
-            combination,
-            colorbar_label="log2(read counts + 1)",
-            suffix="_log2",
-            regions=regions,
-        )
-
         # Plot log10 transformed data
         plot_heatmap(
             np.log10(merged_combination_arrays[combination] + 1),
@@ -154,7 +143,7 @@ def plot_heatmap(
                     int((region.start01 + region.end01) / 2),
                     region.id,
                     color="silver",
-                    fontsize=5,
+                    fontsize=3,
                     verticalalignment="center",
                     horizontalalignment="center",
                 )
@@ -177,7 +166,7 @@ def plot_heatmap(
                     int((region.start01 + region.end01) / 2),
                     int((region.start02 + region.end02) / 2),
                     region.id,
-                    fontsize=5,
+                    fontsize=3,
                     color="silver",
                     verticalalignment="center",
                     horizontalalignment="center",
@@ -203,9 +192,23 @@ def parse_annotation_table(annotation_table):
     regions : pandas.DataFrame
         A table containing the annotations for the rectangular regions.
     """
-    # First line is a header and the separators are commas
-    regions = pd.read_csv(annotation_table, sep=",", header=0)
-    return regions
+    # First line is a header and the separators are tabs
+    regions = pd.read_csv(annotation_table, sep="\t", header=0)
+    # generate the peak pandas.DataFrame
+    peaks = pd.DataFrame(
+        {
+            "id": regions["id"],
+            "segment01": regions["segment01"],
+            "01type": regions["01type"],
+            "start01": regions["segment01_peak"] - 20,
+            "end01": regions["segment01_peak"] + 20,
+            "segment02": regions["segment02"],
+            "02type": regions["02type"],
+            "start02": regions["segment02_peak"] - 20,
+            "end02": regions["segment02_peak"] + 20,
+        }
+    )
+    return regions, peaks
 
 
 def main():
@@ -225,11 +228,7 @@ def main():
         annotation_table = args["--annotation_table"]
     else:
         annotation_table = None
-    colour_palettes = [
-        "gist_stern",
-        "terrain",
-    ]
-    
+
     # Check if output folder exists, if not create it
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
@@ -247,7 +246,7 @@ def main():
         combination_arrays[trns_file_name] = hp.make_combination_array(genome_dict)
         th.segemehlTrans2heatmap(trns_file, combination_arrays[trns_file_name])
         merged_combination_arrays = combination_arrays
-    
+
     elif isinstance(trns_files, list):
         for trns_file in trns_files:
             # Get the name of the current trns file
@@ -263,23 +262,34 @@ def main():
             combination_arrays, normalise_array=False
         )
     
-    for colour_palette in colour_palettes:
-        # Create subfolder for colour palette if it does not exist
-        palette_folder = os.path.join(output_folder, colour_palette)
-        if not os.path.exists(palette_folder):
-            os.makedirs(palette_folder)
-        if annotation_table is not None:
-            regions = parse_annotation_table(annotation_table)
-            plot_heatmaps(
-                merged_combination_arrays,
-                palette_folder,
-                colour_palette=colour_palette,
-                regions=regions,
-            )
-        else:
-            plot_heatmaps(
-                merged_combination_arrays, palette_folder, colour_palette=colour_palette
-            )
+    # Define colour palettes
+    colour_palette = "gist_stern"
+
+    # Create subfolder for colour palette if it does not exist
+    raw_folder = os.path.join(output_folder, "raw")
+    peak_folder = os.path.join(raw_folder, "peaks")
+    if not os.path.exists(raw_folder):
+        os.makedirs(raw_folder)
+    if not os.path.exists(peak_folder):
+        os.makedirs(peak_folder)
+    if annotation_table is not None:
+        regions, peaks = parse_annotation_table(annotation_table)
+        plot_heatmaps(
+            merged_combination_arrays,
+            raw_folder,
+            colour_palette=colour_palette,
+            regions=regions,
+        )
+        plot_heatmaps(
+            merged_combination_arrays,
+            peak_folder,
+            colour_palette=colour_palette,
+            regions=peaks,
+        )
+    else:
+        plot_heatmaps(
+            merged_combination_arrays, output_folder, colour_palette=colour_palette
+        )
 
 
 if __name__ == "__main__":
