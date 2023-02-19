@@ -57,10 +57,10 @@ workflow segemehl_mapping {
         segemehlPublish( segemehl.out )
         // Converts segemehl's SAM output to BAM file
         convertSAMtoBAM( 
-            segemehl.out.map{ it -> [ it[0], it[3], 'segemehl' ] }
+            segemehl.out.map{ it -> [ it[0], it[2], 'segemehl' ] }.view()
             )
         // Runs samtools flagstats on the BAM file
-        getStats( segemehl.out.map{ it -> [ it[0], it[3] ] } )
+        getStats( segemehl.out.map{ it -> [ it[0], it[2] ] } )
     emit:
         segemehl.out
         convertSAMtoBAM.out
@@ -86,7 +86,7 @@ workflow {
     // segemehl workflow
     segemehl_mapping( preprocessing.out[0], genomes_ch )
     // Accumulate trns files mapped to the same genome
-    plotHeatmaps( segemehl_mapping.out[0].groupTuple(by: 4).map{ it -> [ it[4], it[3][0], it[1] ] } )
+    // plotHeatmaps( segemehl_mapping.out[0].groupTuple(by: 4).map{ it -> [ it[4], it[3][0], it[1] ] } )
 
 }
 
