@@ -2,14 +2,16 @@
 
 """convert_daniels_table.py
 
-This script takes Daniel's table and converts it to a table with the following columns: id,segment01,start01,end01,segment02,start02,end02
+This script takes Daniel's table and converts it to a table with the following columns: 
+id,segment01,start01,end01,segment02,start02,end02
 
 Usage:
     parse_interactions.py <input_file> -t <interaction_type> -o <output_file>
 
 Options:
     -h --help                                 Show this screen.
-    <input_file>                              The input files to process, has to be a tsv file with the expected columns.
+    <input_file>                              The input files to process, has to be a 
+                                              tsv file with the expected columns.
     -t --interaction_type=<interaction_type>  The interaction type to filter for, it can be set to original, cut_structure or peak_structure
     -o --output=<output_file>                 The output filepath.
 
@@ -22,7 +24,8 @@ import pandas as pd
 
 def convert_to_annotation_table(daniels_table_pd, interaction_type=None):
     """
-    Convert Daniel's table (which has to be a pandas dataframe) to a table with the following columns: id,segment01,start01,end01,segment02,start02,end02
+    Convert Daniel's table (which has to be a pandas dataframe) to a table with the following columns: 
+    id,segment01,start01,end01,segment02,start02,end02
 
     Parameters
     ----------
