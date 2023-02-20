@@ -66,23 +66,31 @@ def fill_count_table(interaction, count_table, annotation_table_dict, trns_file,
             end02 = row['segment02_peak'] + window_size
         else:
             start01, end01, start02, end02 = row['start01'], row['end01'], row['start02'], row['end02']
-        if (
-            start01 <= interaction[1] <= end01 or
-            start01 <= interaction[2] <= end01
-        ) and (
-            start02 <= interaction[4] <= end02 or
-            start02 <= interaction[5] <= end02
-        ):
-            if row["segment01"] == interaction[0] and row["segment02"] == interaction[3]:
+        if row["segment01"] == interaction[0] and row["segment02"] == interaction[3]:
+            if (
+                start01 <= interaction[1] <= end01 or
+                start01 <= interaction[2] <= end01 or
+                interaction[1] <= start01 <= interaction[2] or
+                interaction[1] <= end01 <= interaction[2]
+            ) and (
+                start02 <= interaction[4] <= end02 or
+                start02 <= interaction[5] <= end02 or
+                interaction[4] <= start02 <= interaction[5] or
+                interaction[4] <= end02 <= interaction[5]
+            ):
                 count_table[trns_file][interaction_id] += 1
-        if (
-            start01 <= interaction[4] <= end01 or
-            start01 <= interaction[5] <= end01
-        ) and (
-            start02 <= interaction[1] <= end02 or
-            start02 <= interaction[2] <= end02
-        ):
-            if row["segment02"] == interaction[0] and row["segment01"] == interaction[3]:
+        if row["segment02"] == interaction[0] and row["segment01"] == interaction[3]:
+            if (
+                start01 <= interaction[4] <= end01 or
+                start01 <= interaction[5] <= end01 or
+                interaction[4] <= start01 <= interaction[5] or
+                interaction[4] <= end01 <= interaction[5]
+            ) and (
+                start02 <= interaction[1] <= end02 or
+                start02 <= interaction[2] <= end02 or
+                interaction[1] <= start02 <= interaction[2] or
+                interaction[1] <= end02 <= interaction[2]
+            ):
                 count_table[trns_file][interaction_id] += 1
 
 
