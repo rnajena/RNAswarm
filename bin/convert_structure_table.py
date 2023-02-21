@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-"""convert_daniels_table.py
+"""convert_structure_table.py
 
 This script takes Daniel's table and converts it to a table with the following columns: 
 id,segment01,start01,end01,segment02,start02,end02
@@ -22,14 +22,14 @@ import os
 import pandas as pd
 
 
-def convert_to_annotation_table(daniels_table_pd, interaction_type=None):
+def convert_to_annotation_table(structure_table_pd, interaction_type=None):
     """
     Convert Daniel's table (which has to be a pandas dataframe) to a table with the following columns: 
     id,segment01,start01,end01,segment02,start02,end02
 
     Parameters
     ----------
-    daniels_table_pd : pandas dataframe
+    structure_table_pd : pandas dataframe
         The Daniel's table as a pandas dataframe
     interaction_type : str
         The interaction type to filter for, it can be set to original, cut_structure or peak_structure
@@ -46,29 +46,29 @@ def convert_to_annotation_table(daniels_table_pd, interaction_type=None):
 
     # Add the columns to the dataframe
     if interaction_type == "original":
-        annotation_table_pd["id"] = daniels_table_pd["number"]
-        annotation_table_pd["segment01"] = daniels_table_pd["aSeq"]
-        annotation_table_pd["start01"] = daniels_table_pd["ai"] - 1
-        annotation_table_pd["end01"] = daniels_table_pd["aj"]
-        annotation_table_pd["segment02"] = daniels_table_pd["bSeq"]
-        annotation_table_pd["start02"] = daniels_table_pd["bi"] - 1
-        annotation_table_pd["end02"] = daniels_table_pd["bj"]
+        annotation_table_pd["id"] = structure_table_pd["number"]
+        annotation_table_pd["segment01"] = structure_table_pd["aSeq"]
+        annotation_table_pd["start01"] = structure_table_pd["ai"] - 1
+        annotation_table_pd["end01"] = structure_table_pd["aj"]
+        annotation_table_pd["segment02"] = structure_table_pd["bSeq"]
+        annotation_table_pd["start02"] = structure_table_pd["bi"] - 1
+        annotation_table_pd["end02"] = structure_table_pd["bj"]
     elif interaction_type == "cut_structure":
-        annotation_table_pd["id"] = daniels_table_pd["number"]
-        annotation_table_pd["segment01"] = daniels_table_pd["aSeq"]
-        annotation_table_pd["start01"] = daniels_table_pd["cai"] - 1
-        annotation_table_pd["end01"] = daniels_table_pd["caj"]
-        annotation_table_pd["segment02"] = daniels_table_pd["bSeq"]
-        annotation_table_pd["start02"] = daniels_table_pd["cbi"] - 1
-        annotation_table_pd["end02"] = daniels_table_pd["cbj"]
+        annotation_table_pd["id"] = structure_table_pd["number"]
+        annotation_table_pd["segment01"] = structure_table_pd["aSeq"]
+        annotation_table_pd["start01"] = structure_table_pd["cai"] - 1
+        annotation_table_pd["end01"] = structure_table_pd["caj"]
+        annotation_table_pd["segment02"] = structure_table_pd["bSeq"]
+        annotation_table_pd["start02"] = structure_table_pd["cbi"] - 1
+        annotation_table_pd["end02"] = structure_table_pd["cbj"]
     elif interaction_type == "peak_structure":
-        annotation_table_pd["id"] = daniels_table_pd["number"]
-        annotation_table_pd["segment01"] = daniels_table_pd["aSeq"]
-        annotation_table_pd["start01"] = daniels_table_pd["pai"] - 1
-        annotation_table_pd["end01"] = daniels_table_pd["paj"]
-        annotation_table_pd["segment02"] = daniels_table_pd["bSeq"]
-        annotation_table_pd["start02"] = daniels_table_pd["pbi"] - 1
-        annotation_table_pd["end02"] = daniels_table_pd["pbj"]
+        annotation_table_pd["id"] = structure_table_pd["number"]
+        annotation_table_pd["segment01"] = structure_table_pd["aSeq"]
+        annotation_table_pd["start01"] = structure_table_pd["pai"] - 1
+        annotation_table_pd["end01"] = structure_table_pd["paj"]
+        annotation_table_pd["segment02"] = structure_table_pd["bSeq"]
+        annotation_table_pd["start02"] = structure_table_pd["pbi"] - 1
+        annotation_table_pd["end02"] = structure_table_pd["pbj"]
     else:
         raise ValueError(
             "The interaction type has to be one of the following: original, cut_structure or peak_structure"
@@ -85,11 +85,11 @@ def main():
     interaction_type = args["--interaction_type"]
 
     # Read the input file
-    daniels_table_pd = pd.read_csv(input_file, sep="\t", header=0)
+    structure_table_pd = pd.read_csv(input_file, sep="\t", header=0)
 
     # Convert the table
     annotation_table_pd = convert_to_annotation_table(
-        daniels_table_pd, interaction_type=interaction_type
+        structure_table_pd, interaction_type=interaction_type
     )
 
     # check if the output directory exists, if not create it
