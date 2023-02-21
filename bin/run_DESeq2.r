@@ -52,11 +52,8 @@ res <- results(dds)
 # Order the results by the pvalue
 resOrdered <- res[order(res$pvalue),]
 
-# Name the first column as interaction id
-colnames(resOrdered)[1] <- "interaction_id"
+
+# Write the results to a tsv file, include the rownames column and name it as "interaction_id"
+write.table(resOrdered, file=arguments$output_file, sep="\t", quote=FALSE, row.names=TRUE, col.names=NA)
 
 
-# Write the results to a tsv file
-write.table(as.data.frame(resOrdered), 
-            file=arguments$output_file, 
-            sep="\t")
