@@ -22,9 +22,9 @@ arguments <- docopt(doc)
 # This script runs DESeq2 on two count tables and outputs a tsv file with the results
 library("DESeq2")
 
-# Import the data for test
-counts1 <- read.csv(arguments$count_table1, header = 1, row.names=1)
-counts2 <- read.csv(arguments$count_table2, header = 1, row.names=1)
+# Import the data for test, the input is a tsv file with the counts
+counts1 <- read.table(arguments$count_table1, header = 1, row.names=1)
+counts2 <- read.table(arguments$count_table2, header = 1, row.names=1)
 
 
 # samples vector is the header of the count table but only the base name of the sample
@@ -33,21 +33,27 @@ samples2 <- colnames(counts2)
 
 
 # Generate a colData dataframe for DEseq2 and merge the two count tables
-col <- data.frame(conditions = c(rep(arguments$alias1, length(samples1)), rep(arguments$alias2, length(samples2))))
+col <- data.frame(conditions = c(rep("wt", length(samples1)), rep("mutant", length(samples2))))
 row.names(col) <- c(samples1, samples2)
 counts <- merge(counts1, counts2, by="row.names")
-counts <- counts[,-1] # remove the first column which is the row names
-counts <- as.matrix(counts) # convert to matrix
+# Use the first column as the row names
+rownames(counts) <- counts[,1]
+counts <- counts[,-1]
 
 
-# Run DEseq2 on it
+# Run DEseq2 on it and make sure that counts1/sample1 are considered as the reference
 dds <- DESeqDataSetFromMatrix(countData = counts,
                               colData = col,
                               design= ~ conditions)
+
 dds <- DESeq(dds)
 resultsNames(dds) # lists the coefficients
 res <- results(dds)
+# Order the results by the pvalue
 resOrdered <- res[order(res$pvalue),]
+
+# Name the first column as interaction id
+colnames(resOrdered)[1] <- "interaction_id"
 
 
 # Write the results to a tsv file
