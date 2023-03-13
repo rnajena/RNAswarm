@@ -70,7 +70,7 @@ def __extract_start_stop_segemehl(read):
     return [seg, start, stop]
 
 
-def segemehlTrans2heatmap(trnsFile, interaction_arrays, intra_combinations=False):
+def segemehlTrans2heatmap(trnsFile, interaction_arrays, intra_only=False):
     """Parses the trns file and fills the interaction_arrays
 
     Parameters
@@ -91,14 +91,15 @@ def segemehlTrans2heatmap(trnsFile, interaction_arrays, intra_combinations=False
                 firstRead
             ) + __extract_start_stop_segemehl(secondRead)
             interaction = __check_interaction(currentRow, interaction_arrays)
-            if intra_combinations:
-                fill_heatmap(interaction, interaction_arrays)
+            if intra_only:
+                if interaction[0] == interaction[3]:
+                    fill_heatmap(interaction, interaction_arrays, intra=True)
             else:
                 if interaction[0] != interaction[3]:
                     fill_heatmap(interaction, interaction_arrays)
 
 
-def fill_heatmap(interaction, interaction_arrays):
+def fill_heatmap(interaction, interaction_arrays, intra = False):
     """Fills the interaction_arrays with the interaction
 
     Parameters
@@ -115,6 +116,10 @@ def fill_heatmap(interaction, interaction_arrays):
     interaction_arrays[(firstSegment, secondSegment)][
         interaction[1] : interaction[2], interaction[4] : interaction[5]
     ] += 1
+    if intra:
+        interaction_arrays[(secondSegment, firstSegment)][
+            interaction[4] : interaction[5], interaction[1] : interaction[2]
+        ] += 1
     return 1
 
 

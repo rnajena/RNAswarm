@@ -57,10 +57,10 @@ workflow segemehl_mapping {
         segemehlPublish( segemehl.out )
         // Converts segemehl's SAM output to BAM file
         convertSAMtoBAM( 
-            segemehl.out.map{ it -> [ it[0], it[2], 'segemehl' ] }.view()
+            segemehl.out.map{ it -> [ it[0], it[4], 'segemehl' ] }
             )
         // Runs samtools flagstats on the BAM file
-        getStats( segemehl.out.map{ it -> [ it[0], it[2] ] } )
+        getStats( segemehl.out.map{ it -> [ it[0], it[4] ] } )
     emit:
         segemehl.out
         convertSAMtoBAM.out

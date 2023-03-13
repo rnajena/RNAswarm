@@ -3,8 +3,8 @@
 """plot_heatmaps.py
 
 Usage:
-    plot_heatmaps.py <trns_file> <trns_file>... -g <genome> [-a <annotation_table>] -o <output_folder>
-    plot_heatmaps.py <trns_file> -g <genome> [-a <annotation_table>] -o <output_folder>
+    plot_heatmaps.py <trns_file> <trns_file>... -g <genome> [-a <annotation_table> --intra_only] -o <output_folder>
+    plot_heatmaps.py <trns_file> -g <genome> [-a <annotation_table> --intra_only] -o <output_folder>
 
 
 Options:
@@ -13,6 +13,7 @@ Options:
     -g --genome=<genome>                      The genome filepath.
     -o --output=<output_folder>               The output folder.
     -a --annotation_table=<annotation_table>  The annotation table filepath.
+    --intra_only                              Only plot intra-segment interactions.
 
 """
 
@@ -223,6 +224,10 @@ def main():
     trns_files = args["<trns_file>"]
     genome_file = args["--genome"]
     output_folder = args["--output"]
+    # Check if --intra_only is given
+    intra_only = False
+    if args["--intra_only"]:
+        intra_only = True
     # check if --annotation_table is given
     if args["--annotation_table"]:
         annotation_table = args["--annotation_table"]
@@ -243,8 +248,8 @@ def main():
         trns_file_name = trns_file_name.split(".")[0]
 
         # Create and fill combination arrays
-        combination_arrays[trns_file_name] = hp.make_combination_array(genome_dict)
-        th.segemehlTrans2heatmap(trns_file, combination_arrays[trns_file_name])
+        combination_arrays[trns_file_name] = hp.make_combination_array(genome_dict, intra_only=intra_only)
+        th.segemehlTrans2heatmap(trns_file, combination_arrays[trns_file_name], intra_only=intra_only)
         merged_combination_arrays = combination_arrays
 
     elif isinstance(trns_files, list):
@@ -254,8 +259,8 @@ def main():
             trns_file_name = trns_file_name.split(".")[0]
 
             # Create and fill combination arrays
-            combination_arrays[trns_file_name] = hp.make_combination_array(genome_dict)
-            th.segemehlTrans2heatmap(trns_file, combination_arrays[trns_file_name])
+            combination_arrays[trns_file_name] = hp.make_combination_array(genome_dict, intra_only=intra_only )
+            th.segemehlTrans2heatmap(trns_file, combination_arrays[trns_file_name], intra_only=intra_only)
 
         # Merge combination arrays
         merged_combination_arrays = ah.combine_arrays(

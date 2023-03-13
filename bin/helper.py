@@ -45,7 +45,7 @@ def parse_fasta(fasta_file):
         fasta_dict[header] = seq
     return fasta_dict
 
-def make_combination_array(genome_dict, intra_combinations=False):
+def make_combination_array(genome_dict, intra_only=False):
     """
     Creates a dictionary of numpy array of all possible genome segment combinations.
     Use helper.parse_genome() to create genome_dict.
@@ -71,8 +71,13 @@ def make_combination_array(genome_dict, intra_combinations=False):
     # * while I usually appreciate the usage of list comprehensions, you can directly transform
     # * the iterator to a list. Actually, we also could just put the iterator in the for loop.
     # * should work as well. Is a tad more memory efficient.
-    if intra_combinations:
+    if intra_only:
         segment_combinations = list(itertools.combinations_with_replacement(segments, 2))
+        segment_combinations = [
+            segment_combination
+            for segment_combination in segment_combinations
+            if segment_combination[0] == segment_combination[1]
+        ]
     else:
         segment_combinations = list(itertools.combinations_with_replacement(segments, 2))
         segment_combinations = [
