@@ -39,7 +39,7 @@ workflow preprocessing {
 }
 
 // mapping with segemehl
-include { segemehlIndex; segemehl; segemehlPublish } from './modules/map_reads.nf'
+include { segemehlIndex; segemehl; segemehlPublish; convertSAMtoBAM } from './modules/map_reads.nf'
 include { getStats } from './modules/generate_reports.nf'
 
 workflow segemehl_mapping {
@@ -50,139 +50,65 @@ workflow segemehl_mapping {
         // Indexes the reference genomes
         segemehlIndex( genomes_ch )
         // Maps the reads to the reference genomes
-        segemehl_input_ch = segemehlIndex.out.combine(preprocessed_reads_ch, by: 0)
+        segemehl_input_ch = segemehlIndex.out.combine( preprocessed_reads_ch.map{ it -> [ it[2], it[0], it[1] ] },  by: 0 ).map{ it -> [ it[3], it[1], it[2], it[4] ] }
+        segemehl_input_ch
         segemehl( segemehl_input_ch )
         // Publishes segemehl trns files for inspection
         segemehlPublish( segemehl.out )
         // Converts segemehl's SAM output to BAM file
         convertSAMtoBAM( 
-            segemehl.out.map{ it -> [ it[0], it[2], 'segemehl' ] }
+            segemehl.out.map{ it -> [ it[0], it[4], 'segemehl' ] }
             )
         // Runs samtools flagstats on the BAM file
-        getStats( segemehl.out.map{ it -> [ it[0], it[2] ] } )
+        getStats( segemehl.out.map{ it -> [ it[0], it[4] ] } )
     emit:
         segemehl.out
         convertSAMtoBAM.out
         getStats.out
 }
 
-// mapping with bwa-mem
-include { bwaIndex; bwaMem; findChimeras; convertSAMtoBAM } from './modules/map_reads.nf'
-
-workflow bwa_mapping {
-    take:
-        preprocessed_reads_ch
-        preprocessed_genomes_ch
-    main:
-        bwaIndex( preprocessed_genomes_ch )
-
-        bwa_input_ch = bwaIndex.out.combine(preprocessed_reads_ch, by: 0)
-
-        bwaMem( bwa_input_ch )
-
-        convertSAMtoBAM( 
-            bwaMem.out.map{ it -> [ it[0], it[1], 'bwa-mem' ] }
-            )
-
-        findChimeras( convertSAMtoBAM.out )
-
-        getStats( convertSAMtoBAM.out )
-    emit:
-        convertSAMtoBAM.out
-        findChimeras.out
-        getStats.out
-}
-
-// mapping with hisat2
-include { hiSat2Index; hiSat2 } from './modules/map_reads.nf'
-
-workflow hisat2_mapping {
-    take:
-        preprocessed_reads_ch
-        preprocessed_genomes_ch
-    main:
-        hiSat2Index( preprocessed_genomes_ch )
-
-        hisat2_input_ch = hiSat2Index.out.combine(preprocessed_reads_ch, by: 0)
-
-        hiSat2( hisat2_input_ch )
-
-        convertSAMtoBAM( 
-            hiSat2.out.map{ it -> [ it[0], it[1], 'hisat2' ] }
-            )
-        
-        getStats( convertSAMtoBAM.out )
-    emit:
-        convertSAMtoBAM.out
-        getStats.out
-}
-
-// handle chim files
-include { handleChimFiles } from './modules/handle_chim_files.nf'
-
-workflow chim_file_handler {
-    take:
-        chim_file_ch
-        genomes_ch
-    main:
-        handleChimFiles_input_ch = genomes_ch.combine( chim_file_ch, by: 0 )
-
-        handleChimFiles( handleChimFiles_input_ch )
-    emit:
-        handleChimFiles.out
-}
-
-// handle trns files
-include { handleTrnsFiles } from './modules/handle_trns_files.nf'
-
-workflow trns_file_handler {
-    take:
-        trns_file_ch
-        genomes_ch
-    main:
-        handleTrnsFiles_input_ch = genomes_ch.combine( trns_file_ch, by: 0 )
-
-        handleTrnsFiles( handleTrnsFiles_input_ch )
-    emit:
-        handleTrnsFiles.out
-}
-
 /************************** 
 * WORKFLOW ENTRY POINT
 **************************/
 
-include { runMultiQC; makeKrakenDatabase; runKraken; makeSortmernaDatabase; runSortmerna } from './modules/generate_reports.nf'
-include { makeDeseq2Table } from './modules/differential_analysis.nf'
+include { plotHeatmaps } from './modules/plot_heatmaps.nf'
 
 workflow {
     // parse sample's csv file
     samples_input_ch = Channel
-                    .fromPath( params.samples, checkIfExists: true )
-                    .splitCsv()
-                    .map { row -> [ "${row[0]}", file("${row[1]}", checkIfExists: true), file("${row[2]}", checkIfExists: true), "${row[3]}" ] }
-    reads_ch = samples_input_ch.map{ it -> [ it[0], it[1] ] }
-    genomes_ch = samples_input_ch.map{ it -> [ it[0], it[2] ] }
+                      .fromPath( params.samples, checkIfExists: true )
+                      .splitCsv()
+                      .map{ row -> [ "${row[0]}", file("${row[1]}", checkIfExists: true), file("${row[2]}", checkIfExists: true), "${row[3]}" ] }
+    reads_ch = samples_input_ch.map{ it -> [ it[0], it[1], it[3] ] }
+    genomes_ch = samples_input_ch.map{ it -> [it[3],  it[2] ] }.unique()
     // preprocessing workflow
     preprocessing( reads_ch )
     // segemehl workflow
     segemehl_mapping( preprocessing.out[0], genomes_ch )
-    trns_file_handler( segemehl_mapping.out[0], genomes_ch )
-    // // bwa workflow
-    // bwa_mapping( preprocessing.out[0], genomes_ch )
-    // chim_file_handler( bwa_mapping.out[1], genomes_ch )
-    // // hisat2 workflow
-    // hisat2_mapping( preprocessing.out[0], genomes_ch )
-    // // run Kraken2
-    // makeKrakenDatabase()
-    // kraken_ch = reads_ch.combine(makeKrakenDatabase.out)
-    // runKraken( kraken_ch )
-    // // run sotrmerna
-    // makeSortmernaDatabase()
-    // sortmerna_ch = reads_ch.combine(makeSortmernaDatabase.out)
-    // runSortmerna( sortmerna_ch )
-    // generate reports
-    // logs_ch = bwa_mapping.out[2]
-    //                      .mix( segemehl_mapping.out[2], hisat2_mapping.out[1], preprocessing.out[1], runKraken.out )
-    //                      .collect()
-    // runMultiQC( logs_ch )
+    // Accumulate trns files mapped to the same genome
+    // plotHeatmaps( segemehl_mapping.out[0].groupTuple(by: 4).map{ it -> [ it[4], it[3][0], it[1] ] } )
+
 }
+
+// workflow {
+//     // parse sample's csv file
+//     Channel.fromPath( params.samples, checkIfExists: true ) \
+//         | splitCsv() \
+//         | map{ row -> [ "${row[0]}", file("${row[1]}", checkIfExists: true), file("${row[2]}", checkIfExists: true), "${row[3]}" ] } \
+//         | set { samples_input_ch }
+//     samples_input_ch.map{ it -> [ it[0], it[1], it[3] ] } \
+//         | set { reads_ch }
+//     samples_input_ch.map{ it -> [it[3],  it[2] ] } \
+//         | unique() \
+//         | set { genomes_ch }
+//     // preprocessing workflow
+//     preprocessing( reads_ch )
+//     // segemehl workflow
+//     segemehl_mapping( preprocessing.out[0], genomes_ch )
+//     // Accumulate trns files mapped to the same genome
+//     segemehl_mapping.out[0].groupTuple(by: 1) \
+//         | map{ it -> tuple( groupKey(it[1], it[2].size()), it[2] ) } \
+//         | set { segemehl_out_grouped_ch }
+//     // take a look at the grouped trns files
+//     segemehl_out_grouped_ch.view()
+// }

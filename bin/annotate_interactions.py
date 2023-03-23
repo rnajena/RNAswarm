@@ -1,32 +1,30 @@
 #!/usr/bin/env python3
 
-"""interaction_finder.py
+"""annotate_interactions.py
 
 Takes an arbitrary number of trns files, finds and merges interactions, outputing an annotation table.
 
 Usage:
-  interaction_finder.py -g <genome> -i <input_file> -o <output_folder>
-  interaction_finder.py -g <genome> -i <input_file> -o <output_folder> -m <min_components> -M <max_components>
-  interaction_finder.py -g <genome> -i <input_file> -o <output_folder> --ignore_intra
-  interaction_finder.py -g <genome> -i <input_file> -o <output_folder> -m <min_components> -M <max_components> --ignore_intra
+  annotate_interactions.py <input_file> <input_file>... -g <genome> -o <output_folder> [-m <min_components> -M <max_components> --step_size <step_size>]
 
 Options:
   -h --help                             Show this screen.
+  <input_file>                          The input files to process.
   -g --genome=<genome>                  The genome filepath.
-  -i --input=<input_file>               The input trns.txt file.
   -o --output=<output_folder>           The output folder.
   -m --min_components=<min_components>  The minimum number of components to use
                                         for the Gaussian Mixture Model [default: 28].
   -M --max_components=<max_components>  The maximum number of components to use 
                                         for the Gaussian Mixture Model [default: 30].
-  --ignore_intra                        Ignore intra-segment interactions.
+  --step_size=<step_size>               The step size to use for each iteration of the
+                                        Gaussian Mixture Model optimization [default: 1].
 
 """
-
+import helper as hp
+import trns_handler as th
+import array_handler as ah
 from docopt import docopt
 import math
-import helper as hp
-import handle_chimeras as hc
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.stats as stats
@@ -34,104 +32,8 @@ import pandas as pd
 import sklearn.mixture as mix
 from matplotlib.patches import Ellipse
 from matplotlib.patches import Rectangle
-
-
-def normalize_array(array, max_value=200000, mode="number_of_data_points", round=True):
-    """
-    Normalize an array to a range of 0 to max_value (default 200000).
-
-    Parameters
-    ----------
-    array : array-like
-        The array to normalize.
-
-    round : bool, optional
-        Whether to round the values to integers. The default is True.
-
-    max_value : int
-        The maximum value to normalize to.
-
-    mode : str
-        The mode to normalize the array in. Options are "peak_height" and "number_of_data_points".
-
-    Returns
-    -------
-    array-like
-        The normalized array.
-    """
-    if mode == "peak_height":
-        if np.max(array) < 60:
-            return array
-        else:
-            return np.around((array / np.max(array)) * max_value)
-    elif mode == "number_of_data_points":
-        if round:
-            if np.sum(array) < max_value:
-                raise Exception("Number of datapoints is too small")
-            else:
-                return np.rint((array / np.sum(array)) * max_value)
-        else:
-            if np.sum(array) < max_value:
-                raise Exception("Number of datapoints is too small")
-            else:
-                return (array / np.sum(array)) * max_value
-    else:
-        raise ValueError("Invalid mode")
-
-
-def combine_arrays(arrays, max_value=200000, mode="number_of_data_points"):
-    """
-    Combine an arbitrary number of arrays into a single array, by normalizing each array to the same number of data points, summing them, and then rounding to the nearest integer.
-
-    Parameters
-    ----------
-    arrays : list
-        A list of arrays to combine.
-
-    normalize : bool
-        Whether to normalize the arrays to the same number of data points.
-
-    max_value : int
-        The maximum value to normalize to.
-
-    mode : str
-        The mode to normalize the array in. Options are "peak_height" and "number_of_data_points".
-
-    Returns
-    -------
-    array-like
-        The combined array.
-    """
-    normalized_arrays = []
-    for array in arrays:
-        normalized_arrays.append(
-            normalize_array(array, max_value=max_value, mode=mode, round=False)
-        )
-    return np.rint(np.sum(normalized_arrays, axis=0))
-
-
-def convert_to_density_array(interaction_matrix):
-    """
-    Convert an array to a density array. For each cell on the interaction matrix,
-    append the position of the cell to the array the number of times equal to the
-    value of the cell.
-
-    Parameters
-    ----------
-    interaction_matrix : array-like
-        The interaction matrix to convert to a density array.
-
-    Returns
-    -------
-    array-like
-        The density array.
-    """
-    density_list = []
-    # iterate over each i,j coordinate in the array
-    for (y, x), value in np.ndenumerate(interaction_matrix):
-        for i in range(int(value)):
-            density_list.append((x, y))
-    return np.array(density_list)
+import os
+import pickle
 
 
 def plot_bic_scores(gmm_dict, output_folder=None):
@@ -215,12 +117,19 @@ def draw_ellipse(position, covariance, ax=None):
             angle=angle,
             edgecolor="black",
             facecolor="none",
-            antialiased=True
+            antialiased=True,
         )
     )
 
 
-def plot_gmm(interaction_matrix, gmm, combination, output_file=None, ax=None, label_components=False):
+def plot_gmm(
+    interaction_matrix,
+    gmm,
+    combination,
+    output_file=None,
+    ax=None,
+    label_components=False,
+):
     """
     Plot the Gaussian Mixture Model.
 
@@ -277,6 +186,7 @@ def fit_optimal_gmm(
     max_iter=500,
     expected_delta=0.000001,
     get_all_gmms=False,
+    step_size=1,
 ):
     """
     Using BIC score, fit a Gaussian Mixture Model to the array, and decide the optimal number of components.
@@ -299,7 +209,7 @@ def fit_optimal_gmm(
         if len(gmm_dict) > 1:
             bic_delta = np.absolute(
                 gmm_dict[components].bic(density_array)
-                - gmm_dict[components - 1].bic(density_array)
+                - gmm_dict[components - step_size].bic(density_array)
             )
             if bic_delta < expected_delta:
                 optimal_number_of_components = True
@@ -307,9 +217,9 @@ def fit_optimal_gmm(
             elif components == max_components:
                 break
             else:
-                components += 1
+                components += step_size
         else:
-            components += 1
+            components += step_size
     if get_all_gmms:
         return gmm_dict
     else:
@@ -327,7 +237,7 @@ def calculate_individual_pdfs(gmm, density_array, weights=None):
 
     density_array : array-like
         The array to calculate the probability density function for.
-    
+
     weights : array-like
         The weights of each component of the Gaussian Mixture Model.
 
@@ -356,7 +266,7 @@ def calculate_residual_log_likelihoods(gmm, density_array, rebalance_weights=Fal
     Calculate the residual log likelihood of the Gaussian Mixture Model, when
     the probability density function of each component is calculated using
     the weights of the other components.
-    
+
     Parameters
     ----------
     gmm : GaussianMixture
@@ -380,20 +290,46 @@ def calculate_residual_log_likelihoods(gmm, density_array, rebalance_weights=Fal
             weights[component] = 0
             weights = weights / np.sum(weights)
             pdfs = calculate_individual_pdfs(gmm, density_array, weights=weights)
-            residual_log_likelihoods[component] = np.sum(np.log(np.sum([pdfs[other_component] for other_component in pdfs.keys() if other_component != component], axis=0)))
+            residual_log_likelihoods[component] = np.sum(
+                np.log(
+                    np.sum(
+                        [
+                            pdfs[other_component]
+                            for other_component in pdfs.keys()
+                            if other_component != component
+                        ],
+                        axis=0,
+                    )
+                )
+            )
     else:
         weights = gmm.weights_.copy()
         pdfs = calculate_individual_pdfs(gmm, density_array, weights=weights)
         for component in range(gmm.n_components):
             # Calculate the residual log likelihood for each component, except the current one
-            residual_log_likelihoods[component] = np.sum(np.log(np.sum([pdfs[other_component] for other_component in pdfs.keys() if other_component != component], axis=0)))
+            residual_log_likelihoods[component] = np.sum(
+                np.log(
+                    np.sum(
+                        [
+                            pdfs[other_component]
+                            for other_component in pdfs.keys()
+                            if other_component != component
+                        ],
+                        axis=0,
+                    )
+                )
+            )
     # Calculate the residual log likelihood for the whole model
-    residual_log_likelihoods["total"] = np.sum(np.log(np.sum(list(pdfs.values()), axis=0)))
+    residual_log_likelihoods["total"] = np.sum(
+        np.log(np.sum(list(pdfs.values()), axis=0))
+    )
     residual_log_likelihoods["sklearn"] = np.sum(gmm.score_samples(density_array))
     return residual_log_likelihoods
 
 
-def calculate_individual_log_likelihoods(gmm, density_array, rebalance_weights=False, refit_gmm=False):
+def calculate_individual_log_likelihoods(
+    gmm, density_array, rebalance_weights=False, refit_gmm=False
+):
     """
     Calculate the log likelihood of each component of the Gaussian Mixture Model.
 
@@ -421,7 +357,9 @@ def calculate_individual_log_likelihoods(gmm, density_array, rebalance_weights=F
         for component in range(gmm.n_components):
             print(f"Refitting GMM with component {component} removed")
             # Refit the Gaussian Mixture Model, excluding the current component
-            weights = np.delete(gmm.weights_.copy(), component) / np.sum(np.delete(gmm.weights_.copy(), component))
+            weights = np.delete(gmm.weights_.copy(), component) / np.sum(
+                np.delete(gmm.weights_.copy(), component)
+            )
             means = np.delete(gmm.means_.copy(), component, axis=0)
             precisions = np.delete(gmm.precisions_.copy(), component, axis=0)
             gmm_refitted = mix.GaussianMixture(
@@ -435,7 +373,9 @@ def calculate_individual_log_likelihoods(gmm, density_array, rebalance_weights=F
                 warm_start=True,
             ).fit(density_array)
             # Calculate the log likelihood of the current component
-            log_likelihoods[component] = gmm_loglikelihood - np.sum(gmm_refitted.score_samples(density_array))
+            log_likelihoods[component] = gmm_loglikelihood - np.sum(
+                gmm_refitted.score_samples(density_array)
+            )
             refitted_gmms[component] = gmm_refitted
         return log_likelihoods, refitted_gmms
     else:
@@ -443,7 +383,9 @@ def calculate_individual_log_likelihoods(gmm, density_array, rebalance_weights=F
             gmm, density_array, rebalance_weights=rebalance_weights
         )
         for component in range(gmm.n_components):
-            log_likelihoods[component] = residual_log_likelihoods["total"] - residual_log_likelihoods[component]
+            log_likelihoods[component] = (
+                residual_log_likelihoods["total"] - residual_log_likelihoods[component]
+            )
         return log_likelihoods
 
 
@@ -572,135 +514,124 @@ def plot_regions(
         plt.show()
 
 
-def fill_count_table(interaction, count_table, annotation_table_dict):
-    """
-    Fills the count table with the number of interactions between the given
-    regions.
-
-    Parameters
-    ----------
-    interaction : list
-        A list containing the two regions of the interaction and start and end positions.
-
-    count_table : dict
-        A dictionary containing the count table.
-
-    annotation_table_dict : dict
-        A dictionary containing the annotation table.
-
-    Returns
-    -------
-    None
-    """
-    for index, row in annotation_table_dict.items():
-        if row["segment01"] == interaction[0] and row["segment02"] == interaction[3]:
-            if (
-                row["start01"] <= interaction[1] <= row["end01"]
-                or row["start01"] <= interaction[2] <= row["end01"]
-                and row["start02"] <= interaction[4] <= row["end02"]
-                or row["start02"] <= interaction[5] <= row["end02"]
-            ):
-                count_table[index] += 1
-            else:
-                continue
-        elif row["segment02"] == interaction[0] and row["segment01"] == interaction[3]:
-            if (
-                row["start02"] <= interaction[1] <= row["end02"]
-                or row["start02"] <= interaction[2] <= row["end02"]
-                and row["start01"] <= interaction[4] <= row["end01"]
-                or row["start01"] <= interaction[5] <= row["end01"]
-            ):
-                count_table[index] += 1
-            else:
-                continue
-
-
-def make_count_table(
-    annotation_table, trns_file, interaction_arrays, intra_combinations=False
-):
-    """
-    Creates a count table from a given annotation table and segemehl trns file.
-
-    Parameters
-    ----------
-    annotation_table : pandas.DataFrame
-        The annotation table containing the regions to count the interactions for.
-
-    trns_file : str
-        The path to the segemehl trns file.
-
-    intra_combinations : bool
-        Whether to include the intra-segment combinations.
-    """
-    annotation_table_dict = annotation_table.to_dict(orient="index")
-    count_table = {index: 0 for index in range(len(annotation_table))}
-    with open(trns_file) as input_stream:
-        for line in input_stream:
-            line = line.strip().split()
-            firstRead = line[0].split(",")
-            secondRead = line[1].split(",")
-            currentRow = hc.__extract_start_stop_segemehl(
-                firstRead
-            ) + hc.__extract_start_stop_segemehl(secondRead)
-            interaction = hc.__check_interaction(currentRow, interaction_arrays)
-            if intra_combinations:
-                fill_count_table(interaction, count_table, annotation_table_dict)
-            else:
-                if interaction[0] != interaction[3]:
-                    fill_count_table(interaction, count_table, annotation_table_dict)
-                else:
-                    continue
-    return count_table
-
-
 def main():
     # Parse the command line arguments
+    # interaction_finder.py -g <genome> -i <input_file> -o <output_folder> [-m <min_components> -M <max_components> --make_plots --ignore_intra]
     arguments = docopt(__doc__)
     genome_file_path = arguments["--genome"]
-    trns_file = arguments["--input"]
+    trns_files = arguments["<input_file>"]
     output_folder = arguments["--output"]
     min_components = int(arguments["--min_components"])
     max_components = int(arguments["--max_components"])
+    step_size = int(arguments["--step_size"])
 
     # Process input files
     genome_dict = hp.parse_fasta(genome_file_path)
-    combination_array = hp.make_combination_array(genome_dict)
+    combination_arrays = {}
 
-    # Fill the array with the number of reads that map to each combination
-    hc.segemehlTrans2heatmap(trns_file, combination_array)
+    for trns_file in trns_files:
+        # Get the name of the current trns file
+        trns_file_name = os.path.basename(trns_file)
+        trns_file_name = trns_file_name.split(".")[0]
 
-    # Fit GMMs to the arrays
-    gmms_dict = fit_gmms(combination_array, min_components, max_components)
+        # Create and fill combination arrays
+        combination_arrays[trns_file_name] = hp.make_combination_array(genome_dict)
+        hc.segemehlTrans2heatmap(trns_file, combination_arrays[trns_file_name])
 
-    # Parse the regions covered by the GMMs
-    for combination, gmm_dict in gmms_dict.items():
-        regions = parse_rectangular_regions(
-            gmm_dict[combination],
-            sigma=1,
-            combination=combination,
-            output_file=f"{output_folder}/{trns_file.split('/')[-1]}_annotation_table.csv",
+    # Normalise arrays and create density arrays for GMM fitting
+    merged_combination_arrays = combine_arrays(combination_arrays)
+    density_arrays = {
+        combination: convert_to_density_array(combination_array)
+        for combination, combination_array in merged_combination_arrays.items()
+    }
+
+    # Use BIC score to fit optimal GMMs to the density arrays
+    gmms_dict = {}
+    for combination, density_array in density_arrays.items():
+        print(f"Fitting GMMs for {combination}")
+        gmms_dict[combination] = fit_optimal_gmm(
+            density_array,
+            min_components,
+            max_components,
+            max_iter=500,
+            expected_delta=0.000001,
+            get_all_gmms=True,
+            step_size=step_size,
         )
-        plot_regions(
-            regions,
-            combination_array[combination],
-            gmm=gmm_dict[combination],
-            plot_gmms=True,
-        )
 
-    # Create a count table
-    annotation_table = pd.read_csv(
-        f"{output_folder}/{trns_file.split('/')[-1]}_annotation_table.csv"
-    )
-    interaction_arrays = hp.make_interaction_array(genome_dict)
-    count_table = pd.DataFrame(
-        make_count_table(
-            annotation_table, trns_file, interaction_arrays, intra_combinations=True
-        ),
-        index=[0],
-    )
-    count_table.to_csv(
-        f"{output_folder}/{trns_file.split('/')[-1]}_count_table.csv", index=False
-    )
+    # Save the gmms dict to a pickle file
+    gmms_pickle = f"{output_folder}/gmms.pickle"
+
+    with open(gmms_pickle, "wb") as handle:
+        pickle.dump(gmms_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+    # Create plots
+    # Make a line plot of the BIC scores for each GMM in each combination
+    for combination, gmms in gmms_dict.items():
+        plot_bic_scores(gmms, f"{output_folder}/{combination}/_bic_scores.png")
+
+    # Plot the GMMs for each combination, for each number of components
+    for combination, gmms in gmms_dict.items():
+        for number_of_components, gmm in gmms.items():
+            # Save plots from each combination on a new folder
+            combination_folder = f"{output_folder}/{combination}"
+            if not os.path.exists(combination_folder):
+                os.makedirs(combination_folder)
+            # Plot the GMM
+            plot_gmm(
+                merged_combination_arrays[combination],
+                gmm,
+                combination,
+                combination_folder,
+                label_components=True,
+            )
+
+    # Calculate the individual log likelihood for each component (refitting the model)
+    individual_log_likelihoods_refitted = {}
+    refitted_gmms_dict = {}
+
+    for combination, gmms in gmms_dict.items():
+        individual_log_likelihoods_refitted[combination] = {}
+        refitted_gmms_dict[combination] = {}
+        for number_of_components, gmm in gmms.items():
+            (
+                individual_log_likelihoods_refitted[combination][number_of_components],
+                refitted_gmms_dict[combination][number_of_components],
+            ) = calculate_individual_log_likelihoods(gmm, density_array, refit_gmm=True)
+
+    # Create bar plots of the individual_log_likelihoods_refitted
+    for (
+        combination,
+        individual_log_likelihoods,
+    ) in individual_log_likelihoods_refitted.items():
+        for number_of_components, log_likelihoods in individual_log_likelihoods.items():
+            plt.bar(range(number_of_components), log_likelihoods)
+            plt.title(
+                f"Individual log likelihoods for {combination} with {number_of_components} components"
+            )
+            plt.xlabel("Component")
+            plt.ylabel("Log likelihood")
+            # Save the plot on the combination folder
+            combination_folder = f"{output_folder}/{combination}"
+            plt.savefig(
+                f"{combination_folder}/{combination}_{number_of_components}_individual_log_likelihoods.pdf"
+            )
+            plt.close()
+
+    # Plot the refitted GMMs for each combination, for each number of components, for each component
+    for combination, refitted_gmms in refitted_gmms_dict.items():
+        for number_of_components, refitted_gmm in refitted_gmms.items():
+            # Save plots from each combination on a new folder
+            combination_folder = f"{output_folder}/{combination}"
+            if not os.path.exists(combination_folder):
+                os.makedirs(combination_folder)
+            # Plot the GMM
+            plot_gmm(
+                merged_combination_arrays[combination],
+                refitted_gmm,
+                combination,
+                combination_folder,
+            )
 
 
 if __name__ == "__main__":

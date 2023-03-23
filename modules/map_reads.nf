@@ -23,10 +23,10 @@ process segemehl {
     label 'mapping_segemehl'
 
     input:
-    tuple val(name), path(genome), path(index), path(reads)
+    tuple val(sample_name), path(genome), path(index), path(reads)
 
     output:
-    tuple val(name), path("${reads.baseName}.trns.txt"), path("${reads.baseName}*_segemehl.sam")
+    tuple val(sample_name), path("${reads.baseName}.trns.txt"), path("${reads.baseName}.sngl.bed"), path("${reads.baseName}.mult.bed"),path("${reads.baseName}*_segemehl.sam"), path(genome), val(genome.baseName)
 
     script:
     """
@@ -46,57 +46,16 @@ process segemehlPublish {
     label 'mapping_segemehl'
 
     input:
-    tuple val(name), path(trns_file), path(sam_file)
+    tuple val(name), path(trns_file), path(sngl_file), path(mult_file), path(sam_file), path(genome), val(genome_name)
 
     output:
-    tuple val(name), path(trns_file)
+    tuple val(name), path(trns_file), path(sngl_file), path(mult_file), path(sam_file)
 
     publishDir "${params.output}/02-mappings/segemehl", mode: 'copy'
 
     script:
     """
     ls
-    """
-}
-
-/*************************************************************************
-* bwa-mem INDEX
-*************************************************************************/
-
-process bwaIndex {
-    label 'mapping_bwa'
-
-    input:
-    tuple val(name), path(genome)
-
-    output:
-    tuple val(name), path(genome), path("${name}_index")
-
-    script:
-    """
-    mkdir ${name}_index
-    bwa index ${genome} -p ${name}_index/${genome}
-    cp ${genome} ${name}_index
-    """
-    // The cp is a bit hacky, maybe there is a more elegant way of doing this
-}
-
-/*************************************************************************
-* bwa-mem RUN
-*************************************************************************/
-
-process bwaMem {
-    label 'mapping_bwa'
-
-    input:
-    tuple val(name), path(genome), path(index), path(reads)
-
-    output:
-    tuple val(name), path("${reads.baseName}*_bwa.sam")
-
-    script:
-    """
-    bwa mem -t ${params.max_cpus} -T 20 ${index}/${genome} ${reads} > ${reads.baseName}_bwa.sam
     """
 }
 
@@ -122,60 +81,23 @@ process convertSAMtoBAM {
 }
 
 /************************************************************************
-* generate .chim files
+* handles .trns.txt files
 *************************************************************************/
 
-process findChimeras {
-    label 'python2'
-
+process handleTrnsFiles {
+    label 'python3'
+  
     input:
-    tuple val(name), path(mapping)
-  
-    output:
-    tuple val(name), path("${mapping.baseName}.chim")
-  
-    publishDir "${params.output}/02-mappings/bwa-mem", mode: 'copy'
-  
-    script:
-    """
-    find_chimeras.py -i ${mapping} -o ${mapping.baseName}.chim
-    """
-}
-
-/*************************************************************************
-* HiSat2 INDEX
-*************************************************************************/
-
-process hiSat2Index {
-    label 'mapping_hisat2'
-
-    input:
-    tuple val(name), path(genome)
+    tuple val(name), path(genome), path(trns_file), path(sam_file)
 
     output:
-    tuple val(name), path(genome), path("${name}*.ht2")
+    tuple val(name), path("${sam_file.baseName}_plots"), path("${sam_file.baseName}_heatmaps.log")
+
+    publishDir "${params.output}/03-heatmaps/segemehl", mode: 'copy'
 
     script:
     """
-    hisat2-build -p ${params.max_cpus} ${genome} ${name}
-    """
-}
-
-/*************************************************************************
-* HiSat2 RUN
-*************************************************************************/
-
-process hiSat2 {
-    label 'mapping_hisat2'
-
-    input:
-    tuple val(name), path(genome), path(index), path(reads)
-
-    output:
-    tuple val(name), path("${reads.baseName}*_hisat2.sam")
-
-    script:
-    """
-    hisat2 -x ${name} -U ${reads} > ${reads.baseName}_hisat2.sam
+    mkdir ${sam_file.baseName}_plots
+    handle_chimeras.py -g ${genome} -i ${trns_file} -o ${sam_file.baseName}_plots --segemehl_mode > ${sam_file.baseName}_heatmaps.log
     """
 }

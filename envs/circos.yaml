@@ -1,12 +1,13 @@
-name: simulate_reads
+name: circos
 channels:
   - conda-forge
   - bioconda
   - defaults
 dependencies:
-  - art
-  - python=3.9
+  - circos
+  - python
   - numpy
+  - scipy
   - seaborn
   - matplotlib
   - docopt

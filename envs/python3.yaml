@@ -9,6 +9,7 @@ dependencies:
   - scipy
   - seaborn
   - matplotlib
+  - pandas
   - docopt
   - pysam
-  - matplotlib-venn
+  - openpyxl

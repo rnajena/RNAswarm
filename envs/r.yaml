@@ -1,4 +1,4 @@
-name: R
+name: r
 channels:
   - conda-forge
   - bioconda
@@ -6,3 +6,5 @@ dependencies:
   - r-base
   - r-essentials
   - bioconductor-deseq2
+  - r-docopt
+  - r-languageserver

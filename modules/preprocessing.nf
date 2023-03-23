@@ -5,10 +5,10 @@ process fastpTrimming {
   label 'preprocessing'
 
   input:
-  tuple val(name), path(reads)
+  tuple val(name), path(reads), val(condition)
 
   output:
-  tuple val(name), path("${reads.baseName}_trimmed.fastq")
+  tuple val(name), path("${reads.baseName}_trimmed.fastq"), val(condition)
   
   publishDir "${params.output}/01-trimmed_reads", mode: 'copy'
 
