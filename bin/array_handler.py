@@ -1,4 +1,5 @@
 import numpy as np
+import os
 
 
 def normalize_array(array, max_value=200000, mode="number_of_data_points", round=True):
@@ -104,3 +105,19 @@ def convert_to_density_array(interaction_matrix):
         for i in range(int(value)):
             density_list.append((x, y))
     return np.array(density_list)
+
+
+def save_combination_arrays(combination_arrays, output_folder):
+    """
+    Save the combination arrays as a numpy array.
+
+    Parameters
+    ----------
+    combination_arrays : dict
+        A dictionary of arrays, with the keys being the combination of segments.
+
+    output_folder : str
+        The output folder to save the arrays to.
+    """
+    for combination, array in combination_arrays.items():
+        np.save(os.path.join(output_folder, combination), array)

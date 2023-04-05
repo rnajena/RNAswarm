@@ -67,6 +67,11 @@ workflow segemehl_mapping {
         getStats.out
 }
 
+// array filling using numpy
+include { fillArrays } from './modules/fill_arrays.nf'
+    take:
+        segemehl_out_grouped_ch
+
 /************************** 
 * WORKFLOW ENTRY POINT
 **************************/
@@ -76,18 +81,20 @@ include { plotHeatmaps } from './modules/plot_heatmaps.nf'
 workflow {
     // parse sample's csv file
     samples_input_ch = Channel
-                      .fromPath( params.samples, checkIfExists: true )
-                      .splitCsv()
-                      .map{ row -> [ "${row[0]}", file("${row[1]}", checkIfExists: true), file("${row[2]}", checkIfExists: true), "${row[3]}" ] }
-    reads_ch = samples_input_ch.map{ it -> [ it[0], it[1], it[3] ] }
-    genomes_ch = samples_input_ch.map{ it -> [it[3],  it[2] ] }.unique()
+        .fromPath( params.samples, checkIfExists: true )
+        .splitCsv()
+        .map{ row -> [ "${row[0]}", file("${row[1]}", checkIfExists: true), file("${row[2]}", checkIfExists: true), "${row[3]}" ] }
+    reads_ch = samples_input_ch
+        .map{ it -> [ it[0], it[1], it[3] ] }
+    genomes_ch = samples_input_ch
+        .map{ it -> [it[3],  it[2] ] }
+        .unique()
     // preprocessing workflow
     preprocessing( reads_ch )
     // segemehl workflow
     segemehl_mapping( preprocessing.out[0], genomes_ch )
-    // Accumulate trns files mapped to the same genome
-    // plotHeatmaps( segemehl_mapping.out[0].groupTuple(by: 4).map{ it -> [ it[4], it[3][0], it[1] ] } )
-
+    // fill arrays with the segemehl output
+    fillArrays( segemehl_mapping.out[0].groupTuple(by: 4).map{ it -> [ it[4], it[3][0], it[1] ] } ) // still have to check if the mapping is correct
 }
 
 // workflow {

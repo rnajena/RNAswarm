@@ -44,6 +44,7 @@ def plot_heatmaps(
         Colour palette to use for plotting
 
     Returns
+    
     -------
     None
     """
