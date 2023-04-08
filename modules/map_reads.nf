@@ -26,7 +26,7 @@ process segemehl {
     tuple val(sample_name), path(genome), path(index), path(reads)
 
     output:
-    tuple val(sample_name), path("${reads.baseName}.trns.txt"), path("${reads.baseName}.sngl.bed"), path("${reads.baseName}.mult.bed"),path("${reads.baseName}*_segemehl.sam"), path(genome), val(genome.baseName)
+    tuple val(sample_name), path("${reads.baseName}.trns.txt"), path("${reads.baseName}.sngl.bed"), path("${reads.baseName}.mult.bed"), path("${reads.baseName}*_segemehl.sam"), val(genome.baseName), path(genome)
 
     script:
     """
@@ -46,7 +46,7 @@ process segemehlPublish {
     label 'mapping_segemehl'
 
     input:
-    tuple val(name), path(trns_file), path(sngl_file), path(mult_file), path(sam_file), path(genome), val(genome_name)
+    tuple val(name), path(trns_file), path(sngl_file), path(mult_file), path(sam_file),  val(genome_name), path(genome)
 
     output:
     tuple val(name), path(trns_file), path(sngl_file), path(mult_file), path(sam_file)
