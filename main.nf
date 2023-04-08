@@ -69,8 +69,29 @@ workflow segemehl_mapping {
 
 // array filling using numpy
 include { fillArrays } from './modules/fill_arrays.nf'
+
+workflow array_filling {
     take:
-        segemehl_out_grouped_ch
+        segemehl_trns_ch
+    main:
+        // Fills the arrays
+        fillArrays( segemehl_trns_ch )
+    emit:
+        fillArrays.out
+}
+
+// plot heatmaps
+include { plotHeatmaps } from './modules/plot_heatmaps.nf'
+
+workflow plot_heatmaps {
+    take:
+        arrays_ch
+    main:
+        // Plots the heatmaps
+        plotHeatmaps( arrays_ch )
+    emit:
+        plotHeatmaps.out
+}
 
 /************************** 
 * WORKFLOW ENTRY POINT
@@ -87,14 +108,37 @@ workflow {
     reads_ch = samples_input_ch
         .map{ it -> [ it[0], it[1], it[3] ] }
     genomes_ch = samples_input_ch
-        .map{ it -> [it[3],  it[2] ] }
+        .map{ it -> [ it[3],  it[2] ] }
         .unique()
     // preprocessing workflow
     preprocessing( reads_ch )
     // segemehl workflow
     segemehl_mapping( preprocessing.out[0], genomes_ch )
     // fill arrays with the segemehl output
-    fillArrays( segemehl_mapping.out[0].groupTuple(by: 4).map{ it -> [ it[4], it[3][0], it[1] ] } ) // still have to check if the mapping is correct
+    array_filling( 
+        segemehl_mapping.out[0]
+        .map( it -> [ it[0], it[1], it[5], it[6] ] )
+    )
+    // plot heatmaps using the filled arrays
+    plot_heatmaps( array_filling.out )
+    
+    // Acquire annotation tables
+        // If annotations for the arrays are provided, use them
+
+        // If not, we annotate the arrays de novo uding GMMs
+    
+    // Plot heatmaps with annotations
+
+    // Generate count tables
+
+    // Run differential analysis with DESeq2
+
+    // Generate tables
+
+    // Predict structures
+
+    // Generate circos plots
+
 }
 
 // workflow {
