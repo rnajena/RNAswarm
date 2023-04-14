@@ -122,7 +122,7 @@ def save_combination_arrays(combination_arrays, output_folder):
     for combination, array in combination_arrays.items():
         np.save(os.path.join(output_folder, combination), array)
 
-def import_combination_arrays(combination_arrays, output_folder):
+def import_combination_arrays(combination_arrays, input_folder):
     """
     Import the combination arrays as a numpy array.
 
@@ -131,8 +131,8 @@ def import_combination_arrays(combination_arrays, output_folder):
     combination_arrays : dict
         A dictionary of arrays, with the keys being the combination of segments.
 
-    output_folder : str
-        The output folder to save the arrays to.
+    input_folder : str
+        The input folder to import the arrays from.
 
     Returns
     -------
@@ -140,5 +140,5 @@ def import_combination_arrays(combination_arrays, output_folder):
         A dictionary of arrays, with the keys being the combination of segments.
     """
     for combination, array in combination_arrays.items():
-        combination_arrays[combination] = np.load(os.path.join(output_folder, combination + ".npy"))
+        combination_arrays[combination] = np.load(os.path.join(input_folder, combination + ".npy"))
     return combination_arrays
