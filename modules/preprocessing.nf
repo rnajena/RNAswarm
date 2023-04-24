@@ -2,39 +2,39 @@
 * fastp TRIMMING
 ***********************************************************************/
 process fastpTrimming {
-  label 'preprocessing'
+    label 'preprocessing'
 
-  input:
-  tuple val(name), path(reads), val(condition)
+    input:
+    tuple val(sample_name), path(reads), val(group_name)
 
-  output:
-  tuple val(name), path("${reads.baseName}_trimmed.fastq"), val(condition)
-  
-  publishDir "${params.output}/01-trimmed_reads", mode: 'copy'
+    output:
+    tuple val(sample_name), path("${reads.baseName}_trimmed.fastq"), val(group_name)
 
-  script:
-  """
-  fastp -i ${reads} -o ${reads.baseName}_trimmed.fastq\
-        --failed_out ${reads.baseName}_failed_out.fastq\
-        --json ${reads.baseName}.json\
-        --html ${reads.baseName}.html\
-  """
+    publishDir "${params.output}/01-trimmed_reads", mode: 'copy'
+
+    script:
+    """
+    fastp -i ${reads} -o ${reads.baseName}_trimmed.fastq\
+          --failed_out ${reads.baseName}_failed_out.fastq\
+          --json ${reads.baseName}.json\
+          --html ${reads.baseName}.html\
+    """
 }
 
 /***********************************************************************
 * concatenate multifasta
 ***********************************************************************/
 process concatenateFasta {
-  label 'python3'
+    label 'python3'
 
-  input:
-  tuple val(name), path(genome), val(is_genome_concatenated)
+    input:
+    tuple val(group_name), path(genome), val(is_genome_concatenated)
 
-  output:
-  tuple val(name), path("${genome.baseName}_concatenated.fasta"), val(true), path("${genome.baseName}_concatenated.csv")
+    output:
+    tuple val(group_name), path("${genome.baseName}_concatenated.fasta"), val(true), path("${genome.baseName}_concatenated.csv")
 
-  script:
-  """
-  fasta_preprocessor.py -c -i ${genome} -o ${genome.baseName}_concatenated.fasta
-  """
+    script:
+    """
+    fasta_preprocessor.py -c -i ${genome} -o ${genome.baseName}_concatenated.fasta
+    """
 }

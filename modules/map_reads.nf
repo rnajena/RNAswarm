@@ -5,10 +5,10 @@ process segemehlIndex {
     label 'mapping_segemehl'
 
     input:
-    tuple val(name), path(genome)
+    tuple val(group_name), path(genome)
 
     output:
-    tuple val(name), path(genome), path("${name}.idx")
+    tuple val(group_name), path(genome), path("${name}.idx")
 
     script:
     """
@@ -23,10 +23,16 @@ process segemehl {
     label 'mapping_segemehl'
 
     input:
-    tuple val(sample_name), path(genome), path(index), path(reads)
+    tuple val(sample_name), path(reads), val(group_name), path(genome), path(index)
 
     output:
-    tuple val(sample_name), path("${reads.baseName}.trns.txt"), path("${reads.baseName}.sngl.bed"), path("${reads.baseName}.mult.bed"), path("${reads.baseName}*_segemehl.sam"), val(genome.baseName), path(genome)
+    tuple
+        val(sample_name),
+        path("${reads.baseName}.trns.txt"),
+        path("${reads.baseName}.sngl.bed"),
+        path("${reads.baseName}.mult.bed"),
+        path("${reads.baseName}*_segemehl.sam"),
+        val(group_name), path(genome)
 
     script:
     """
