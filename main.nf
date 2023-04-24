@@ -50,8 +50,11 @@ workflow segemehl_mapping {
         // Indexes the reference genomes
         segemehlIndex( genomes_ch )
         // Maps the reads to the reference genomes
-        segemehl_input_ch = segemehlIndex.out.combine( preprocessed_reads_ch.map{ it -> [ it[2], it[0], it[1] ] },  by: 0 ).map{ it -> [ it[3], it[1], it[2], it[4] ] }
-        segemehl_input_ch
+        segemehl_input_ch = segemehlIndex.out.combine(            // group name, genome file, idx file
+            preprocessed_reads_ch                                 // sample name, reads file, group name 
+            .map{ it -> [ it[2], it[0], it[1] ] },  by: 0         // group name, sample name, reads file
+            )
+            .map{ it -> [ it[3], it[4], it[0], it[1], it[2] ] }   // sample name, reads file, group name, genome file, idx file
         segemehl( segemehl_input_ch )
         // Publishes segemehl trns files for inspection
         segemehlPublish( segemehl.out )
@@ -68,7 +71,7 @@ workflow segemehl_mapping {
 }
 
 // array filling using numpy
-include { fillArrays } from './modules/fill_arrays.nf'
+include { fillArrays } from './modules/handle_arrays.nf'
 
 workflow array_filling {
     take:
@@ -79,6 +82,20 @@ workflow array_filling {
     emit:
         fillArrays.out
 }
+
+// array merging
+include { mergeArrays } from './modules/handle_arrays.nf'
+
+workflow array_merging {
+    take:
+        groupped_arrays_ch
+    main:
+        // Merges the arrays
+        mergeArrays( groupped_arrays_ch )
+    emit:
+        mergeArrays.out
+}
+
 
 // plot heatmaps
 include { plotHeatmaps } from './modules/plot_heatmaps.nf'
@@ -93,73 +110,158 @@ workflow plot_heatmaps {
         plotHeatmaps.out
 }
 
+// handle annotations
+include { annotateArrays; } from './modules/annotate_interactions.nf'
+
+workflow annotate_interactions {
+    take:
+        arrays_ch
+    main:
+        // Annotates the arrays
+        annotateArrays( arrays_ch )
+    emit:
+        annotateArrays.out
+}
+
+// generate count tables
+include { generateCountTables } from './modules/generate_count_tables.nf'
+
+workflow generate_count_tables {
+    take:
+        arrays_ch
+    main:
+        // Generates the count tables
+        generateCountTables( arrays_ch )
+    emit:
+        generateCountTables.out
+}
+
+// make differential analysis
+include { differentialAnalysis } from './modules/differential_analysis.nf'
+
+workflow differential_analysis {
+    take:
+        count_tables_ch
+    main:
+        // Performs differential analysis
+        differentialAnalysis( arrays_ch )
+    emit:
+        differentialAnalysis.out
+}
+
+// predict structures
+include { predictStructures } from './modules/predict_structures.nf'
+
+workflow predict_structures {
+    take:
+        genomes_ch
+        annotations_ch
+    main:
+        // Predicts structures
+        predictStructures( arrays_ch )
+    emit:
+        predictStructures.out
+}
+
+// generate summary tables
+include { generateSummaryTables } from './modules/generate_summary_tables.nf'
+
+workflow generate_summary_tables {
+    take:
+        structures_ch
+        count_tables_ch
+        differential_analysis_results_ch
+    main:
+        // Generates summary tables
+        generateSummaryTables(  )
+    emit:
+        generateSummaryTables.out
+}
+
+// generate circos plots
+include { generateCircosPlots } from './modules/generate_circos_plots.nf'
+
+workflow generate_circos_plots {
+    take:
+        structures_ch
+        count_tables_ch
+        differential_analysis_results_ch
+    main:
+        // Generates circos plots
+        generateCircosPlots(  )
+    emit:
+        generateCircosPlots.out
+}
+
 /************************** 
 * WORKFLOW ENTRY POINT
 **************************/
-
-include { plotHeatmaps } from './modules/plot_heatmaps.nf'
-
 workflow {
     // parse sample's csv file
     samples_input_ch = Channel
         .fromPath( params.samples, checkIfExists: true )
         .splitCsv()
-        .map{ row -> [ "${row[0]}", file("${row[1]}", checkIfExists: true), file("${row[2]}", checkIfExists: true), "${row[3]}" ] }
+        .map{
+            row -> [
+                "${row[0]}",                             // sample name
+                file("${row[1]}", checkIfExists: true),  // read file
+                file("${row[2]}", checkIfExists: true),  // genome file
+                "${row[3]}"                              // group name
+            ]
+        }
     reads_ch = samples_input_ch
-        .map{ it -> [ it[0], it[1], it[3] ] }
+        .map{ it -> [ it[0], it[1], it[3] ] }            // sample name, read file, group name
     genomes_ch = samples_input_ch
-        .map{ it -> [ it[3],  it[2] ] }
+        .map{ it -> [ it[3],  it[2] ] }                  // group name, genome file
         .unique()
+
     // preprocessing workflow
     preprocessing( reads_ch )
+
     // segemehl workflow
     segemehl_mapping( preprocessing.out[0], genomes_ch )
-    // fill arrays with the segemehl output
-    array_filling( 
-        segemehl_mapping.out[0]
-        .map( it -> [ it[0], it[1], it[5], it[6] ] )
-    )
-    // plot heatmaps using the filled arrays
-    plot_heatmaps( array_filling.out )
-    
-    // Acquire annotation tables
-        // If annotations for the arrays are provided, use them
 
-        // If not, we annotate the arrays de novo uding GMMs
-    
-    // Plot heatmaps with annotations
+    // fill arrays with the segemehl output
+    array_ch = array_filling(
+        segemehl_mapping.out[0]
+        .map( it -> [ it[0], it[1], it[5], it[6] ] ) // sample name, trns file, group name, genome
+    )
+
+    // plot heatmaps using the filled arrays
+    plot_heatmaps( array_ch )
+
+    // accumulate arrays with the same group name
+    groupped_arrays_ch = array_ch.groupTuple( by: 2 ) // This can be streamlined by knowing the number of samples in each group beforehand, but should be fine for now
+        .map( it -> [ it[2], it[3].unique(), it[4].flatten()] ) // group name, genome, arrays
+
+    // merge arrays with the same group name
+    merged_arrays_ch = array_merging( groupped_arrays_ch )
+
+    // plot heatmaps using the merged arrays
+    plot_heatmaps( merged_arrays_ch ) // I've already called this function, but I'm not sure if it's a problem
+
+    // Check if annotations are present
+    if ( params.annotations ) {
+        // Create a channel with the annotations
+        annotated_arrays_ch = array_filling.out
+            .map( it -> [ it[0], it[4]])
+            .combine( Channel.fromPath( params.annotations, checkIfExists: true ) )
+    } else {
+        // Annotate interactions de novo
+        annotated_arrays_ch = annotate_interactions( array_filling.out ).out
+    }
+
+    // Plot the annotations on the heatmaps
+
 
     // Generate count tables
 
     // Run differential analysis with DESeq2
 
-    // Generate tables
-
     // Predict structures
 
+    // Generate summary tablestructures.out, generate_count_tables.out, differential_analysis.out )
+
     // Generate circos plots
-
-}
-
-// workflow {
-//     // parse sample's csv file
-//     Channel.fromPath( params.samples, checkIfExists: true ) \
-//         | splitCsv() \
-//         | map{ row -> [ "${row[0]}", file("${row[1]}", checkIfExists: true), file("${row[2]}", checkIfExists: true), "${row[3]}" ] } \
-//         | set { samples_input_ch }
-//     samples_input_ch.map{ it -> [ it[0], it[1], it[3] ] } \
-//         | set { reads_ch }
-//     samples_input_ch.map{ it -> [it[3],  it[2] ] } \
-//         | unique() \
-//         | set { genomes_ch }
-//     // preprocessing workflow
-//     preprocessing( reads_ch )
-//     // segemehl workflow
-//     segemehl_mapping( preprocessing.out[0], genomes_ch )
-//     // Accumulate trns files mapped to the same genome
-//     segemehl_mapping.out[0].groupTuple(by: 1) \
-//         | map{ it -> tuple( groupKey(it[1], it[2].size()), it[2] ) } \
-//         | set { segemehl_out_grouped_ch }
-//     // take a look at the grouped trns files
-//     segemehl_out_grouped_ch.view()
-// }
+    
+    }
