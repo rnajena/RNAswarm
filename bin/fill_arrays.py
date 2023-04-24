@@ -15,7 +15,6 @@ Options:
 """
 
 from docopt import docopt
-from docopt import docopt
 import os
 import helper as hp
 import trns_handler as th
