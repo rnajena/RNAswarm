@@ -7,8 +7,7 @@ count table containing the number of interactions between the regions in the
 annotation table.
 
 Usage:
-  make_counttable.py <input_file> <input_file>... -a <annotation_table> -o <output_file> [--use_peaks]
-  make_counttable.py <input_file> -a <annotation_table> -o <output_file> [--use_peaks]
+  make_counttable.py <input_file>... -a <annotation_table> -o <output_file> [--use_peaks]
 
 Options:
   -h --help                                 Show this screen.
