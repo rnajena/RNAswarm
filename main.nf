@@ -243,8 +243,11 @@ workflow {
     // Check if annotations are present
     if ( params.annotations ) {
         // Create a channel with the annotations
-        annotated_arrays_ch = array_filling.out
-            .map( it -> [ it[0], it[4]])
+        annotated_arrays_ch = merged_arrays_ch
+            .map( it -> [ it[0], it[2]])
+            .combine( Channel.fromPath( params.annotations, checkIfExists: true ) )
+        annotated_trns_ch = segemehl_mapping.out[0]
+            .map( it -> [ it[0], it[1], it[5], it[6] ] ) // sample name, trns file, group name, genome
             .combine( Channel.fromPath( params.annotations, checkIfExists: true ) )
     } else {
         // Annotate interactions de novo
@@ -252,16 +255,21 @@ workflow {
     }
 
     // Plot the annotations on the heatmaps
-
+    plot_heatmaps( annotated_arrays_ch )
 
     // Generate count tables
+    count_tables_ch = generate_count_tables( annotated_trns_ch )
 
     // Run differential analysis with DESeq2
+    
 
     // Predict structures
 
-    // Generate summary tablestructures.out, generate_count_tables.out, differential_analysis.out )
+
+    // Generate summary table
+
 
     // Generate circos plots
+    
     
     }
