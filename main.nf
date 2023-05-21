@@ -70,33 +70,6 @@ workflow segemehl_mapping {
         getStats.out
 }
 
-// array filling using numpy
-include { fillArrays } from './modules/handle_arrays.nf'
-
-workflow array_filling {
-    take:
-        segemehl_trns_ch
-    main:
-        // Fills the arrays
-        fillArrays( segemehl_trns_ch )
-    emit:
-        fillArrays.out
-}
-
-// array merging
-include { mergeArrays } from './modules/handle_arrays.nf'
-
-workflow array_merging {
-    take:
-        groupped_arrays_ch
-    main:
-        // Merges the arrays
-        mergeArrays( groupped_arrays_ch )
-    emit:
-        mergeArrays.out
-}
-
-
 // plot heatmaps
 include { plotHeatmaps } from './modules/plot_heatmaps.nf'
 
@@ -149,21 +122,6 @@ workflow differential_analysis {
         differentialAnalysis.out
 }
 
-// generate summary tables
-include { generateSummaryTables } from './modules/generate_summary_tables.nf'
-
-workflow generate_summary_tables {
-    take:
-        structures_ch
-        count_tables_ch
-        differential_analysis_results_ch
-    main:
-        // Generates summary tables
-        generateSummaryTables(  )
-    emit:
-        generateSummaryTables.out
-}
-
 // generate circos plots
 include { generateCircosPlots } from './modules/generate_circos_plots.nf'
 
@@ -182,6 +140,10 @@ workflow generate_circos_plots {
 /************************** 
 * WORKFLOW ENTRY POINT
 **************************/
+
+// array filling using numpy
+include { fillArrays; mergeArrays } from './modules/handle_arrays.nf'
+
 workflow {
     // parse sample's csv file
     samples_input_ch = Channel
@@ -208,7 +170,7 @@ workflow {
     segemehl_mapping( preprocessing.out[0], genomes_ch )
 
     // fill arrays with the segemehl output
-    array_ch = array_filling(
+    array_ch = fillArrays(
         segemehl_mapping.out[0]
         .map( it -> [ it[0], it[1], it[5], it[6] ] ) // sample name, trns file, group name, genome
     )
@@ -221,7 +183,7 @@ workflow {
         .map( it -> [ it[2], it[3].unique(), it[4].flatten()] ) // group name, genome, arrays
 
     // merge arrays with the same group name
-    merged_arrays_ch = array_merging( groupped_arrays_ch )
+    merged_arrays_ch = mergeArrays( groupped_arrays_ch )
 
     // plot heatmaps using the merged arrays
     plot_heatmaps( merged_arrays_ch ) // I've already called this function, but I'm not sure if it's a problem
@@ -247,12 +209,9 @@ workflow {
     count_tables_ch = generate_count_tables( annotated_trns_ch )
 
     // Run differential analysis with DESeq2
-    
-
-    // Generate summary table
 
 
     // Generate circos plots
-
+    
 
     }

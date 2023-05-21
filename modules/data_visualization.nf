@@ -20,3 +20,41 @@ process plotHeatmaps {
     plot_heatmaps.py -a ${arrays} -g ${genome_file} -o ${sample_name}_heatmaps
     """
 }
+
+
+/*************************************************************************
+* make circos table
+*************************************************************************/
+process makeCircosTable {
+    label 'python3'
+
+    input:
+
+
+    output:
+
+
+    script:
+    """
+    
+    """
+}
+
+
+/*************************************************************************
+* run circos
+*************************************************************************/
+process runCircos {
+    label 'circos'
+
+    input:
+
+    output:
+
+    publishDir "", mode: 'copy'
+
+    script:
+    """
+    
+    """
+}
