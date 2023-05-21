@@ -40,3 +40,4 @@ process mergeArrays {
     mkdir ${group_name}_merged_arrays
     merge_arrays.py ${arrays} -g ${genome_file} -o ${group_name}_merged_arrays
     """
+}
