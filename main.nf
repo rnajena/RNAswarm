@@ -149,20 +149,6 @@ workflow differential_analysis {
         differentialAnalysis.out
 }
 
-// predict structures
-include { predictStructures } from './modules/predict_structures.nf'
-
-workflow predict_structures {
-    take:
-        genomes_ch
-        annotations_ch
-    main:
-        // Predicts structures
-        predictStructures( arrays_ch )
-    emit:
-        predictStructures.out
-}
-
 // generate summary tables
 include { generateSummaryTables } from './modules/generate_summary_tables.nf'
 
@@ -263,13 +249,10 @@ workflow {
     // Run differential analysis with DESeq2
     
 
-    // Predict structures
-
-
     // Generate summary table
 
 
     // Generate circos plots
-    
-    
+
+
     }
