@@ -1,9 +1,14 @@
+# WORK IN PROGRESS
+While working with RNAswarm, you might fing bugs, some are known, while others remain undiscovered. We encourage the community to contribute by reporting any issues they encounter on GitHub. Feel free to reach out to me via email or open an issue directly. It's important to note that I cannot be held responsible for any results obtained using RNAswarm or any conclusions drawn from them.
+
+***
 # RNAswarm
 RNAswarm is a tool for analyzing SPLASH data. It is a Nextflow pipeline that:
 - Trims and aligns chimeric reads to a reference genome.
 - Generate heatmaps of interactions between chromosomes and segments (in case of segmented viruses).
 - Compare replicates and different datasets in order to identify differentially structured regions.
 - Generate a summary of the results.
+***
 
 ## Installation (only tested on Linux)
 ### Install Miniconda (or Conda)
