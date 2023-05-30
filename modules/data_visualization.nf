@@ -29,10 +29,10 @@ process makeCircosTable {
     label 'python3'
 
     input:
-
+    tuple val(genome_name_01), path(genome_01), val(genome_name_02), path(genome_02), path(results_DESeq2)
 
     output:
-
+    tuple val(genome_name_01), val(genome_name_02), path("${genome_name_01}_${genome_name_02}_circos_table.txt")
 
     script:
     """
