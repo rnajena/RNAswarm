@@ -22,8 +22,8 @@ params.krakenAssets = workflow.projectDir + "/assets/kraken2/genomes"
 **************************/
 
 // preprocessing
-include { fastpTrimming} from './modules/preprocessing.nf'
-include { fastqcReport } from './modules/generate_reports.nf'
+include { fastpTrimming} from './modules/data_preprocessing.nf'
+include { fastqcReport } from './modules/reports_generation.nf'
 
 workflow preprocessing {
     take: reads_ch
@@ -40,7 +40,7 @@ workflow preprocessing {
 
 // mapping with segemehl
 include { segemehlIndex; segemehl; segemehlPublish; convertSAMtoBAM } from './modules/map_reads.nf'
-include { getStats } from './modules/generate_reports.nf'
+include { getStats } from './modules/reports_generation.nf'
 
 workflow segemehl_mapping {
     take:
@@ -70,19 +70,6 @@ workflow segemehl_mapping {
         getStats.out
 }
 
-// plot heatmaps
-include { plotHeatmaps } from './modules/plot_heatmaps.nf'
-
-workflow plot_heatmaps {
-    take:
-        arrays_ch
-    main:
-        // Plots the heatmaps
-        plotHeatmaps( arrays_ch )
-    emit:
-        plotHeatmaps.out
-}
-
 // handle annotations
 include { annotateArrays; } from './modules/annotate_interactions.nf'
 
@@ -96,30 +83,19 @@ workflow annotate_interactions {
         annotateArrays.out
 }
 
-// generate count tables
-include { generateCountTables } from './modules/generate_count_tables.nf'
+// run differential analysis
+include { generateCountTables; runDESeq2 } from './modules/differential_analysis.nf'
 
-workflow generate_count_tables {
+workflow differential_analysis {
     take:
         arrays_ch
     main:
         // Generates the count tables
         generateCountTables( arrays_ch )
+        // Performs the differential analysis
+        runDESeq2( generateCountTables.out )
     emit:
-        generateCountTables.out
-}
-
-// make differential analysis
-include { differentialAnalysis } from './modules/differential_analysis.nf'
-
-workflow differential_analysis {
-    take:
-        count_tables_ch
-    main:
-        // Performs differential analysis
-        differentialAnalysis( arrays_ch )
-    emit:
-        differentialAnalysis.out
+        runDESeq2.out
 }
 
 // generate circos plots
@@ -143,6 +119,8 @@ workflow generate_circos_plots {
 
 // array filling using numpy
 include { fillArrays; mergeArrays } from './modules/handle_arrays.nf'
+// plot heatmaps
+include { plotHeatmaps } from './modules/data_visualization.nf'
 
 workflow {
     // parse sample's csv file
