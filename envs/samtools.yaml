@@ -1,7 +1,7 @@
-name: mapping_segemehl
+name: samtools
 channels:
   - conda-forge
   - bioconda
   - defaults
 dependencies:
-  - segemehl
+  - samtools==1.17

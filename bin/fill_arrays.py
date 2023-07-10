@@ -3,7 +3,7 @@
 """fill_arrays.py
 
 Usage:
-    fill_arrays.py <trns_file> -g <genome> [--intra_only] -o <output_folder>
+    fill_arrays.py <trns_file>... -g <genome> [--intra_only] -o <output_folder>
 
 Options:
     -h --help                    Show this screen.
@@ -23,7 +23,7 @@ import array_handler as ah
 
 def main():
     args = docopt(__doc__)
-    trns_file = args["<trns_file>"]
+    trns_files = args["<trns_file>"]
     genome_file = args["--genome"]
     output_folder = args["--output"]
     # Check if --intra_only is given
@@ -35,16 +35,17 @@ def main():
     genome_dict = hp.parse_fasta(genome_file)
 
     # Process trns files
-    combination_arrays = {}
-    trns_file_name = os.path.basename(trns_file)
-    trns_file_name = trns_file_name.split(".")[0]
+    combination_dicts = {}
 
-    # Create and fill combination arrays
-    combination_arrays[trns_file_name] = hp.make_combination_array(genome_dict, intra_only=intra_only)
-    th.segemehlTrans2heatmap(trns_file, combination_arrays[trns_file_name], intra_only=intra_only)
+    # Create and fill combination dicts
+    for trns_file in trns_files:
+        trns_file_name = os.path.basename(trns_file)
+        combination_dicts[trns_file_name] = hp.make_combination_array(genome_dict, intra_only=intra_only)
+        th.segemehlTrans2heatmap(trns_file, combination_dicts[trns_file_name], intra_only=intra_only)
 
     # Save combination arrays
-    ah.save_combination_arrays(combination_arrays, output_folder)
+    for trns_file_name, combination_dict in combination_dicts.items():
+        ah.save_combination_arrays(combination_dict, output_folder)
 
 
 if __name__ == "__main__":

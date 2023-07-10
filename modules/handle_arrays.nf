@@ -3,7 +3,7 @@
 *************************************************************************/
 
 process fillArrays {
-    label 'python3'
+    label 'handle_arrays'
 
     input:
     tuple val(sample_name), path(trns_files), val(group_name), path(genome)
@@ -16,7 +16,8 @@ process fillArrays {
     script:
     """
     mkdir ${sample_name}_arrays
-    fill_arrays.py ${trns_files} -g ${genome_file} -o ${sample_name}_arrays
+    fill_arrays.py ${trns_files} -g ${genome} -o ${sample_name}_arrays
+    echo ${sample_name}_arrayss
     """
 }
 
@@ -25,7 +26,7 @@ process fillArrays {
 * Merge arrays
 *************************************************************************/
 process mergeArrays {
-    label 'python3'
+    label 'handle_arrays'
 
     input:
     tuple val(group_name), path(genome), path(arrays)

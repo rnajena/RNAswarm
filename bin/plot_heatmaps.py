@@ -379,16 +379,6 @@ def main():
     """
     args = docopt(__doc__)
 
-    # Check if working with trns files or array folders
-    if args["--trns_files"]:
-        trns_files = args["--trns_files"]
-        array_folders = []
-    elif args["--array_folders"]:
-        array_folders = args["--array_folders"]
-        trns_files = []
-    else:
-        print("Please specify either --trns_files or --array_folders")
-        exit()
 
     # Get other arguments
     genome_file = args["--genome"]
@@ -413,14 +403,16 @@ def main():
     genome_dict = hp.parse_fasta(genome_file)
 
     # If arrays are given, use them instead of trns files
-    if array_folders:
+    if not args.get("--trns_files"):
+        array_folders = args.get("--array_folders")
         merged_combination_arrays = prepare_arrays(
             array_folders=array_folders,
             intra_only=intra_only,
             genome_dict=genome_dict,
         )
     # If trns files are given, use them instead of arrays
-    elif trns_files:
+    if not args.get("--array_folders"):
+        trns_files = args.get("--trns_files")
         merged_combination_arrays = prepare_arrays(
             trns_files=trns_files,
             intra_only=intra_only,

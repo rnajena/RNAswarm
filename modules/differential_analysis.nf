@@ -6,16 +6,16 @@ process generateCountTables {
 
     input:
     // for the input I only need one annotation and one trns file
-    tuple val(sample_name), path(annotation_table), val(genome_name), path(genome), path(arrays)
+    tuple val(sample_name), path(annotation_table), path(trns_file)
 
     output:
-    tuple val(sample_name), 
+    tuple val(sample_name), path("${sample_name}_count_table.csv")
 
-    publishDir "${params.output}/05-stats_and_plots/heatmaps", mode: 'copy'
+    publishDir "${params.output}/06-count_analysis/count_tables", mode: 'copy'
 
     script:
     """
-    make_counttable.py <input_file>... -a ${annotation_table} -o <output_file>
+    make_counttable.py ${trns_file} -a ${annotation_table} -o ${sample_name}_count_table.csv
     """
 }
 

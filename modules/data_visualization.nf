@@ -17,7 +17,7 @@ process plotHeatmaps {
     script:
     """
     mkdir ${sample_name}
-    plot_heatmaps.py -a ${arrays} -g ${genome_file} -o ${sample_name}_heatmaps
+    plot_heatmaps.py -d ${arrays} -g ${genome} -o ${sample_name}_heatmaps
     """
 }
 
@@ -32,11 +32,12 @@ process makeCircosTable {
     tuple val(genome_name_01), path(genome_01), val(genome_name_02), path(genome_02), path(results_DESeq2)
 
     output:
-    tuple val(genome_name_01), val(genome_name_02), path("${genome_name_01}_${genome_name_02}_circos_table.txt")
+    tuple val(genome_name_01), val(genome_name_02), path("${genome_name_01}_${genome_name_02}_circos_dir")
 
     script:
+    // It would be important to check if the genomes are of the same size
     """
-    
+    make_circos_plots.py ${results_DESeq2} -g ${genome_01} -o ${genome_name_01}_${genome_name_02}_circos
     """
 }
 
@@ -48,13 +49,16 @@ process runCircos {
     label 'circos'
 
     input:
+    tuple val(genome_name_01), val(genome_name_02), path(circos_dir)
 
     output:
+    tuple val(genome_name_01), val(genome_name_02), path(circos_dir)
 
     publishDir "", mode: 'copy'
 
     script:
     """
-    
+    cd ${circos_dir}
+    circos -conf circos.conf
     """
 }

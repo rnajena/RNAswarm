@@ -2,7 +2,7 @@
 * fastqc REPORT
 ***********************************************************************/
 process fastqcReport {
-  label 'preprocessing'
+  label 'fastqc'
 
   input:
   tuple val(name), path(reads), val(condition)
@@ -24,7 +24,7 @@ process fastqcReport {
 *************************************************************************/
 
 process getStats {
-  label 'mapping_samtools'
+  label 'samtools'
 
   input:
   tuple val(name), path(mappings)

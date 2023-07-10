@@ -120,7 +120,8 @@ def save_combination_arrays(combination_arrays, output_folder):
         The output folder to save the arrays to.
     """
     for combination, array in combination_arrays.items():
-        np.save(os.path.join(output_folder, combination), array)
+        output_file = os.path.join(output_folder, f"{combination[0]}-{combination[1]}.npy")
+        np.save(output_file, array)
 
 def import_combination_arrays(combination_arrays, input_folder):
     """
