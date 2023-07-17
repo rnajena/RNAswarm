@@ -1,9 +1,0 @@
-name: nextflow
-channels:
-  - conda-forge
-  - bioconda
-  - defaults
-dependencies:
-  - nextflow
-  - singularity
-  - conda
