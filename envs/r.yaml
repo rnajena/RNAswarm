@@ -7,4 +7,3 @@ dependencies:
   - r-essentials
   - bioconductor-deseq2
   - r-docopt
-  - r-languageserver

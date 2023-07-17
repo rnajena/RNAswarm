@@ -4,4 +4,4 @@ channels:
   - bioconda
   - defaults
 dependencies:
-  - segemehl
+  - segemehl=0.3.4
