@@ -170,16 +170,6 @@ def main():
     # Create circos plot files
     make_circos_files(DESeq2_results, genome_dict, output_dir)
 
-    # Create circos plot
-    run_circos = subprocess.run(
-        ["circos", "-conf", f"{output_dir}/circos.conf"], capture_output=True
-    )
-    # Check if circos ran successfully
-    if run_circos.returncode != 0:
-        print("Circos failed to run")
-        print(run_circos.stderr)
-        sys.exit(1)
-
 
 if __name__ == "__main__":
     main()

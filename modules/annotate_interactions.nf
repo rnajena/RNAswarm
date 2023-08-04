@@ -1,20 +1,20 @@
-/***********************************************************************
-* heatmaps PLOT
-***********************************************************************/
-process plotHeatmaps {
-  label 'python3'
+/*************************************************************************
+* import annotation
+*************************************************************************/
+process annotateArrays {
+    label 'RNAswarm'
 
-  input:
-  // the input is a genome file and a list of trns files
-  tuple path(genome), path(trns_files)
+    input:
+    tuple val(sample_name), val(genome_name), path(genome), path(sample_arrays)
 
-  output:
-  path "${genome.baseName}_heatmaps"
+    output:
+    tuple val(sample_name), path(sample_arrays), path("${sample_name}_annotations.tsv")
 
-  publishDir "${params.output}/04-stats_and_plots", mode: 'copy'
+    publishDir "${params.output}/04-stats_and_plots", mode: 'copy'
 
-  script:
-  """
-  plot_heatmaps.py ${trns_files} -g ${genome} -o ${genome.baseName}_heatmaps
-  """
+    script:
+    """
+    annotate_interactions.py ${sample_arrays} -g ${genome} -o ${sample_name}_annotations.tsv
+    """
 }
+

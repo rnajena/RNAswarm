@@ -3,13 +3,13 @@
 """plot_heatmaps.py
 
 Usage:
-    plot_heatmaps.py <trns_file> <trns_file>... -g <genome> [-a <annotation_table> --intra_only] -o <output_folder>
-    plot_heatmaps.py <trns_file> -g <genome> [-a <annotation_table> --intra_only] -o <output_folder>
-
+    plot_heatmaps.py -t <trns_file>... -g <genome> [-a <annotation_table> --intra_only] -o <output_folder>
+    plot_heatmaps.py -d <array_dir>... -g <genome> [-a <annotation_table> --intra_only] -o <output_folder>
 
 Options:
     -h --help                                 Show this screen.
-    <trns_file>                               Path to trns files
+    -t --trns_file=<trns_file>...             The trns files (space-separated).
+    -d --array_dir=<array_dir>...             The array directories (space-separated).
     -g --genome=<genome>                      The genome filepath.
     -o --output=<output_folder>               The output folder.
     -a --annotation_table=<annotation_table>  The annotation table filepath.
@@ -44,6 +44,7 @@ def plot_heatmaps(
         Colour palette to use for plotting
 
     Returns
+
     -------
     None
     """
@@ -71,31 +72,33 @@ def plot_heatmaps(
 
 
 def plot_heatmap(
-    combination_array,
-    plots_folder,
-    colour_palette,
-    combination,
-    regions=None,
-    colorbar_label="Read counts",
-    suffix="",
-):
+    combination_array: np.ndarray,
+    plots_folder: str,
+    colour_palette: str,
+    combination: tuple,
+    regions: pd.DataFrame = None,
+    colorbar_label: str = "Read counts",
+    suffix: str = "",
+) -> None:
     """
     Plot heatmap from a given combination.
 
     Parameters
     ----------
-    merged_combination_arrays : dict
-        Dictionary of combination arrays
+    combination_array : np.ndarray
+        Array representing the heatmap data
     plots_folder : str
         Path to folder where plots should be saved
     colour_palette : str
         Colour palette to use for plotting
     combination : tuple
         Tuple of combination
-    regions : pandas.DataFrame
-        A table containing the annotations for the rectangular regions.
-    colorbar_label : str
-        Label for colorbar
+    regions : pandas.DataFrame, optional
+        A table containing the annotations for the rectangular regions, by default None
+    colorbar_label : str, optional
+        Label for colorbar, by default "Read counts"
+    suffix : str, optional
+        Suffix for the output file, by default ""
 
     Returns
     -------
@@ -103,80 +106,165 @@ def plot_heatmap(
     """
     ax = plt.gca()
     plt.imshow(combination_array, cmap=colour_palette)
-    plt.xticks(
-        np.arange(0, combination_array.shape[1], 25),
-        np.arange(0, combination_array.shape[1], 25),
-        rotation=90,
-    )
-    plt.yticks(
-        np.arange(0, combination_array.shape[0], 25),
-        np.arange(0, combination_array.shape[0], 25),
-    )
-    plt.tick_params(
-        axis="both", which="major", labelsize=3, labeltop=True, labelright=True
-    )
-    plt.grid(which="major", axis="x", linestyle="-", linewidth="0.05", color="grey")
-    plt.grid(which="major", axis="y", linestyle="-", linewidth="0.05", color="grey")
+    set_ticks_and_grid(combination_array, ax)
     plt.colorbar(label=colorbar_label)
     plt.xlabel(f"{combination[1]}")
     plt.ylabel(f"{combination[0]}")
     if regions is not None:
         suffix = f"{suffix}_annotated"
-        for region in regions.itertuples():
-            # check if region is in combination
-            if (
-                region.segment01 == combination[0]
-                and region.segment02 == combination[1]
-            ):
-                ax.add_patch(
-                    Rectangle(
-                        (region.start02, region.start01),
-                        region.end02 - region.start02,
-                        region.end01 - region.start01,
-                        linewidth=0.5,
-                        edgecolor="silver",
-                        facecolor="none",
-                    )
+        annotate_regions(ax, combination, regions)
+    else:
+        suffix = f"{suffix}_unannotated"
+    save_plot(plots_folder, combination, suffix)
+    plt.close()
+
+
+def set_ticks_and_grid(combination_array: np.ndarray, ax: plt.Axes) -> None:
+    """
+    Set ticks, grid and tick parameters for the given axis.
+
+    Parameters
+    ----------
+    combination_array : np.ndarray
+        Array representing the heatmap data
+    ax : plt.Axes
+        Axis to set ticks and grid
+
+    Returns
+    -------
+    None
+    """
+    ax.set_xticks(np.arange(0, combination_array.shape[1], 25))
+    ax.set_xticklabels(np.arange(0, combination_array.shape[1], 25), rotation=90)
+    ax.set_yticks(np.arange(0, combination_array.shape[0], 25))
+    ax.set_yticklabels(np.arange(0, combination_array.shape[0], 25))
+    ax.tick_params(
+        axis="both", which="major", labelsize=3, labeltop=True, labelright=True
+    )
+    ax.grid(which="major", axis="x", linestyle="-", linewidth="0.05", color="grey")
+    ax.grid(which="major", axis="y", linestyle="-", linewidth="0.05", color="grey")
+
+
+def annotate_regions(ax: plt.Axes, combination: tuple, regions: pd.DataFrame) -> None:
+    """
+    Annotate the regions on the given axis based on the combination.
+
+    Parameters
+    ----------
+    ax : plt.Axes
+        Axis to annotate regions on
+    combination : tuple
+        Tuple of combination
+    regions : pandas.DataFrame
+        A table containing the annotations for the rectangular regions
+
+    Returns
+    -------
+    None
+    """
+    for region in regions.itertuples():
+        if region.segment01 == combination[0] and region.segment02 == combination[1]:
+            ax.add_patch(
+                create_rectangle(
+                    region.start01, region.start02, region.end01, region.end02
                 )
-                # label the region
-                ax.text(
-                    int((region.start02 + region.end02) / 2),
-                    int((region.start01 + region.end01) / 2),
-                    region.id,
-                    color="silver",
-                    fontsize=3,
-                    verticalalignment="center",
-                    horizontalalignment="center",
+            )
+            ax.text(
+                get_center(region.start01, region.end01),
+                get_center(region.start02, region.end02),
+                region.id,
+                color="silver",
+                fontsize=3,
+                verticalalignment="center",
+                horizontalalignment="center",
+            )
+        elif region.segment01 == combination[1] and region.segment02 == combination[0]:
+            ax.add_patch(
+                create_rectangle(
+                    region.start02, region.start01, region.end02, region.end01
                 )
-            elif (
-                region.segment01 == combination[1]
-                and region.segment02 == combination[0]
-            ):
-                ax.add_patch(
-                    Rectangle(
-                        (region.start01, region.start02),
-                        region.end01 - region.start01,
-                        region.end02 - region.start02,
-                        linewidth=0.5,
-                        edgecolor="silver",
-                        facecolor="none",
-                    )
-                )
-                # label the region
-                ax.text(
-                    int((region.start01 + region.end01) / 2),
-                    int((region.start02 + region.end02) / 2),
-                    region.id,
-                    fontsize=3,
-                    color="silver",
-                    verticalalignment="center",
-                    horizontalalignment="center",
-                )
+            )
+            ax.text(
+                get_center(region.start02, region.end02),
+                get_center(region.start01, region.end01),
+                region.id,
+                color="silver",
+                fontsize=3,
+                verticalalignment="center",
+                horizontalalignment="center",
+            )
+
+
+def create_rectangle(start1: int, start2: int, end1: int, end2: int) -> Rectangle:
+    """
+    Create a Rectangle object with given start and end points.
+
+    Parameters
+    ----------
+    start1 : int
+        Start point of the first axis
+    start2 : int
+        Start point of the second axis
+    end1 : int
+        End point of the first axis
+    end2 : int
+        End point of the second axis
+
+    Returns
+    -------
+    Rectangle
+        Rectangle object with the given start and end points
+    """
+    return Rectangle(
+        (start1, start2),
+        end1 - start1,
+        end2 - start2,
+        linewidth=0.5,
+        edgecolor="silver",
+        facecolor="none",
+    )
+
+
+def get_center(start: int, end: int) -> int:
+    """
+    Calculate the center of two given points.
+
+    Parameters
+    ----------
+    start : int
+        Start point
+    end : int
+        End point
+
+    Returns
+    -------
+    int
+        Center of the two given points
+    """
+    return int((start + end) / 2)
+
+
+def save_plot(plots_folder: str, combination: tuple, suffix: str) -> None:
+    """
+    Save the plot in the specified folder with the given suffix.
+
+    Parameters
+    ----------
+    plots_folder : str
+        Path to folder where plots should be saved
+    combination : tuple
+        Tuple of combination
+    suffix : str
+        Suffix for the output file
+
+    Returns
+    -------
+    None
+    """
     plt.savefig(
         os.path.join(plots_folder, f"{combination[0]}_{combination[1]}{suffix}.pdf"),
         format="pdf",
     )
-    plt.close()
 
 
 def parse_annotation_table(annotation_table):
@@ -212,6 +300,75 @@ def parse_annotation_table(annotation_table):
     return regions, peaks
 
 
+def prepare_arrays(
+    array_folders=None, trns_files=None, intra_only=True, genome_dict=None
+):
+    """
+    Prepare arrays for plotting and merge them.
+
+    Parameters
+    ----------
+    array_folder : str or list
+        Path to a single array folder or a list of paths to multiple array folders
+    trns_files : str or list
+        Path to a single trns file or a list of paths to multiple trns files
+    intra_only : bool
+        If True, only intra-chromosomal interactions are considered
+    genome_dict : dict
+        Dictionary of genome segments
+    combination_arrays : dict
+        Dictionary of combination arrays
+
+    Returns
+    -------
+    merged_combination_arrays : dict
+        Dictionary of combination arrays
+    """
+    # Create a dictionary to store the combination arrays
+    combination_arrays = {}
+    if array_folders is not None:
+        # Import arrays from the given folder
+        for array_folder in array_folders:
+            # Get the name of the current array folder
+            array_folder_name = os.path.basename(array_folder)
+            array_folder_name = array_folder_name.split(".")[0]
+
+            # Create and fill combination arrays
+            combination_arrays[array_folder_name] = hp.make_combination_array(
+                genome_dict, intra_only=intra_only
+            )
+            ah.import_combination_arrays(combination_arrays[array_folder_name], array_folder)
+
+            # Merge combination arrays
+            merged_combination_arrays = ah.combine_arrays(
+                combination_arrays, normalise_array=False
+            )
+
+    elif trns_files is not None:
+        for trns_file in trns_files:
+            # Get the name of the current trns file
+            trns_file_name = os.path.basename(trns_file)
+            trns_file_name = trns_file_name.split(".")[0]
+
+            # Create and fill combination arrays
+            combination_arrays[trns_file_name] = hp.make_combination_array(
+                genome_dict, intra_only=intra_only
+            )
+            th.segemehlTrans2heatmap(
+                trns_file, combination_arrays[trns_file_name], intra_only=intra_only
+            )
+
+            # Merge combination arrays
+            merged_combination_arrays = ah.combine_arrays(
+                combination_arrays, normalise_array=False
+            )
+
+    else :
+        print("Please specify either --trns_files or --array_folders")
+        exit()
+    return merged_combination_arrays
+
+
 def main():
     """
     Main function
@@ -221,13 +378,17 @@ def main():
     None
     """
     args = docopt(__doc__)
-    trns_files = args["<trns_file>"]
+
+
+    # Get other arguments
     genome_file = args["--genome"]
     output_folder = args["--output"]
+
     # Check if --intra_only is given
     intra_only = False
     if args["--intra_only"]:
         intra_only = True
+
     # check if --annotation_table is given
     if args["--annotation_table"]:
         annotation_table = args["--annotation_table"]
@@ -240,33 +401,24 @@ def main():
 
     # Process input files
     genome_dict = hp.parse_fasta(genome_file)
-    combination_arrays = {}
 
-    # Check if trns_files is a list or a single file
-    if isinstance(trns_files, str):
-        trns_file_name = os.path.basename(trns_file)
-        trns_file_name = trns_file_name.split(".")[0]
-
-        # Create and fill combination arrays
-        combination_arrays[trns_file_name] = hp.make_combination_array(genome_dict, intra_only=intra_only)
-        th.segemehlTrans2heatmap(trns_file, combination_arrays[trns_file_name], intra_only=intra_only)
-        merged_combination_arrays = combination_arrays
-
-    elif isinstance(trns_files, list):
-        for trns_file in trns_files:
-            # Get the name of the current trns file
-            trns_file_name = os.path.basename(trns_file)
-            trns_file_name = trns_file_name.split(".")[0]
-
-            # Create and fill combination arrays
-            combination_arrays[trns_file_name] = hp.make_combination_array(genome_dict, intra_only=intra_only )
-            th.segemehlTrans2heatmap(trns_file, combination_arrays[trns_file_name], intra_only=intra_only)
-
-        # Merge combination arrays
-        merged_combination_arrays = ah.combine_arrays(
-            combination_arrays, normalise_array=False
+    # If arrays are given, use them instead of trns files
+    if not args.get("--trns_files"):
+        array_folders = args.get("--array_folders")
+        merged_combination_arrays = prepare_arrays(
+            array_folders=array_folders,
+            intra_only=intra_only,
+            genome_dict=genome_dict,
         )
-    
+    # If trns files are given, use them instead of arrays
+    if not args.get("--array_folders"):
+        trns_files = args.get("--trns_files")
+        merged_combination_arrays = prepare_arrays(
+            trns_files=trns_files,
+            intra_only=intra_only,
+            genome_dict=genome_dict,
+        )
+
     # Define colour palettes
     colour_palette = "gist_stern"
 
@@ -277,6 +429,8 @@ def main():
         os.makedirs(raw_folder)
     if not os.path.exists(peak_folder):
         os.makedirs(peak_folder)
+
+    # Plot heatmaps
     if annotation_table is not None:
         regions, peaks = parse_annotation_table(annotation_table)
         plot_heatmaps(

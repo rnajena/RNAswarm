@@ -1,7 +1,7 @@
-name: nextflow
+name: samtools
 channels:
   - conda-forge
   - bioconda
   - defaults
 dependencies:
-  - nextflow
+  - samtools=1.17

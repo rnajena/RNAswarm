@@ -1,8 +1,7 @@
-name: biopython
+name: segemehl
 channels:
   - conda-forge
   - bioconda
   - defaults
 dependencies:
-  - python=3.9
-  - biopython
+  - segemehl=0.3.4

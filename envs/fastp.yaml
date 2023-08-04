@@ -1,7 +1,7 @@
-name: mapping_samtools
+name: fastp
 channels:
   - conda-forge
   - bioconda
   - defaults
 dependencies:
-  - samtools
+  - fastp=0.23.2

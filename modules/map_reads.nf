@@ -2,17 +2,17 @@
 * segemehl INDEX
 *************************************************************************/
 process segemehlIndex {
-    label 'mapping_segemehl'
+    label 'segemehl'
 
     input:
-    tuple val(name), path(genome)
+    tuple val(group_name), path(genome)
 
     output:
-    tuple val(name), path(genome), path("${name}.idx")
+    tuple val(group_name), path(genome), path("${group_name}.idx")
 
     script:
     """
-    segemehl.x -d ${genome} -x ${name}.idx
+    segemehl.x -d ${genome} -x ${group_name}.idx
     """
 }
 
@@ -20,13 +20,13 @@ process segemehlIndex {
 * segemehl RUN
 *************************************************************************/
 process segemehl {
-    label 'mapping_segemehl'
+    label 'segemehl'
 
     input:
-    tuple val(sample_name), path(genome), path(index), path(reads)
+    tuple val(sample_name), path(reads), val(group_name), path(genome), path(index)
 
     output:
-    tuple val(sample_name), path("${reads.baseName}.trns.txt"), path("${reads.baseName}.sngl.bed"), path("${reads.baseName}.mult.bed"),path("${reads.baseName}*_segemehl.sam"), path(genome), val(genome.baseName)
+    tuple val(sample_name), path("${reads.simpleName}.trns.txt"), path("${reads.simpleName}.sngl.bed"), path("${reads.simpleName}.mult.bed"), path("${reads.simpleName}*_segemehl.sam"), val(group_name), path(genome)
 
     script:
     """
@@ -35,7 +35,7 @@ process segemehl {
                -q ${reads}\
                -S ${reads.baseName}\
                -t ${params.max_cpus}\
-               > ${reads.baseName}_segemehl.sam
+               > ${reads.simpleName}_segemehl.sam
     """
 }
 
@@ -43,10 +43,10 @@ process segemehl {
 * segemehl PUBLISH
 *************************************************************************/
 process segemehlPublish {
-    label 'mapping_segemehl'
+    label 'segemehl'
 
     input:
-    tuple val(name), path(trns_file), path(sngl_file), path(mult_file), path(sam_file), path(genome), val(genome_name)
+    tuple val(name), path(trns_file), path(sngl_file), path(mult_file), path(sam_file),  val(genome_name), path(genome)
 
     output:
     tuple val(name), path(trns_file), path(sngl_file), path(mult_file), path(sam_file)
@@ -64,7 +64,7 @@ process segemehlPublish {
 *************************************************************************/
 
 process convertSAMtoBAM {
-    label 'mapping_samtools'
+    label 'samtools'
 
     input:
     tuple val(name), path(mappings), val(mapper)

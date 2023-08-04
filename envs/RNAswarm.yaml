@@ -1,4 +1,4 @@
-name: python3
+name: RNAswarm
 channels:
   - conda-forge
   - bioconda
@@ -13,3 +13,11 @@ dependencies:
   - docopt
   - pysam
   - openpyxl
+  - bokeh
+  - plotly
+  - circos
+  - biopython
+  - r-base
+  - r-essentials
+  - bioconductor-deseq2
+  - r-docopt

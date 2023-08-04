@@ -7,8 +7,7 @@ count table containing the number of interactions between the regions in the
 annotation table.
 
 Usage:
-  make_counttable.py <input_file> <input_file>... -a <annotation_table> -o <output_file> [--use_peaks]
-  make_counttable.py <input_file> -a <annotation_table> -o <output_file> [--use_peaks]
+  make_counttable.py <input_file>... -a <annotation_table> -o <output_file> [--use_peaks]
 
 Options:
   -h --help                                 Show this screen.
@@ -152,7 +151,17 @@ def make_count_table(annotation_table, trns_files, use_peaks=False):
 def main():
     args = docopt(__doc__)
     # Read annotation table
-    annotation_table = pd.read_csv(args["--annotation_table"], sep="\t", header=0)
+    annotation_table = None
+    # Check if annotation table is a csv, tsv or xlsx file
+    if args["--annotation_table"].endswith(".csv"):
+        annotation_table = pd.read_csv(args["--annotation_table"], sep=",")
+    elif args["--annotation_table"].endswith(".tsv"):
+        annotation_table = pd.read_csv(args["--annotation_table"], sep="\t")
+    elif args["--annotation_table"].endswith(".xlsx") or args["--annotation_table"].endswith(".XLSX"):
+        annotation_table = pd.read_excel(args["--annotation_table"])
+    else:
+        print("Error: Annotation table has to be a csv, tsv or xlsx file.")
+        exit(1)
     # Read trns files
     trns_files = args["<input_file>"]
     # Create count table

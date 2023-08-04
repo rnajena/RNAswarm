@@ -41,13 +41,27 @@ $ conda activate RNAswarm
 $ git clone https://github.com/gabriellovate/RNAswarm.git
 ```
 
+
 ## Usage
-### Full pipeline without differential analysis
+
+### Creating a sample sheet
+- Create a sample sheet file with the following columns:
+
+```
+sample01,sample01.fastq,reference01.fasta,group01
+sample02,sample02.fastq,reference01.fasta,group01
+sample03,sample03.fastq,reference02.fasta,group02
+sample04,sample04.fastq,reference02.fasta,group02
+sample05,sample05.fastq,reference03.fasta,group03
+sample06,sample06.fastq,reference03.fasta,group03
+```
+
 ```bash
 # Activate the environment
 $ conda activate RNAswarm
 # Run the pipeline
 $ 
+```
 
 ## Quick Start
 
@@ -71,6 +85,7 @@ $
    nextflow run main.nf -profile slurm,conda\
                         --output <OUTDIR>\
                         --samples <SAMPLES_CSV_FILE>\
+                        --annotation_table <ANNOTATION_TABLE_FILE>\
                         --slurm_queue <SLURM_QUEU_AVAILABLE>
    ```
 

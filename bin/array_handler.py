@@ -1,4 +1,5 @@
 import numpy as np
+import os
 
 
 def normalize_array(array, max_value=200000, mode="number_of_data_points", round=True):
@@ -32,7 +33,8 @@ def normalize_array(array, max_value=200000, mode="number_of_data_points", round
     elif mode == "number_of_data_points":
         if round:
             if np.sum(array) < max_value:
-                raise Exception("Number of datapoints is too small")
+                print("Warning: Number of datapoints is too small!")
+                return np.rint(array)
             else:
                 return np.rint((array / np.sum(array)) * max_value)
         else:
@@ -104,3 +106,46 @@ def convert_to_density_array(interaction_matrix):
         for i in range(int(value)):
             density_list.append((x, y))
     return np.array(density_list)
+
+
+def save_combination_arrays(combination_arrays, output_folder):
+    """
+    Save the combination arrays as a numpy array.
+
+    Parameters
+    ----------
+    combination_arrays : dict
+        A dictionary of arrays, with the keys being the combination of segments.
+
+    output_folder : str
+        The output folder to save the arrays to.
+    """
+    for combination, array in combination_arrays.items():
+        output_file = os.path.join(output_folder, f"{combination[0]}-{combination[1]}.npy")
+        np.save(output_file, array)
+
+def import_combination_arrays(combination_arrays, input_folder, inter_only=True):
+    """
+    Import the combination arrays as a numpy array.
+
+    Parameters
+    ----------
+    combination_arrays : dict
+        A dictionary of arrays, with the keys being the combination of segments.
+
+    input_folder : str
+        The input folder to import the arrays from.
+
+    Returns
+    -------
+    dict
+        A dictionary of arrays, with the keys being the combination of segments.
+    """
+    for combination, array in combination_arrays.items():
+        if inter_only:
+            if combination[0] != combination[1]:
+                combination_arrays[combination] = np.load(os.path.join(input_folder, f"{combination[0]}-{combination[1]}.npy"))
+        else:
+            combination_arrays[combination] = np.load(os.path.join(input_folder, f"{combination[0]}-{combination[1]}.npy"))
+
+    return combination_arrays
