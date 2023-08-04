@@ -3,11 +3,10 @@
 *************************************************************************/
 
 process plotHeatmaps {
-    label 'python3'
+    label 'RNAswarm'
 
     input:
-    tuple val(sample_name), path(trns_files), val(genome_name), path(genome), path(arrays)
-    // old input: tuple val(genome_name), path(genome_file), path(trns_files)
+    tuple val(sample_name), path(genome), path(arrays)
 
     output:
     tuple val(sample_name), path("${sample_name}_heatmaps")
@@ -21,12 +20,33 @@ process plotHeatmaps {
     """
 }
 
+/*************************************************************************
+* Plot heatmaps annotated
+*************************************************************************/
+
+process plotHeatmapsAnnotated {
+    label 'RNAswarm'
+
+    input:
+    tuple val(sample_name), path(genome), path(arrays), path(annotation_table)
+
+    output:
+    tuple val(sample_name), path("${sample_name}_heatmaps")
+
+    publishDir "${params.output}/04-stats_and_plots/heatmaps_annotated", mode: 'copy'
+
+    script:
+    """
+    mkdir ${sample_name}
+    plot_heatmaps.py -d ${arrays} -g ${genome} -a ${annotation_table} -o ${sample_name}_heatmaps
+    """
+}
 
 /*************************************************************************
 * make circos table
 *************************************************************************/
 process makeCircosTable {
-    label 'python3'
+    label 'RNAswarm'
 
     input:
     tuple val(genome_name_01), path(genome_01), val(genome_name_02), path(genome_02), path(results_DESeq2)
@@ -41,12 +61,11 @@ process makeCircosTable {
     """
 }
 
-
 /*************************************************************************
 * run circos
 *************************************************************************/
 process runCircos {
-    label 'circos'
+    label 'RNAswarm'
 
     input:
     tuple val(genome_name_01), val(genome_name_02), path(circos_dir)

@@ -2,7 +2,7 @@
 * import annotation
 *************************************************************************/
 process annotateArrays {
-    label 'python3'
+    label 'RNAswarm'
 
     input:
     tuple val(sample_name), val(genome_name), path(genome), path(sample_arrays)

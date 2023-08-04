@@ -23,8 +23,8 @@ import array_handler as ah
 def main():
     args = docopt(__doc__)
     array_folders = args["<array_folder>"]
-    genome_file = args["<genome_file>"]
-    output = args["<output>"]
+    genome_file = args["-g"]
+    output = args["-o"]
 
     # Process input files
     genome_dict = hp.parse_fasta(genome_file)
@@ -32,7 +32,7 @@ def main():
     # Create and fill combination arrays
     combination_arrays = {}
     for array_folder in array_folders:
-        combination_arrays[array_folder] = hp.make_combination_array(genome_dict, intra_only=True)
+        combination_arrays[array_folder] = hp.make_combination_array(genome_dict, intra_only=False)
         ah.import_combination_arrays(combination_arrays[array_folder], array_folder)
 
     # Merge combination arrays

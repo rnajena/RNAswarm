@@ -41,7 +41,7 @@ workflow segemehl_mapping {
         genomes_ch
     main:
         // Indexes the reference genomes
-        segemehlIndex( genomes_ch.view() )
+        segemehlIndex( genomes_ch )
         // Maps the reads to the reference genomes
         segemehl_input_ch = segemehlIndex.out.combine(            // group name, genome file, idx file
             preprocessed_reads_ch                                 // sample name, reads file, group name 
@@ -61,21 +61,6 @@ workflow segemehl_mapping {
         segemehl.out
         convertSAMtoBAM.out
         getStats.out
-}
-
-// run differential analysis
-include { generateCountTables; runDESeq2 } from './modules/differential_analysis.nf'
-
-workflow differential_analysis {
-    take:
-        arrays_ch
-    main:
-        // Generates the count tables
-        generateCountTables( arrays_ch )
-        // Performs the differential analysis
-        runDESeq2( generateCountTables.out )
-    emit:
-        runDESeq2.out
 }
 
 // generate circos plots
@@ -101,8 +86,10 @@ include { fillArrays; mergeArrays } from './modules/handle_arrays.nf'
 // plot heatmaps
 include { plotHeatmaps as plotHeatmapsRaw } from './modules/data_visualization.nf'
 include { plotHeatmaps as plotHeatmapsMerged } from './modules/data_visualization.nf'
-include { plotHeatmaps as plotHeatmapsAnnotated } from './modules/data_visualization.nf'
+include { plotHeatmapsAnnotated } from './modules/data_visualization.nf'
 include { annotateArrays; } from './modules/annotate_interactions.nf'
+// differential analysis
+include { generateCountTables; mergeCountTables; runDESeq2 } from './modules/differential_analysis.nf'
 
 workflow {
     // parse sample's csv file
@@ -120,7 +107,7 @@ workflow {
     reads_ch = samples_input_ch
         .map{ it -> [ it[0], it[1], it[3] ] }            // sample name, read file, group name
     genomes_ch = samples_input_ch
-        .map{ it -> [ it[3], it[2] ] }                  // group name, genome file
+        .map{ it -> [ it[3], it[2] ] }                   // group name, genome file
         .unique()
 
     // preprocessing workflow
@@ -132,46 +119,59 @@ workflow {
     // fill arrays with the segemehl output
     array_ch = fillArrays(
         segemehl_mapping.out[0]
-        .map( it -> [ it[0], it[1], it[5], it[6] ] ) // sample name, trns file, group name, genome
+        .map( it -> [ it[0], it[1], it[5], it[6] ] )    // sample name, trns file, group name, genome
     )
 
     // // plot heatmaps using the filled arrays
-    plotHeatmapsRaw( array_ch )
+    plotHeatmapsRaw( 
+        array_ch
+        .map( it -> [ it[0], it[3], it[4] ] ) // sample name, genome, array
+     )
 
     // // accumulate arrays with the same group name
-    // groupped_arrays_ch = array_ch.groupTuple( by: 2 ) // This can be streamlined by knowing the number of samples in each group beforehand, but should be fine for now
-    //     .map( it -> [ it[2], it[3].unique(), it[4].flatten()] ) // group name, genome, arrays
+    groupped_arrays_ch = array_ch
+        .groupTuple( by: 2 )   // This can be streamlined by knowing the number of samples in each group beforehand, but should be fine for now
+        .map( it -> [ it[2], it[3][0], it[4].flatten()] ) // group name, genome, arrays
+    groupped_arrays_ch
+    // merge arrays with the same group name
+    merged_arrays_ch = mergeArrays( groupped_arrays_ch )
 
-    // // merge arrays with the same group name
-    // merged_arrays_ch = mergeArrays( groupped_arrays_ch )
+    // plot heatmaps using the merged arrays
+    plotHeatmapsMerged( merged_arrays_ch )
 
-    // // plot heatmaps using the merged arrays
-    // plotHeatmapsMerged( merged_arrays_ch ) // I've already called this function, but I'm not sure if it's a problem
+    // Check if annotations are present
+    if ( params.annotation_table ) {
+        // Create a channel with the annotations
+        annotated_arrays_ch = merged_arrays_ch
+            .combine( Channel.fromPath( params.annotation_table, checkIfExists: true ) )
+        annotated_trns_ch = segemehl_mapping.out[0]
+            .map( it -> [ it[0], it[1], it[5] ] ) // sample name, trns file, group name
+            .combine( Channel.fromPath( params.annotation_table, checkIfExists: true ) )
+    } else {
+        // Annotate interactions de novo
+        annotated_arrays_ch = annotateArrays( array_ch )
+    }
 
-    // // Check if annotations are present
-    // if ( params.annotations ) {
-    //     // Create a channel with the annotations
-    //     annotated_arrays_ch = merged_arrays_ch
-    //         .map( it -> [ it[0], it[2]])
-    //         .combine( Channel.fromPath( params.annotations, checkIfExists: true ) )
-    //     annotated_trns_ch = segemehl_mapping.out[0]
-    //         .map( it -> [ it[0], it[1], it[5], it[6] ] ) // sample name, trns file, group name, genome
-    //         .combine( Channel.fromPath( params.annotations, checkIfExists: true ) )
-    // } else {
-    //     // Annotate interactions de novo
-    //     annotated_arrays_ch = annotateArrays( array_ch )
-    // }
+    // Plot the annotations on the heatmaps
+    plotHeatmapsAnnotated( annotated_arrays_ch )
 
-    // // Plot the annotations on the heatmaps
-    // plotHeatmapsAnnotated( annotated_arrays_ch )
+    // Generate count tables
+    count_tables_ch = generateCountTables( annotated_trns_ch )
+    merged_count_tables_ch = mergeCountTables(
+        count_tables_ch
+            .groupTuple( by: 2 )
+            .map( it -> [ it[2], it[1] ] ) // group name, count tables
+    )
 
-    // // Generate count tables
-    // // count_tables_ch = generate_count_tables( annotated_trns_ch )
-
-    // // Run differential analysis with DESeq2
-
-
-    // // Generate circos plots
-    
+    // Run differential analysis with DESeq2
+    differential_analysis_results_ch = runDESeq2(
+        samples_input_ch = Channel
+        .fromPath( params.comparisons, checkIfExists: true )
+        .splitCsv()
+        .combine( merged_count_tables_ch, by: 0 )
+        .map( it -> [ it[1], it[0], it[2] ] )
+        .combine( merged_count_tables_ch, by: 0 )
+        .map( it -> [ it[1], it[2], it[0], it[3] ] )
+    ).view()
 
     }

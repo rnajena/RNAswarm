@@ -3,7 +3,7 @@
 *************************************************************************/
 
 process fillArrays {
-    label 'handle_arrays'
+    label 'RNAswarm'
 
     input:
     tuple val(sample_name), path(trns_files), val(group_name), path(genome)
@@ -26,7 +26,7 @@ process fillArrays {
 * Merge arrays
 *************************************************************************/
 process mergeArrays {
-    label 'handle_arrays'
+    label 'RNAswarm'
 
     input:
     tuple val(group_name), path(genome), path(arrays)
@@ -39,6 +39,6 @@ process mergeArrays {
     script:
     """
     mkdir ${group_name}_merged_arrays
-    merge_arrays.py ${arrays} -g ${genome_file} -o ${group_name}_merged_arrays
+    merge_arrays.py ${arrays} -g ${genome} -o ${group_name}_merged_arrays
     """
 }
