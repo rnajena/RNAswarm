@@ -2,22 +2,24 @@
 
 """annotate_interactions.py
 
-Takes an arbitrary number of trns files, finds and merges interactions, outputing an annotation table.
+Takes an arbitrary number of trns files, finds and merges interactions, outputing an annotation table and the GMMs for each combination.
 
 Usage:
-  annotate_interactions.py <input_file> <input_file>... -g <genome> -o <output_folder> [-m <min_components> -M <max_components> --step_size <step_size>]
+    annotate_interactions.py -t <trns_file>... -g <genome> -o <output_file> [-m <min_components> -M <max_components> --step_size <step_size>]
+    annotate_interactions.py -d <array_dir> -g <genome> -o <output_file> [-m <min_components> -M <max_components> --step_size <step_size>]
 
 Options:
-  -h --help                             Show this screen.
-  <input_file>                          The input files to process.
-  -g --genome=<genome>                  The genome filepath.
-  -o --output=<output_folder>           The output folder.
-  -m --min_components=<min_components>  The minimum number of components to use
-                                        for the Gaussian Mixture Model [default: 28].
-  -M --max_components=<max_components>  The maximum number of components to use 
-                                        for the Gaussian Mixture Model [default: 30].
-  --step_size=<step_size>               The step size to use for each iteration of the
-                                        Gaussian Mixture Model optimization [default: 1].
+    -h --help                             Show this screen.
+    -t --trns_file=<trns_file>...         The trns files (space-separated).
+    -d --array_dir=<array_dir>...         The array directories (space-separated).
+    -g --genome=<genome>                  The genome filepath.
+    -o --output=<output_file>             The output folder.
+    -m --min_components=<min_components>  The minimum number of components to use
+                                          for the Gaussian Mixture Model [default: 28].
+    -M --max_components=<max_components>  The maximum number of components to use.
+                                          for the Gaussian Mixture Model [default: 30].
+    --step_size=<step_size>               The step size to use for each iteration of the
+                                          Gaussian Mixture Model optimization [default: 1].
 
 """
 import helper as hp
@@ -36,7 +38,7 @@ import os
 import pickle
 
 
-def plot_bic_scores(gmm_dict, output_folder=None):
+def plot_bic_scores(gmm_dict, density_array, output_folder=None):
     """
     Plot the BIC scores for each number of components.
 
@@ -44,6 +46,8 @@ def plot_bic_scores(gmm_dict, output_folder=None):
     ----------
     gmm_dict : dict
         A dictionary of Gaussian Mixture Models, with the number of components as the key.
+    density_array : array-like
+        The array to plot the BIC scores for.
     output_folder : str
         The output folder to save the plot to.
 
@@ -54,7 +58,7 @@ def plot_bic_scores(gmm_dict, output_folder=None):
     bic_scores = []
     components = []
     for n_components, gmm in gmm_dict.items():
-        bic_scores.append(gmm["bic"])
+        bic_scores.append(gmm.bic(density_array))
         components.append(n_components)
     plt.plot(components, bic_scores)
     plt.xlabel("n_components")
@@ -394,8 +398,8 @@ def fit_gmms(array_dict, min_components, max_components, max_value=2000000):
     gmms_dict = {}
     for combination, array in array_dict.items():
         print(f"Fitting GMM for {combination}")
-        normalized_array = normalize_array(array, max_value)
-        density_array = convert_to_density_array(normalized_array)
+        normalized_array = ah.normalize_array(array, max_value)
+        density_array = ah.convert_to_density_array(normalized_array)
         gmm = fit_optimal_gmm(density_array, min_components, max_components)
         gmms_dict[combination] = gmm
         print(f"Optimal number of components for {combination} is {gmm.n_components}")
@@ -519,7 +523,7 @@ def main():
     # interaction_finder.py -g <genome> -i <input_file> -o <output_folder> [-m <min_components> -M <max_components> --make_plots --ignore_intra]
     arguments = docopt(__doc__)
     genome_file_path = arguments["--genome"]
-    trns_files = arguments["<input_file>"]
+    array_folder = arguments["--array_dir"]
     output_folder = arguments["--output"]
     min_components = int(arguments["--min_components"])
     max_components = int(arguments["--max_components"])
@@ -529,20 +533,29 @@ def main():
     genome_dict = hp.parse_fasta(genome_file_path)
     combination_arrays = {}
 
-    for trns_file in trns_files:
-        # Get the name of the current trns file
-        trns_file_name = os.path.basename(trns_file)
-        trns_file_name = trns_file_name.split(".")[0]
+    # for trns_file in trns_files:
+    #     # Get the name of the current trns file
+    #     trns_file_name = os.path.basename(trns_file)
+    #     trns_file_name = trns_file_name.split(".")[0]
 
-        # Create and fill combination arrays
-        combination_arrays[trns_file_name] = hp.make_combination_array(genome_dict)
-        hc.segemehlTrans2heatmap(trns_file, combination_arrays[trns_file_name])
+    #     # Create and fill combination arrays
+    #     combination_arrays[trns_file_name] = hp.make_combination_array(genome_dict)
+    #     hc.segemehlTrans2heatmap(trns_file, combination_arrays[trns_file_name])
 
     # Normalise arrays and create density arrays for GMM fitting
-    merged_combination_arrays = combine_arrays(combination_arrays)
+    # merged_combination_arrays = combine_arrays(combination_arrays)
+    
+    # Get the name of the current array folder
+    array_folder_name = os.path.basename(array_folder)
+    array_folder_name = array_folder_name.split(".")[0]
+
+    # Create and fill combination arrays
+    combination_arrays = hp.make_combination_array(genome_dict)
+    ah.import_combination_arrays(combination_arrays, array_folder)
+
     density_arrays = {
-        combination: convert_to_density_array(combination_array)
-        for combination, combination_array in merged_combination_arrays.items()
+        combination: ah.convert_to_density_array(combination_array)
+        for combination, combination_array in combination_arrays.items()
     }
 
     # Use BIC score to fit optimal GMMs to the density arrays
@@ -568,18 +581,18 @@ def main():
     # Create plots
     # Make a line plot of the BIC scores for each GMM in each combination
     for combination, gmms in gmms_dict.items():
-        plot_bic_scores(gmms, f"{output_folder}/{combination}/_bic_scores.png")
+        plot_bic_scores(gmms, density_arrays[combination], f"{output_folder}/{combination[0]}_{combination[1]}/_bic_scores.png")
 
     # Plot the GMMs for each combination, for each number of components
     for combination, gmms in gmms_dict.items():
         for number_of_components, gmm in gmms.items():
             # Save plots from each combination on a new folder
-            combination_folder = f"{output_folder}/{combination}"
+            combination_folder = f"{output_folder}/{combination[0]}_{combination[1]}"
             if not os.path.exists(combination_folder):
                 os.makedirs(combination_folder)
             # Plot the GMM
             plot_gmm(
-                merged_combination_arrays[combination],
+                combination_arrays[combination],
                 gmm,
                 combination,
                 combination_folder,
@@ -627,7 +640,7 @@ def main():
                 os.makedirs(combination_folder)
             # Plot the GMM
             plot_gmm(
-                merged_combination_arrays[combination],
+                combination_arrays[combination],
                 refitted_gmm,
                 combination,
                 combination_folder,

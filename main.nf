@@ -113,7 +113,7 @@ workflow {
     // preprocessing workflow
     preprocessing( reads_ch )
 
-    // // segemehl workflow
+    // segemehl workflow
     segemehl_mapping( preprocessing.out[0], genomes_ch )
 
     // fill arrays with the segemehl output
@@ -122,13 +122,13 @@ workflow {
         .map( it -> [ it[0], it[1], it[5], it[6] ] )    // sample name, trns file, group name, genome
     )
 
-    // // plot heatmaps using the filled arrays
+    // plot heatmaps using the filled arrays
     plotHeatmapsRaw( 
         array_ch
         .map( it -> [ it[0], it[3], it[4] ] ) // sample name, genome, array
      )
 
-    // // accumulate arrays with the same group name
+    // accumulate arrays with the same group name
     groupped_arrays_ch = array_ch
         .groupTuple( by: 2 )   // This can be streamlined by knowing the number of samples in each group beforehand, but should be fine for now
         .map( it -> [ it[2], it[3][0], it[4].flatten()] ) // group name, genome, arrays
@@ -149,7 +149,12 @@ workflow {
             .combine( Channel.fromPath( params.annotation_table, checkIfExists: true ) )
     } else {
         // Annotate interactions de novo
-        annotated_arrays_ch = annotateArrays( array_ch )
+        annotated_arrays_ch = annotateArrays( 
+            merged_arrays_ch 
+            )
+        annotated_trns_ch = segemehl_mapping.out[0]
+            .map( it -> [ it[0], it[1], it[5] ] ) // sample name, trns file, group name
+            .combine( annotated_arrays_ch )
     }
 
     // Plot the annotations on the heatmaps
@@ -166,12 +171,12 @@ workflow {
     // Run differential analysis with DESeq2
     differential_analysis_results_ch = runDESeq2(
         samples_input_ch = Channel
-        .fromPath( params.comparisons, checkIfExists: true )
-        .splitCsv()
-        .combine( merged_count_tables_ch, by: 0 )
-        .map( it -> [ it[1], it[0], it[2] ] )
-        .combine( merged_count_tables_ch, by: 0 )
-        .map( it -> [ it[1], it[2], it[0], it[3] ] )
-    ).view()
+            .fromPath( params.comparisons, checkIfExists: true )
+            .splitCsv()
+            .combine( merged_count_tables_ch, by: 0 )
+            .map( it -> [ it[1], it[0], it[2] ] )
+            .combine( merged_count_tables_ch, by: 0 )
+            .map( it -> [ it[1], it[2], it[0], it[3] ] )
+    )
 
     }

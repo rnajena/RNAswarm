@@ -5,6 +5,7 @@ channels:
   - defaults
 dependencies:
   - python
+  - scikit-learn
   - numpy
   - scipy
   - seaborn

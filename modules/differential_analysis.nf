@@ -51,7 +51,7 @@ process runDESeq2 {
     output:
     tuple val(group_name_01), val(group_name_02), path("${group_name_01}_vs_${group_name_02}_DESeq2.csv")
 
-    publishDir "${params.output}/04-stats_and_plots", mode: 'copy'
+    publishDir "${params.output}/06-count_analysis/deseq2", mode: 'copy'
 
     script:
     """
