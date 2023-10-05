@@ -532,24 +532,12 @@ def main():
     # Process input files
     genome_dict = hp.parse_fasta(genome_file_path)
     combination_arrays = {}
-
-    # for trns_file in trns_files:
-    #     # Get the name of the current trns file
-    #     trns_file_name = os.path.basename(trns_file)
-    #     trns_file_name = trns_file_name.split(".")[0]
-
-    #     # Create and fill combination arrays
-    #     combination_arrays[trns_file_name] = hp.make_combination_array(genome_dict)
-    #     hc.segemehlTrans2heatmap(trns_file, combination_arrays[trns_file_name])
-
-    # Normalise arrays and create density arrays for GMM fitting
-    # merged_combination_arrays = combine_arrays(combination_arrays)
     
     # Get the name of the current array folder
     array_folder_name = os.path.basename(array_folder)
     array_folder_name = array_folder_name.split(".")[0]
 
-    # Create and fill combination arrays
+    # Import  arrays
     combination_arrays = hp.make_combination_array(genome_dict)
     ah.import_combination_arrays(combination_arrays, array_folder)
 
@@ -581,7 +569,11 @@ def main():
     # Create plots
     # Make a line plot of the BIC scores for each GMM in each combination
     for combination, gmms in gmms_dict.items():
-        plot_bic_scores(gmms, density_arrays[combination], f"{output_folder}/{combination[0]}_{combination[1]}/_bic_scores.png")
+        # Check if the combination folder exists
+        combination_folder = f"{output_folder}/{combination[0]}_{combination[1]}"
+        if not os.path.exists(combination_folder):
+            os.makedirs(combination_folder)
+        plot_bic_scores(gmms, density_arrays[combination], f"{combination_folder}/_bic_scores.png")
 
     # Plot the GMMs for each combination, for each number of components
     for combination, gmms in gmms_dict.items():
