@@ -57,7 +57,7 @@ process makeCircosTable {
     script:
     // It would be important to check if the genomes are of the same size
     """
-    make_circos_plots.py ${results_DESeq2} -g ${genome_01} -o ${genome_name_01}_${genome_name_02}_circos
+    make_circos_files.py ${results_DESeq2} -g ${genome_01} -o ${genome_name_01}_${genome_name_02}_circos
     """
 }
 

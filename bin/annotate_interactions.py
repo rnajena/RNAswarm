@@ -421,7 +421,7 @@ def parse_overlaping_elipses(gmm):
     return overlaps
 
 
-def parse_rectangular_regions(gmm, sigma, combination, output_file=None):
+def parse_rectangular_regions(gmm, sigma, combination, output_file=None, with_header=False):
     """
     Parse the regions that are covered by the Gaussian Mixture Model's
     components and extract the coordinates of a rectangle that covers the region.
@@ -462,8 +462,12 @@ def parse_rectangular_regions(gmm, sigma, combination, output_file=None):
             }
         )
     if output_file:
-        pd.DataFrame(regions).to_csv(output_file, mode="a", index=False)
-        return pd.DataFrame(regions)
+        if with_header:
+            pd.DataFrame(regions).to_csv(output_file, mode="a", index=False)
+            return pd.DataFrame(regions)
+        else:
+            pd.DataFrame(regions).to_csv(output_file, mode="a", header=False, index=False)
+            return pd.DataFrame(regions)
     return pd.DataFrame(regions)
 
 
@@ -556,7 +560,7 @@ def main():
             max_components,
             max_iter=500,
             expected_delta=0.000001,
-            get_all_gmms=True,
+            get_all_gmms=False,
             step_size=step_size,
         )
 
@@ -566,77 +570,77 @@ def main():
     with open(gmms_pickle, "wb") as handle:
         pickle.dump(gmms_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-    # Create plots
-    # Make a line plot of the BIC scores for each GMM in each combination
-    for combination, gmms in gmms_dict.items():
-        # Check if the combination folder exists
+
+    # Plot the GMMs for each combination, for each number of components
+    for combination, gmm in gmms_dict.items():
+        # Save plots from each combination on a new folder
         combination_folder = f"{output_folder}/{combination[0]}_{combination[1]}"
         if not os.path.exists(combination_folder):
             os.makedirs(combination_folder)
-        plot_bic_scores(gmms, density_arrays[combination], f"{combination_folder}/_bic_scores.png")
+        # Plot the GMM
+        plot_gmm(
+            combination_arrays[combination],
+            gmm,
+            combination,
+            combination_folder,
+            label_components=True,
+        )
 
-    # Plot the GMMs for each combination, for each number of components
-    for combination, gmms in gmms_dict.items():
-        for number_of_components, gmm in gmms.items():
-            # Save plots from each combination on a new folder
-            combination_folder = f"{output_folder}/{combination[0]}_{combination[1]}"
-            if not os.path.exists(combination_folder):
-                os.makedirs(combination_folder)
-            # Plot the GMM
-            plot_gmm(
-                combination_arrays[combination],
-                gmm,
-                combination,
-                combination_folder,
-                label_components=True,
-            )
+    # Export regions as a table
+    for combination, gmm in gmms_dict.items():
+        # Parse the regions
+        parse_rectangular_regions(
+            gmms_dict[combination], 2, combination, f"{output_folder}/{output_folder}.csv"
+        )
 
-    # Calculate the individual log likelihood for each component (refitting the model)
-    individual_log_likelihoods_refitted = {}
-    refitted_gmms_dict = {}
+    refit_gmms=False
+    if refit_gmms:
+        # Calculate the individual log likelihood for each component (refitting the model)
+        individual_log_likelihoods_refitted = {}
+        refitted_gmms_dict = {}
 
-    for combination, gmms in gmms_dict.items():
-        individual_log_likelihoods_refitted[combination] = {}
-        refitted_gmms_dict[combination] = {}
-        for number_of_components, gmm in gmms.items():
-            (
-                individual_log_likelihoods_refitted[combination][number_of_components],
-                refitted_gmms_dict[combination][number_of_components],
-            ) = calculate_individual_log_likelihoods(gmm, density_array, refit_gmm=True)
+        for combination, gmms in gmms_dict.items():
+            individual_log_likelihoods_refitted[combination] = {}
+            refitted_gmms_dict[combination] = {}
+            for number_of_components, gmm in gmms.items():
+                (
+                    individual_log_likelihoods_refitted[combination][number_of_components],
+                    refitted_gmms_dict[combination][number_of_components],
+                ) = calculate_individual_log_likelihoods(gmm, density_array, refit_gmm=True)
 
-    # Create bar plots of the individual_log_likelihoods_refitted
-    for (
-        combination,
-        individual_log_likelihoods,
-    ) in individual_log_likelihoods_refitted.items():
-        for number_of_components, log_likelihoods in individual_log_likelihoods.items():
-            plt.bar(range(number_of_components), log_likelihoods)
-            plt.title(
-                f"Individual log likelihoods for {combination} with {number_of_components} components"
-            )
-            plt.xlabel("Component")
-            plt.ylabel("Log likelihood")
-            # Save the plot on the combination folder
-            combination_folder = f"{output_folder}/{combination}"
-            plt.savefig(
-                f"{combination_folder}/{combination}_{number_of_components}_individual_log_likelihoods.pdf"
-            )
-            plt.close()
+        # Create bar plots of the individual_log_likelihoods_refitted
+        for (
+            combination,
+            individual_log_likelihoods,
+        ) in individual_log_likelihoods_refitted.items():
+            for number_of_components, log_likelihoods in individual_log_likelihoods.items():
+                plt.bar(range(number_of_components), log_likelihoods)
+                plt.title(
+                    f"Individual log likelihoods for {combination} with {number_of_components} components"
+                )
+                plt.xlabel("Component")
+                plt.ylabel("Log likelihood")
+                # Save the plot on the combination folder
+                combination_folder = f"{output_folder}/{combination}"
+                plt.savefig(
+                    f"{combination_folder}/{combination}_{number_of_components}_individual_log_likelihoods.pdf"
+                )
+                plt.close()
 
-    # Plot the refitted GMMs for each combination, for each number of components, for each component
-    for combination, refitted_gmms in refitted_gmms_dict.items():
-        for number_of_components, refitted_gmm in refitted_gmms.items():
-            # Save plots from each combination on a new folder
-            combination_folder = f"{output_folder}/{combination}"
-            if not os.path.exists(combination_folder):
-                os.makedirs(combination_folder)
-            # Plot the GMM
-            plot_gmm(
-                combination_arrays[combination],
-                refitted_gmm,
-                combination,
-                combination_folder,
-            )
+        # Plot the refitted GMMs for each combination, for each number of components, for each component
+        for combination, refitted_gmms in refitted_gmms_dict.items():
+            for number_of_components, refitted_gmm in refitted_gmms.items():
+                # Save plots from each combination on a new folder
+                combination_folder = f"{output_folder}/{combination}"
+                if not os.path.exists(combination_folder):
+                    os.makedirs(combination_folder)
+                # Plot the GMM
+                plot_gmm(
+                    combination_arrays[combination],
+                    refitted_gmm,
+                    combination,
+                    combination_folder,
+                )
 
 
 if __name__ == "__main__":

@@ -9,13 +9,13 @@ process generateCountTables {
     tuple val(sample_name), path(trns_file), val(group_name), path(annotation_table)
 
     output:
-    tuple val(sample_name), path("${sample_name}_count_table.csv"), val(group_name)
+    tuple val(sample_name), path("${sample_name}_count_table.tsv"), val(group_name)
 
     publishDir "${params.output}/06-count_analysis/count_tables", mode: 'copy'
 
     script:
     """
-    make_counttable.py ${trns_file} -a ${annotation_table} -o ${sample_name}_count_table.csv
+    make_counttable.py ${trns_file} -a ${annotation_table} -o ${sample_name}_count_table.tsv
     """
 }
 

@@ -143,13 +143,6 @@ def make_circos_files(
 
 
 def main():
-    """
-    Main function of the script.
-
-    Returns
-    -------
-    None
-    """
     # Parse command line arguments
     args = docopt(__doc__)
     input_file = args["<input_file>"]

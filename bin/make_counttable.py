@@ -162,6 +162,10 @@ def main():
     else:
         print("Error: Annotation table has to be a csv, tsv or xlsx file.")
         exit(1)
+    # Check if the indexes are unique
+    if not annotation_table.index.is_unique:
+        # Change the index to be a number for each row, starting at 1
+        annotation_table.index = range(1, len(annotation_table) + 1)
     # Read trns files
     trns_files = args["<input_file>"]
     # Create count table
@@ -169,9 +173,9 @@ def main():
         annotation_table, trns_files, use_peaks=args["--use_peaks"]
     )
     # Transform count table to pandas.DataFrame
-    count_table = pd.DataFrame(count_table)
+    count_table_df = pd.DataFrame(count_table)
     # Write count table to file
-    count_table.to_csv(args["--output"], sep="\t", header=True, index=True)
+    count_table_df.to_csv(args["--output"], sep="\t", header=True, index=True)
 
 
 if __name__ == "__main__":
