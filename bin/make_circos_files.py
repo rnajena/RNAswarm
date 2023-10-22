@@ -171,6 +171,16 @@ def make_circos_files(
             "thickness = 20p\n"
             "fill      = yes\n\n"
 
+            "show_label     = yes\n"
+            "label_with_tag = yes\n"
+            "label_font     = light\n"
+            "label_radius   = dims(ideogram,radius_outer) + 100p\n"
+            "label_center   = yes\n"
+            "label_size     = 24p\n"
+            "label_color    = black\n"
+            "label_parallel = yes\n"
+            'label_format   = eval(sprintf("%s",var(label)))\n'
+
             "</ideogram>\n\n"
             
             f"karyotype = {output_dir}/karyotype.txt\n\n"
@@ -187,14 +197,21 @@ def make_circos_files(
             "color                = black\n\n"
 
             "<tick>\n"
-            "spacing        = 100u\n"
+            "spacing        = 1000u\n"
             "size           = 8p\n"
             "thickness      = 2p\n"
             "color          = black\n"
             "show_label     = yes\n"
             "label_size     = 20p\n"
             "label_offset   = 5p\n"
-            "format         = %d\n"
+            "</tick>\n\n"
+
+            "<tick>\n"
+            "spacing        = 100u\n"
+            "size           = 8p\n"
+            "thickness      = 2p\n"
+            "color          = black\n"
+            "show_label     = no\n"
             "</tick>\n\n"
 
             "</ticks>\n\n"
