@@ -49,15 +49,15 @@ process makeCircosTable {
     label 'RNAswarm'
 
     input:
-    tuple val(genome_name_01), path(genome_01), val(genome_name_02), path(genome_02), path(results_DESeq2)
+    tuple val(genome_name_01), path(genome_01), val(genome_name_02), path(genome_02), path(results_DESeq2), path(annotation_table)
 
     output:
-    tuple val(genome_name_01), val(genome_name_02), path("${genome_name_01}_${genome_name_02}_circos_dir")
+    tuple val(genome_name_01), val(genome_name_02), path("${genome_name_01}_${genome_name_02}_circos")
 
     script:
     // It would be important to check if the genomes are of the same size
     """
-    make_circos_files.py ${results_DESeq2} -g ${genome_01} -o ${genome_name_01}_${genome_name_02}_circos
+    make_circos_files.py ${results_DESeq2} -a ${annotation_table} -g ${genome_01} -o ${genome_name_01}_${genome_name_02}_circos
     """
 }
 
@@ -73,7 +73,7 @@ process runCircos {
     output:
     tuple val(genome_name_01), val(genome_name_02), path(circos_dir)
 
-    publishDir "", mode: 'copy'
+    publishDir "${params.output}/08-circos_plots", mode: 'copy'
 
     script:
     """

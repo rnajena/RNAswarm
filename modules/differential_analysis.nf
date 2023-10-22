@@ -29,13 +29,13 @@ process mergeCountTables {
     tuple val(group_name), path(count_tables)
     
     output:
-    tuple val(group_name), path("${group_name}_count_table.csv")
+    tuple val(group_name), path("${group_name}_count_table.tsv")
 
     publishDir "${params.output}/06-count_analysis/count_tables", mode: 'copy'
 
     script:
     """
-    merge_counttable.py ${count_tables} -o ${group_name}_count_table.csv
+    merge_counttable.py ${count_tables} -o ${group_name}_count_table.tsv
     """
 }
 
@@ -49,7 +49,7 @@ process runDESeq2 {
     tuple val(group_name_01), path(count_table_01), val(group_name_02), path(count_table_02)
 
     output:
-    tuple val(group_name_01), val(group_name_02), path("${group_name_01}_vs_${group_name_02}_DESeq2.csv")
+    tuple val(group_name_01), val(group_name_02), path("${group_name_01}_vs_${group_name_02}_DESeq2.tsv")
 
     publishDir "${params.output}/06-count_analysis/deseq2", mode: 'copy'
 
@@ -57,6 +57,6 @@ process runDESeq2 {
     """
     run_DESeq2.r --count_table1 ${count_table_01} --alias1 ${group_name_01}\
                  --count_table2 ${count_table_02} --alias2 ${group_name_02}\
-                 --output_file ${group_name_01}_vs_${group_name_02}_DESeq2.csv
+                 --output_file ${group_name_01}_vs_${group_name_02}_DESeq2.tsv
     """
 }

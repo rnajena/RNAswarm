@@ -25,9 +25,9 @@ def main():
 
     for annotation_table in annotation_tables:
         annotation_table_df = pd.read_csv(annotation_table, header=None)
-        merged_annotation_table = pd.concat([merged_annotation_table, annotation_table_df])
+        merged_annotation_table = pd.concat([merged_annotation_table, annotation_table_df], ignore_index=True)
 
-    merged_annotation_table.to_csv(output_file, mode="a", header=False)
+    merged_annotation_table.to_csv(output_file, sep="\t", mode="a", header=False)
 
 if __name__ == "__main__":
     main()

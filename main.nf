@@ -63,20 +63,6 @@ workflow segemehl_mapping {
         getStats.out
 }
 
-// generate circos plots
-include { makeCircosTable; runCircos } from './modules/data_visualization.nf'
-
-workflow generate_circos_plots {
-    take:
-        differential_analysis_results_ch
-    main:
-        // Generates circos plots
-        makeCircosTable( differential_analysis_results_ch )
-        runCircos( makeCircosTable.out )
-    emit:
-        runCircos.out
-}
-
 /************************** 
 * WORKFLOW ENTRY POINT
 **************************/
@@ -158,7 +144,7 @@ workflow {
         mergeAnnotations(
             annotated_arrays_ch
                 .collect { it[3] }
-        ).view()
+        )
         //
         annotated_trns_ch = segemehl_mapping.out[0]
             .map( it -> [ it[0], it[1], it[5] ] ) // sample name, trns file, group name
@@ -169,7 +155,7 @@ workflow {
     plotHeatmapsAnnotated( annotated_arrays_ch )
 
     // Generate count tables
-    count_tables_ch = generateCountTables( annotated_trns_ch.view() )
+    count_tables_ch = generateCountTables( annotated_trns_ch )
     merged_count_tables_ch = mergeCountTables(
         count_tables_ch
             .groupTuple( by: 2 )
@@ -177,17 +163,24 @@ workflow {
     )
 
     // Run differential analysis with DESeq2
-    differential_analysis_results_ch = runDESeq2(
-        samples_input_ch = Channel
+    samples_input_ch = Channel
             .fromPath( params.comparisons, checkIfExists: true )
             .splitCsv()
             .combine( merged_count_tables_ch, by: 0 )
             .map( it -> [ it[1], it[0], it[2] ] )
             .combine( merged_count_tables_ch, by: 0 )
             .map( it -> [ it[1], it[2], it[0], it[3] ] )
-    )
+
+    runDESeq2( samples_input_ch )
 
     // Generate circos files and render plots
-    circos_tables_ch = makeCircosTable( differential_analysis_results_ch )
-    runCircos( circos_tables_ch )
+    circos_ch = runDESeq2.out
+                    .combine( genomes_ch, by: 0 )
+                    .map( it -> [ it[1], it[0], it[3], it[2] ] )
+                    .combine( genomes_ch, by: 0 )
+                    .map( it -> [ it[1], it[2], it[0], it[4], it[3] ] )
+                    .combine( mergeAnnotations.out )
+
+    makeCircosTable( circos_ch )
+    runCircos( makeCircosTable.out )
 }

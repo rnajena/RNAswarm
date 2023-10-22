@@ -29,13 +29,13 @@ process mergeAnnotations {
     path(annotations)
 
     output:
-    path("merged_annotations.csv")
+    path("merged_annotations.tsv")
 
     publishDir "${params.output}/06-annotations" , mode: 'copy'
 
     script:
     """
-    echo "id,segment01,start01,end01,segment02,start02,end02" >> merged_annotations.csv
-    merge_annotation_tables.py ${annotations} -o merged_annotations.csv
+    echo "id\tsegment01\tstart01\tend01\tsegment02\tstart02\tend02" >> merged_annotations.tsv
+    merge_annotation_tables.py ${annotations} -o merged_annotations.tsv
     """
 }
