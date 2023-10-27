@@ -124,6 +124,7 @@ def save_combination_arrays(combination_arrays, output_folder):
         output_file = os.path.join(output_folder, f"{combination[0]}-{combination[1]}.npy")
         np.save(output_file, array)
 
+
 def import_combination_arrays(combination_arrays, input_folder, inter_only=True):
     """
     Import the combination arrays as a numpy array.

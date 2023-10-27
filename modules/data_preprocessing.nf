@@ -8,14 +8,14 @@ process fastpTrimming {
     tuple val(sample_name), path(reads), val(group_name)
 
     output:
-    tuple val(sample_name), path("${reads.baseName}_trimmed.fastq.gz"), val(group_name)
+    tuple val(sample_name), path("${reads.baseName}_trimmed.fastq"), val(group_name)
 
     publishDir "${params.output}/01-trimmed_reads", mode: 'copy'
 
     script:
     """
-    fastp -i ${reads} -o ${reads.baseName}_trimmed.fastq.gz\
-          --failed_out ${reads.baseName}_failed_out.fastq.gz\
+    fastp -i ${reads} -o ${reads.baseName}_trimmed.fastq\
+          --failed_out ${reads.baseName}_failed_out.fastq\
           --json ${reads.baseName}.json\
           --html ${reads.baseName}.html\
     """

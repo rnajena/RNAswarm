@@ -15,7 +15,7 @@ process plotHeatmaps {
 
     script:
     """
-    mkdir ${sample_name}
+    mkdir ${sample_name}_heatmaps
     plot_heatmaps.py -d ${arrays} -g ${genome} -o ${sample_name}_heatmaps
     """
 }
@@ -37,7 +37,7 @@ process plotHeatmapsAnnotated {
 
     script:
     """
-    mkdir ${sample_name}
+    mkdir ${sample_name}_heatmaps
     plot_heatmaps.py -d ${arrays} -g ${genome} -a ${annotation_table} -o ${sample_name}_heatmaps
     """
 }

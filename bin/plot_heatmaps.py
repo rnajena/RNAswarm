@@ -4,7 +4,7 @@
 
 Usage:
     plot_heatmaps.py -t <trns_file>... -g <genome> [-a <annotation_table> --intra_only] -o <output_folder>
-    plot_heatmaps.py -d <array_dir>... -g <genome> [-a <annotation_table> --intra_only] -o <output_folder>
+    plot_heatmaps.py -d <array_dir> -g <genome> [-a <annotation_table> --intra_only] -o <output_folder>
 
 Options:
     -h --help                                 Show this screen.
@@ -29,14 +29,14 @@ import array_handler as ah
 
 
 def plot_heatmaps(
-    merged_combination_arrays, plots_folder, colour_palette="PiYG", regions=None
+    combination_array, plots_folder, colour_palette="PiYG", regions=None
 ):
     """
     Plot heatmaps for manual fitting of GMMs
 
     Parameters
     ----------
-    merged_combination_arrays : dict
+    combination_array : dict
         Dictionary of combination arrays
     plots_folder : str
         Path to folder where plots should be saved
@@ -48,10 +48,10 @@ def plot_heatmaps(
     -------
     None
     """
-    for combination in merged_combination_arrays:
+    for combination in combination_array.keys():
         # Plot raw heatmap
         plot_heatmap(
-            merged_combination_arrays[combination],
+            combination_array[combination],
             plots_folder,
             colour_palette,
             combination,
@@ -61,7 +61,7 @@ def plot_heatmaps(
 
         # Plot log10 transformed data
         plot_heatmap(
-            np.log10(merged_combination_arrays[combination] + 1),
+            np.log10(combination_array[combination] + 1),
             plots_folder,
             colour_palette,
             combination,
@@ -281,92 +281,54 @@ def parse_annotation_table(annotation_table):
     regions : pandas.DataFrame
         A table containing the annotations for the rectangular regions.
     """
-    # First line is a header and the separators are tabs
-    regions = pd.read_csv(annotation_table, sep="\t", header=0)
-    # generate the peak pandas.DataFrame
-    peaks = pd.DataFrame(
-        {
-            "id": regions["id"],
-            "segment01": regions["segment01"],
-            "01type": regions["01type"],
-            "start01": regions["segment01_peak"] - 20,
-            "end01": regions["segment01_peak"] + 20,
-            "segment02": regions["segment02"],
-            "02type": regions["02type"],
-            "start02": regions["segment02_peak"] - 20,
-            "end02": regions["segment02_peak"] + 20,
-        }
-    )
-    return regions, peaks
+    # read the annotation table and add header
+    header = [
+        "segment01",
+        "start01",
+        "end01",
+        "segment02",
+        "start02",
+        "end02",
+    ]
+    regions = pd.read_csv(annotation_table, names=header)
+    # add id column
+    regions["id"] = regions.index
+    return regions
 
 
 def prepare_arrays(
-    array_folders=None, trns_files=None, intra_only=True, genome_dict=None
+    array_dir=None, intra_only=True, genome_dict=None
 ):
     """
     Prepare arrays for plotting and merge them.
 
     Parameters
     ----------
-    array_folder : str or list
+    array_dir : str
         Path to a single array folder or a list of paths to multiple array folders
-    trns_files : str or list
-        Path to a single trns file or a list of paths to multiple trns files
     intra_only : bool
         If True, only intra-chromosomal interactions are considered
     genome_dict : dict
         Dictionary of genome segments
-    combination_arrays : dict
-        Dictionary of combination arrays
 
     Returns
     -------
     merged_combination_arrays : dict
         Dictionary of combination arrays
     """
+    combination_array = {}
     # Create a dictionary to store the combination arrays
-    combination_arrays = {}
-    if array_folders is not None:
-        # Import arrays from the given folder
-        for array_folder in array_folders:
-            # Get the name of the current array folder
-            array_folder_name = os.path.basename(array_folder)
-            array_folder_name = array_folder_name.split(".")[0]
+    if array_dir is not None:
+        # Get the name of the current array folder
+        array_dir_name = os.path.basename(array_dir)
+        array_dir_name = array_dir_name.split(".")[0]
 
-            # Create and fill combination arrays
-            combination_arrays[array_folder_name] = hp.make_combination_array(
-                genome_dict, intra_only=intra_only
-            )
-            ah.import_combination_arrays(combination_arrays[array_folder_name], array_folder)
-
-            # Merge combination arrays
-            merged_combination_arrays = ah.combine_arrays(
-                combination_arrays, normalise_array=False
-            )
-
-    elif trns_files is not None:
-        for trns_file in trns_files:
-            # Get the name of the current trns file
-            trns_file_name = os.path.basename(trns_file)
-            trns_file_name = trns_file_name.split(".")[0]
-
-            # Create and fill combination arrays
-            combination_arrays[trns_file_name] = hp.make_combination_array(
-                genome_dict, intra_only=intra_only
-            )
-            th.segemehlTrans2heatmap(
-                trns_file, combination_arrays[trns_file_name], intra_only=intra_only
-            )
-
-            # Merge combination arrays
-            merged_combination_arrays = ah.combine_arrays(
-                combination_arrays, normalise_array=False
-            )
-
-    else :
-        print("Please specify either --trns_files or --array_folders")
-        exit()
-    return merged_combination_arrays
+        # Create and fill combination arrays
+        combination_array = hp.make_combination_array(
+            genome_dict, intra_only=intra_only
+        )
+        ah.import_combination_arrays(combination_array, array_dir)
+    return combination_array
 
 
 def main():
@@ -402,52 +364,29 @@ def main():
     # Process input files
     genome_dict = hp.parse_fasta(genome_file)
 
-    # If arrays are given, use them instead of trns files
-    if not args.get("--trns_files"):
-        array_folders = args.get("--array_folders")
-        merged_combination_arrays = prepare_arrays(
-            array_folders=array_folders,
-            intra_only=intra_only,
-            genome_dict=genome_dict,
-        )
-    # If trns files are given, use them instead of arrays
-    if not args.get("--array_folders"):
-        trns_files = args.get("--trns_files")
-        merged_combination_arrays = prepare_arrays(
-            trns_files=trns_files,
+    if args.get("--array_dir"):
+        array_dir = args.get("--array_dir")
+        combination_array = prepare_arrays(
+            array_dir=array_dir,
             intra_only=intra_only,
             genome_dict=genome_dict,
         )
 
     # Define colour palettes
-    colour_palette = "gist_stern"
-
-    # Create subfolder for colour palette if it does not exist
-    raw_folder = os.path.join(output_folder, "raw")
-    peak_folder = os.path.join(raw_folder, "peaks")
-    if not os.path.exists(raw_folder):
-        os.makedirs(raw_folder)
-    if not os.path.exists(peak_folder):
-        os.makedirs(peak_folder)
+    colour_palette = "PiYnG"
 
     # Plot heatmaps
     if annotation_table is not None:
-        regions, peaks = parse_annotation_table(annotation_table)
+        regions = parse_annotation_table(annotation_table)
         plot_heatmaps(
-            merged_combination_arrays,
-            raw_folder,
+            combination_array,
+            output_folder,
             colour_palette=colour_palette,
             regions=regions,
         )
-        plot_heatmaps(
-            merged_combination_arrays,
-            peak_folder,
-            colour_palette=colour_palette,
-            regions=peaks,
-        )
     else:
         plot_heatmaps(
-            merged_combination_arrays, output_folder, colour_palette=colour_palette
+            combination_array, output_folder, colour_palette=colour_palette
         )
 
 
