@@ -29,7 +29,7 @@ import array_handler as ah
 
 
 def plot_heatmaps(
-    combination_array, plots_folder, colour_palette="PiYG", regions=None
+    combination_array, plots_folder, color_palette="PiYG", regions=None
 ):
     """
     Plot heatmaps for manual fitting of GMMs
@@ -40,8 +40,8 @@ def plot_heatmaps(
         Dictionary of combination arrays
     plots_folder : str
         Path to folder where plots should be saved
-    colour_palette : str
-        Colour palette to use for plotting
+    color_palette : str
+        color palette to use for plotting
 
     Returns
 
@@ -53,7 +53,7 @@ def plot_heatmaps(
         plot_heatmap(
             combination_array[combination],
             plots_folder,
-            colour_palette,
+            color_palette,
             combination,
             colorbar_label="Read counts",
             regions=regions,
@@ -63,7 +63,7 @@ def plot_heatmaps(
         plot_heatmap(
             np.log10(combination_array[combination] + 1),
             plots_folder,
-            colour_palette,
+            color_palette,
             combination,
             colorbar_label="log10(read counts + 1",
             suffix="_log10",
@@ -74,7 +74,7 @@ def plot_heatmaps(
 def plot_heatmap(
     combination_array: np.ndarray,
     plots_folder: str,
-    colour_palette: str,
+    color_palette: str,
     combination: tuple,
     regions: pd.DataFrame = None,
     colorbar_label: str = "Read counts",
@@ -89,8 +89,8 @@ def plot_heatmap(
         Array representing the heatmap data
     plots_folder : str
         Path to folder where plots should be saved
-    colour_palette : str
-        Colour palette to use for plotting
+    color_palette : str
+        color palette to use for plotting
     combination : tuple
         Tuple of combination
     regions : pandas.DataFrame, optional
@@ -105,7 +105,7 @@ def plot_heatmap(
     None
     """
     ax = plt.gca()
-    plt.imshow(combination_array, cmap=colour_palette)
+    plt.imshow(combination_array, cmap=color_palette)
     set_ticks_and_grid(combination_array, ax)
     plt.colorbar(label=colorbar_label)
     plt.xlabel(f"{combination[1]}")
@@ -372,8 +372,8 @@ def main():
             genome_dict=genome_dict,
         )
 
-    # Define colour palettes
-    colour_palette = "PiYnG"
+    # Define color palettes
+    color_palette = "PiYG"
 
     # Plot heatmaps
     if annotation_table is not None:
@@ -381,12 +381,12 @@ def main():
         plot_heatmaps(
             combination_array,
             output_folder,
-            colour_palette=colour_palette,
+            color_palette=color_palette,
             regions=regions,
         )
     else:
         plot_heatmaps(
-            combination_array, output_folder, colour_palette=colour_palette
+            combination_array, output_folder, color_palette=color_palette
         )
 
 
