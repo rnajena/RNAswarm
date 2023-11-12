@@ -11,7 +11,7 @@ process generateCountTables {
     output:
     tuple val(sample_name), path("${sample_name}_count_table.tsv"), val(group_name)
 
-    publishDir "${params.output}/06-count_analysis/count_tables", mode: 'copy'
+    publishDir "${params.output}/07-count_analysis/count_tables", mode: 'copy'
 
     script:
     """
@@ -51,7 +51,7 @@ process runDESeq2 {
     output:
     tuple val(group_name_01), val(group_name_02), path("${group_name_01}_vs_${group_name_02}_DESeq2.tsv")
 
-    publishDir "${params.output}/06-count_analysis/deseq2", mode: 'copy'
+    publishDir "${params.output}/07-count_analysis/deseq2", mode: 'copy'
 
     script:
     """

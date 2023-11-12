@@ -14,7 +14,6 @@ Options:
     -o --output=<output_folder>               The output folder.
     -a --annotation_table=<annotation_table>  The annotation table filepath.
     --intra_only                              Only plot intra-segment interactions.
-
 """
 
 from docopt import docopt
@@ -26,6 +25,7 @@ from matplotlib.patches import Rectangle
 import helper as hp
 import trns_handler as th
 import array_handler as ah
+import helper as hp
 
 
 def plot_heatmaps(
@@ -55,7 +55,7 @@ def plot_heatmaps(
             plots_folder,
             color_palette,
             combination,
-            colorbar_label="Read counts",
+            colorbar_label="read count",
             regions=regions,
         )
 
@@ -65,7 +65,7 @@ def plot_heatmaps(
             plots_folder,
             color_palette,
             combination,
-            colorbar_label="log10(read counts + 1",
+            colorbar_label="log10(read count + 1)",
             suffix="_log10",
             regions=regions,
         )
@@ -77,7 +77,7 @@ def plot_heatmap(
     color_palette: str,
     combination: tuple,
     regions: pd.DataFrame = None,
-    colorbar_label: str = "Read counts",
+    colorbar_label: str = "read count",
     suffix: str = "",
 ) -> None:
     """
@@ -170,11 +170,11 @@ def annotate_regions(ax: plt.Axes, combination: tuple, regions: pd.DataFrame) ->
                 )
             )
             ax.text(
-                get_center(region.start01, region.end01),
                 get_center(region.start02, region.end02),
+                get_center(region.start01, region.end01),
                 region.id,
-                color="silver",
-                fontsize=3,
+                color="black",
+                fontsize=4,
                 verticalalignment="center",
                 horizontalalignment="center",
             )
@@ -185,11 +185,11 @@ def annotate_regions(ax: plt.Axes, combination: tuple, regions: pd.DataFrame) ->
                 )
             )
             ax.text(
-                get_center(region.start02, region.end02),
                 get_center(region.start01, region.end01),
+                get_center(region.start02, region.end02),
                 region.id,
-                color="silver",
-                fontsize=3,
+                color="black",
+                fontsize=4,
                 verticalalignment="center",
                 horizontalalignment="center",
             )
@@ -216,11 +216,11 @@ def create_rectangle(start1: int, start2: int, end1: int, end2: int) -> Rectangl
         Rectangle object with the given start and end points
     """
     return Rectangle(
-        (start1, start2),
-        end1 - start1,
+        (start2, start1),
         end2 - start2,
-        linewidth=0.5,
-        edgecolor="silver",
+        end1 - start1,
+        linewidth=1,
+        edgecolor="black",
         facecolor="none",
     )
 
@@ -266,34 +266,6 @@ def save_plot(plots_folder: str, combination: tuple, suffix: str) -> None:
         format="pdf",
     )
 
-
-def parse_annotation_table(annotation_table):
-    """
-    Parse annotation table
-
-    Parameters
-    ----------
-    annotation_table : str
-        Path to annotation table as a csv file
-
-    Returns
-    -------
-    regions : pandas.DataFrame
-        A table containing the annotations for the rectangular regions.
-    """
-    # read the annotation table and add header
-    header = [
-        "segment01",
-        "start01",
-        "end01",
-        "segment02",
-        "start02",
-        "end02",
-    ]
-    regions = pd.read_csv(annotation_table, names=header)
-    # add id column
-    regions["id"] = regions.index
-    return regions
 
 
 def prepare_arrays(
@@ -373,11 +345,11 @@ def main():
         )
 
     # Define color palettes
-    color_palette = "PiYG"
+    color_palette = "Greens"
 
     # Plot heatmaps
     if annotation_table is not None:
-        regions = parse_annotation_table(annotation_table)
+        regions = hp.parse_annotation_table(annotation_table)
         plot_heatmaps(
             combination_array,
             output_folder,

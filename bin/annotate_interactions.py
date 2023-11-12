@@ -15,11 +15,11 @@ Options:
     -g --genome=<genome>                  The genome filepath.
     -o --output=<output_file>             The output folder.
     -m --min_components=<min_components>  The minimum number of components to use
-                                          for the Gaussian Mixture Model [default: 28].
+                                          for the Gaussian Mixture Model [default: 70].
     -M --max_components=<max_components>  The maximum number of components to use.
-                                          for the Gaussian Mixture Model [default: 30].
+                                          for the Gaussian Mixture Model [default: 80].
     --step_size=<step_size>               The step size to use for each iteration of the
-                                          Gaussian Mixture Model optimization [default: 1].
+                                          Gaussian Mixture Model optimization [default: 5].
 
 """
 import helper as hp
@@ -564,27 +564,12 @@ def main():
             step_size=step_size,
         )
 
-    # Save the gmms dict to a pickle file
-    gmms_pickle = f"{output_folder}/gmms.pickle"
 
+    # Save the gmms dict to a pickle file
+    gmms_pickle = f"{output_folder}/{output_folder}_gmms.pickle"
     with open(gmms_pickle, "wb") as handle:
         pickle.dump(gmms_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-
-    # Plot the GMMs for each combination, for each number of components
-    for combination, gmm in gmms_dict.items():
-        # Save plots from each combination on a new folder
-        combination_folder = f"{output_folder}/{combination[0]}_{combination[1]}"
-        if not os.path.exists(combination_folder):
-            os.makedirs(combination_folder)
-        # Plot the GMM
-        plot_gmm(
-            combination_arrays[combination],
-            gmm,
-            combination,
-            combination_folder,
-            label_components=True,
-        )
 
     # Export regions as a table
     for combination, gmm in gmms_dict.items():
@@ -592,6 +577,7 @@ def main():
         parse_rectangular_regions(
             gmms_dict[combination], 2, combination, f"{output_folder}/{output_folder}.csv"
         )
+
 
     refit_gmms=False
     if refit_gmms:

@@ -4,6 +4,7 @@ import seaborn as sns
 import numpy as np
 import itertools
 from matplotlib.colors import LogNorm
+import pandas as pd
 
 def parse_fasta(fasta_file):
     """Parses a fasta file and returns a dictionary of segment names and sequences.
@@ -264,3 +265,42 @@ def positive_to_negative_strand(genome_dict, aSeq, cai, caj, bSeq, cbi, cbj):
     cbi_neg = bLen + 1 - cbj
 
     return aSeq, cai_neg, caj_neg, bSeq, cbi_neg, cbj_neg
+
+
+def parse_annotation_table(annotation_table):
+    """
+    Parse annotation table
+
+    Parameters
+    ----------
+    annotation_table : str
+        Path to annotation table as a csv file or a xlsx file
+
+    Returns
+    -------
+    regions : pandas.DataFrame
+        A table containing the annotations for the rectangular regions.
+    """
+    # read the annotation table
+    if annotation_table.lower().endswith(".xlsx"):
+        regions = pd.read_excel(annotation_table)
+    elif annotation_table.lower().endswith(".csv"):
+        # add header
+        header = [
+            "segment01",
+            "start01",
+            "end01",
+            "segment02",
+            "start02",
+            "end02",
+        ]
+        regions = pd.read_csv(annotation_table, names=header)
+         # add id column
+        regions["id"] = regions.index
+    elif annotation_table.lower().endswith(".tsv"):
+        regions = pd.read_csv(annotation_table, sep="\t")
+    else:
+        raise ValueError(
+            "Annotation table must be either a csv file or a xlsx file."
+        )
+    return regions

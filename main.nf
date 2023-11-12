@@ -77,7 +77,7 @@ include { annotateArrays; mergeAnnotations } from './modules/annotate_interactio
 // differential analysis
 include { generateCountTables; mergeCountTables; runDESeq2 } from './modules/differential_analysis.nf'
 // generate circos plots
-include { makeCircosTable; runCircos } from './modules/data_visualization.nf'
+include { makeCircosTable_deseq2; makeCircosTable_count_table; makeCircosTable_count_table_30; makeCircosTable_count_table_40; makeCircosTable_count_table_50; runCircos_single; runCircos_comb } from './modules/data_visualization.nf'
 workflow {
     // parse sample's csv file
     samples_input_ch = Channel
@@ -173,14 +173,37 @@ workflow {
 
     runDESeq2( samples_input_ch )
 
-    // Generate circos files and render plots
-    circos_ch = runDESeq2.out
-                    .combine( genomes_ch, by: 0 )
-                    .map( it -> [ it[1], it[0], it[3], it[2] ] )
-                    .combine( genomes_ch, by: 0 )
-                    .map( it -> [ it[1], it[2], it[0], it[4], it[3] ] )
-                    .combine( mergeAnnotations.out )
+    // Generate circos files
+    if ( params.annotation_table ) {
+        circos_deseq2_ch = runDESeq2.out
+                        .combine( genomes_ch, by: 0 )
+                        .map( it -> [ it[1], it[0], it[3], it[2] ] )
+                        .combine( genomes_ch, by: 0 )
+                        .map( it -> [ it[1], it[2], it[0], it[4], it[3] ] )
+                        .combine( Channel.fromPath( params.annotation_table, checkIfExists: true ) )
+        circos_count_table_ch = merged_count_tables_ch
+                        .combine( genomes_ch, by: 0 )
+                        .map( it -> [ it[0], it[2], it[1] ] )
+                        .combine( Channel.fromPath( params.annotation_table, checkIfExists: true ))
+    } else {
+        circos_deseq2_ch = runDESeq2.out
+                        .combine( genomes_ch, by: 0 )
+                        .map( it -> [ it[1], it[0], it[3], it[2] ] )
+                        .combine( genomes_ch, by: 0 )
+                        .map( it -> [ it[1], it[2], it[0], it[4], it[3] ] )
+                        .combine( mergeAnnotations.out )
+        circos_count_table_ch = merged_count_tables_ch
+                        .combine( genomes_ch, by: 0 )
+                        .map( it -> [ it[0], it[2], it[1] ] )
+                        .combine( mergeAnnotations.out )
+    }
 
-    makeCircosTable( circos_ch )
-    runCircos( makeCircosTable.out )
+    // Create circos tables
+    makeCircosTable_deseq2( circos_deseq2_ch )
+    makeCircosTable_count_table( circos_count_table_ch )
+
+
+    // Render circos plots
+    runCircos_single( makeCircosTable_count_table.out )
+    runCircos_comb( makeCircosTable_deseq2.out )
 }
