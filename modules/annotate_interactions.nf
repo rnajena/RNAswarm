@@ -8,7 +8,7 @@ process annotateArrays {
     tuple val(sample_name), path(genome), path(sample_arrays)
 
     output:
-    tuple val(sample_name), path(genome), path(sample_arrays), path("${sample_name}_annotations/${sample_name}_annotations.csv"), path("${sample_name}_annotations/${sample_name}_gmms.pickle")
+    tuple val(sample_name), path(genome), path(sample_arrays), path("${sample_name}_annotations/${sample_name}_annotations.csv"), path("${sample_name}_annotations/${sample_name}_annotations_gmms.pickle")
 
     publishDir "${params.output}/06-annotations", mode: 'copy'
 
