@@ -4,50 +4,27 @@ While working with RNAswarm, you might fing bugs, some are known, while others r
 ***
 # RNAswarm
 RNAswarm is a tool for analyzing SPLASH data. It is a Nextflow pipeline that:
-- Trims and aligns chimeric reads to a reference genome.
-- Generate heatmaps of interactions between chromosomes and segments (in case of segmented viruses).
-- Compare replicates and different datasets in order to identify differentially structured regions.
-- Generate a summary of the results.
+- Trims (with `fastp`) and maps (with `segemehl`) chimeric reads to a reference genome.
+- Generate heatmaps of interactions between viral segments or/and host transcripts.
+- Compare groups or mutants to identify differentially structured regions (with `DESeq2`)
+- Generate circos plots of potential interactions and potential differentially structured regions.
 ***
 
-## Installation (only tested on Linux)
-### Install Miniconda (or Conda)
-- Download the latest version of Miniconda from [Miniconda](https://conda.io/miniconda.html).
-```bash
-$ wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
-```
-- Run the installer.
-```bash
-$ bash Miniconda3-latest-Linux-x86_64.sh
-```
-- Add the channel `conda-forge`.
-```bash
-$ conda config --add channels conda-forge
-```
+## Dependencies
+The pipeline is written in Nextflow, which can be used on any POSIX compatible system (Linux, OS X, etc). Windows system is supported through WSL2. You need Nextflow installed, conda and apptainer.
+1. Install [Nextflow](https://www.nextflow.io/docs/latest/getstarted.html#installation)
+2. Install [miniconda](https://docs.conda.io/projects/miniconda/en/latest/)
+3. Install [apptainer](https://apptainer.org/docs/admin/main/installation.html#install-unprivileged-from-pre-built-binaries) (from our experience, installing from the pre-built binaries is the easiest way to go)
 
-### Create a Conda environment for Nextflow
-- Create a new Conda environment for RNAswarm
-```bash
-$ conda create -n RNAswarm -c bioconda nextflow
-```
-- Activate the environment.
-```bash
-$ conda activate RNAswarm
-```
-
-### Clone this repository
-- Clone the repository to a place where you can run it.
-```bash
-$ git clone https://github.com/gabriellovate/RNAswarm.git
-```
-
+In the future, only either conda or apptainer will be needed.
 
 ## Usage
+RNAswarm takes as input a sample sheet and a comparisons sheet. The sample sheet contains the information about the samples to be analyzed, while the comparisons sheet contains the groups to be compared.
 
 ### Creating a sample sheet
-- Create a sample sheet file with the following columns:
+Create a sample sheet file with the following columns:
 
-```
+```csv
 sample01,sample01.fastq,reference01.fasta,group01
 sample02,sample02.fastq,reference01.fasta,group01
 sample03,sample03.fastq,reference02.fasta,group02
@@ -56,48 +33,42 @@ sample05,sample05.fastq,reference03.fasta,group03
 sample06,sample06.fastq,reference03.fasta,group03
 ```
 
-```bash
-# Activate the environment
-$ conda activate RNAswarm
-# Run the pipeline
-$ 
+### Creating a comparisons sheet
+Create a comparisons sheet file with the groups for differential analysis:
+```csv
+group01,group02
+group01,group03
+group02,group03
 ```
 
-## Quick Start
+### Running the pipeline
+#### with local executor
+```bash
+nextflow run gabriellovate/RNAswarm \
+            -profile local,apptainer \
+            --samples <SAMPLES_CSV_FILE> \
+            --output <OUTDIR> \
+```
+obs: alternatively one can use the `conda` profile instead of `apptainer`.
 
-1. Install [`Nextflow`](https://www.nextflow.io/docs/latest/getstarted.html#installation)
+#### with slurm
+```bash
+nextflow run gabriellovate/RNAswarm \
+            -profile slurm,apptainer \
+            --slurm_queue <SLURM_QUEU_AVAILABLE> \
+            --samples <SAMPLES_CSV_FILE> \
+            --output <OUTDIR> \
+```
+obs: alternatively one can use the `conda` profile instead of `apptainer`.
 
-2. Install [`Conda`](https://conda.io/miniconda.html) both to install Nextflow itself and also to manage software within pipelines.
+## Cite us
+If you use RNAswarm for your analysis, please cite our github repository.
 
-3. Download the pipeline and test it on a minimal dataset with a single command (under construction):
-
-   ```bash
-   nextflow run gabriellovate/RNAswarm -profile test,YOURPROFILE --outdir <OUTDIR>
-   ```
-
-   Note that some form of configuration will be needed so that Nextflow knows how to fetch the required software. This is usually done in the form of a config profile (`YOURPROFILE` in the example command above). You can chain multiple config profiles in a comma-separated string.
-
-   > - The pipeline comes with config profiles called `conda`, `local`, `slurm`.
-
-4. Start running your own analysis (under construction)!
-
-   ```bash
-   nextflow run main.nf -profile slurm,conda\
-                        --output <OUTDIR>\
-                        --samples <SAMPLES_CSV_FILE>\
-                        --annotation_table <ANNOTATION_TABLE_FILE>\
-                        --slurm_queue <SLURM_QUEU_AVAILABLE>
-   ```
-
-## Documentation
-
-RNAswarm comes with documentation about the pipeline [usage](docs/usage.md) and [output](docs/outpud.md) (under construction).
-
-## Contributions and Support
-
-
-
-## Citations
-
-If you use RNAswarm for your analysis, please cite it using the following doi: 
-An extensive list of references for the tools used by the pipeline can be found in the [`CITATIONS.md`](CITATIONS.md) file (under construction).
+```bibtex
+@software{Lencioni_Lovate_RNAswarm,
+author = {Lencioni Lovate, Gabriel and Lamkiewicz, Kevin},
+license = {MIT},
+title = {{RNAswarm}},
+url = {https://github.com/gabriellovate/RNAswarm}
+}
+```
