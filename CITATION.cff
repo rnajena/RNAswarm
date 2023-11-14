@@ -1,0 +1,23 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: RNAswarm
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Gabriel
+    family-names: Lencioni Lovate
+    email: gabriel.lencioni.lovate@uni-jena.de
+    affiliation: Friedrich Schiller University Jena
+    orcid: 'https://orcid.org/0000-0002-8368-0667'
+  - given-names: Kevin
+    family-names: Lamkiewicz
+    email: kevin.lamkiewicz@uni-jena.de
+    affiliation: 'Friedrich Schiller University Jena '
+    orcid: 'https://orcid.org/0000-0002-6375-6441'
+repository-code: 'https://github.com/gabriellovate/RNAswarm'
+url: 'https://github.com/gabriellovate/RNAswarm'
+license: MIT
