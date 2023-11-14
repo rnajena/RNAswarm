@@ -47,6 +47,7 @@ group02,group03
 nextflow run gabriellovate/RNAswarm \
             -profile local,apptainer \
             --samples <SAMPLES_CSV_FILE> \
+            --comparisons <COMPARISONS_CSV_FILE> \
             --output <OUTDIR> \
 ```
 obs: alternatively one can use the `conda` profile instead of `apptainer`.
@@ -57,6 +58,7 @@ nextflow run gabriellovate/RNAswarm \
             -profile slurm,apptainer \
             --slurm_queue <SLURM_QUEU_AVAILABLE> \
             --samples <SAMPLES_CSV_FILE> \
+            --comparisons <COMPARISONS_CSV_FILE> \
             --output <OUTDIR> \
 ```
 obs: alternatively one can use the `conda` profile instead of `apptainer`.
