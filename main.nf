@@ -80,17 +80,32 @@ include { generateCountTables; mergeCountTables; runDESeq2 } from './modules/dif
 include { makeCircosTable_deseq2; makeCircosTable_count_table; makeCircosTable_count_table_30; makeCircosTable_count_table_40; makeCircosTable_count_table_50; runCircos_single; runCircos_comb } from './modules/data_visualization.nf'
 workflow {
     // parse sample's csv file
-    samples_input_ch = Channel
-        .fromPath( params.samples, checkIfExists: true )
-        .splitCsv()
-        .map{
-            row -> [
-                "${row[0]}",                                // sample name
-                file("${row[1]}", checkIfExists: true),     // read file
-                file("${row[2]}", checkIfExists: true),     // genome file
-                "${row[3]}"                                 // group name
-            ]
-        }
+    if ( params.test ) {
+        println "Running in test mode"
+        samples_input_ch = Channel
+            .fromPath( params.samples, checkIfExists: true )
+            .splitCsv()
+            .map{
+                row -> [
+                    "${row[0]}",                                // sample name
+                    file("${baseDir}${row[1]}", checkIfExists: true),     // read file
+                    file("${baseDir}${row[2]}", checkIfExists: true),     // genome file
+                    "${row[3]}"                                 // group name
+                ]
+            }
+    } else {
+        samples_input_ch = Channel
+            .fromPath( params.samples, checkIfExists: true )
+            .splitCsv()
+            .map{
+                row -> [
+                    "${row[0]}",                                // sample name
+                    file("${row[1]}", checkIfExists: true),     // read file
+                    file("${row[2]}", checkIfExists: true),     // genome file
+                    "${row[3]}"                                 // group name
+                ]
+            }
+    }
     reads_ch = samples_input_ch
         .map{ it -> [ it[0], it[1], it[3] ] }               // sample name, read file, group name
     genomes_ch = samples_input_ch

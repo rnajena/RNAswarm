@@ -47,7 +47,7 @@ This will run the pipeline with the test data provided inside the repository (`d
 ```bash
 nextflow run gabriellovate/RNAswarm \
             -profile test,apptainer \
-            --output <OUTDIR> \
+            --output /data/fass5/projects/gl_iav-splash_freiburg/results/test_results
 ```
 #### with local executor
 ```bash
