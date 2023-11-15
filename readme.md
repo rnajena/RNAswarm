@@ -15,6 +15,10 @@ The pipeline is written in Nextflow, which can be used on any POSIX compatible s
 1. Install [Nextflow](https://www.nextflow.io/docs/latest/getstarted.html#installation)
 2. Install [miniconda](https://docs.conda.io/projects/miniconda/en/latest/)
 3. Install [apptainer](https://apptainer.org/docs/admin/main/installation.html#install-unprivileged-from-pre-built-binaries) (from our experience, installing from the pre-built binaries is the easiest way to go)
+4. With nextflow installed, you only have to run the pipeline, if you would like to cache the pipeline without running it you can use the following command:
+```bash
+nextflow pull gabriellovate/RNAswarm
+```
 
 In the future, only either conda or apptainer will be needed.
 
