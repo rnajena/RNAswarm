@@ -27,6 +27,12 @@ nextflow run gabriellovate/RNAswarm \
             --output <OUTDIR>
 ```
 
+## Update RNAswarm to the latest version
+After you `nextflow run`, the pipeline is cached by Nextflow. To update to the latest version, you can run the following command:
+```bash
+nextflow pull gabriellovate/RNAswarm
+```
+
 ## Usage
 RNAswarm takes as input a sample sheet and a comparisons sheet. The sample sheet contains the information about the samples to be analyzed, while the comparisons sheet contains the groups to be compared.
 
