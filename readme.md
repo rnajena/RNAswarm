@@ -42,6 +42,13 @@ group02,group03
 ```
 
 ### Running the pipeline
+#### with test data
+This will run the pipeline with the test data provided inside the repository (`data/` folder).
+```bash
+nextflow run gabriellovate/RNAswarm \
+            -profile test,apptainer \
+            --output <OUTDIR> \
+```
 #### with local executor
 ```bash
 nextflow run gabriellovate/RNAswarm \
