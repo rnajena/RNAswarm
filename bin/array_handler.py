@@ -33,13 +33,12 @@ def normalize_array(array, max_value=200000, mode="number_of_data_points", round
     elif mode == "number_of_data_points":
         if round:
             if np.sum(array) < max_value:
-                print("Warning: Number of datapoints is too small!")
                 return np.rint(array)
             else:
                 return np.rint((array / np.sum(array)) * max_value)
         else:
             if np.sum(array) < max_value:
-                raise Exception("Number of datapoints is too small")
+                return array
             else:
                 return (array / np.sum(array)) * max_value
     else:
