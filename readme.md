@@ -10,13 +10,22 @@ RNAswarm is a tool for analyzing SPLASH data. It is a Nextflow pipeline that:
 - Generate circos plots of potential interactions and potential differentially structured regions.
 ***
 
-## Dependencies
+## Dependencies and installation
 The pipeline is written in Nextflow, which can be used on any POSIX compatible system (Linux, OS X, etc). Windows system is supported through WSL2. You need Nextflow installed, conda and apptainer.
 1. Install [Nextflow](https://www.nextflow.io/docs/latest/getstarted.html#installation)
 2. Install [miniconda](https://docs.conda.io/projects/miniconda/en/latest/)
 3. Install [apptainer](https://apptainer.org/docs/admin/main/installation.html#install-unprivileged-from-pre-built-binaries) (from our experience, installing from the pre-built binaries is the easiest way to go)
 
 In the future, only either conda or apptainer will be needed.
+
+## Test your installation
+This command retrieves the project from GitHub and executes the pipeline using the included test data. It utilizes the default test profile, which employs the provided [sample sheet](https://github.com/gabriellovate/RNAswarm/blob/main/data/samples.csv) and [comparisons sheet](https://github.com/gabriellovate/RNAswarm/blob/main/data/comparisons.csv), both located in the [`data/` directory](https://github.com/gabriellovate/RNAswarm/tree/main/data).
+
+```bash
+nextflow run gabriellovate/RNAswarm \
+            -profile test,apptainer \
+            --output <OUTDIR>
+```
 
 ## Usage
 RNAswarm takes as input a sample sheet and a comparisons sheet. The sample sheet contains the information about the samples to be analyzed, while the comparisons sheet contains the groups to be compared.
@@ -57,7 +66,6 @@ nextflow run gabriellovate/RNAswarm \
             --comparisons <COMPARISONS_CSV_FILE> \
             --output <OUTDIR> \
 ```
-obs: alternatively one can use the `conda` profile instead of `apptainer`.
 
 #### with slurm
 ```bash
@@ -68,7 +76,6 @@ nextflow run gabriellovate/RNAswarm \
             --comparisons <COMPARISONS_CSV_FILE> \
             --output <OUTDIR> \
 ```
-obs: alternatively one can use the `conda` profile instead of `apptainer`.
 
 ## Cite us
 If you use RNAswarm for your analysis, please cite our github repository.
