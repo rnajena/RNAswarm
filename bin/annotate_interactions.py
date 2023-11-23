@@ -5,8 +5,8 @@
 Takes an arbitrary number of trns files, finds and merges interactions, outputing an annotation table and the GMMs for each combination.
 
 Usage:
-    annotate_interactions.py -t <trns_file>... -g <genome> -o <output_file> [-m <min_components> -M <max_components> --step_size <step_size>]
-    annotate_interactions.py -d <array_dir> -g <genome> -o <output_file> [-m <min_components> -M <max_components> --step_size <step_size>]
+    annotate_interactions.py -t <trns_file>... -g <genome> -o <output_file> [-m <min_components> -M <max_components> --step_size <step_size> --sigma <sigma>]
+    annotate_interactions.py -d <array_dir> -g <genome> -o <output_file> [-m <min_components> -M <max_components> --step_size <step_size> --sigma <sigma>]
 
 Options:
     -h --help                             Show this screen.
@@ -20,6 +20,7 @@ Options:
                                           for the Gaussian Mixture Model [default: 80].
     --step_size=<step_size>               The step size to use for each iteration of the
                                           Gaussian Mixture Model optimization [default: 5].
+    --sigma=<sigma>                       The number of standard deviations to use to [default: 1].
 
 """
 import helper as hp
@@ -421,7 +422,7 @@ def parse_overlaping_elipses(gmm):
     return overlaps
 
 
-def parse_rectangular_regions(gmm, sigma, combination, output_file=None, with_header=False):
+def parse_rectangular_regions(gmm, combination, sigma=1, output_file=None, with_header=False):
     """
     Parse the regions that are covered by the Gaussian Mixture Model's
     components and extract the coordinates of a rectangle that covers the region.
@@ -532,6 +533,7 @@ def main():
     min_components = int(arguments["--min_components"])
     max_components = int(arguments["--max_components"])
     step_size = int(arguments["--step_size"])
+    sigma =  float(arguments["--sigma"])
 
     # Process input files
     genome_dict = hp.parse_fasta(genome_file_path)
@@ -575,7 +577,7 @@ def main():
     for combination, gmm in gmms_dict.items():
         # Parse the regions
         parse_rectangular_regions(
-            gmms_dict[combination], 2, combination, f"{output_folder}/{output_folder}.csv"
+            gmms_dict[combination], combination, sigma, f"{output_folder}/{output_folder}.csv"
         )
 
 

@@ -15,7 +15,7 @@ process annotateArrays {
     script:
     """
     mkdir ${sample_name}_annotations
-    annotate_interactions.py -d ${sample_arrays} -g ${genome} -o ${sample_name}_annotations -m ${params.min_components} -M ${params.max_components} --step_size ${params.step_size}
+    annotate_interactions.py -d ${sample_arrays} -g ${genome} -o ${sample_name}_annotations -m ${params.min_components} -M ${params.max_components} --step_size ${params.step_size} --sigma ${params.sigma}
     """
 }
 

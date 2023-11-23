@@ -79,6 +79,54 @@ include { generateCountTables; mergeCountTables; runDESeq2 } from './modules/dif
 // generate circos plots
 include { makeCircosTable_deseq2; makeCircosTable_count_table; makeCircosTable_count_table_30; makeCircosTable_count_table_40; makeCircosTable_count_table_50; runCircos_single; runCircos_comb } from './modules/data_visualization.nf'
 workflow {
+    if ( params.help ) {
+        println("""
+    RNAswarm: differential RNA-RNA interaction probing pipeline based on RNA proximity ligation data
+
+    Usage:
+            The typical command for running the pipeline is as follows:
+            nextflow run gabriellovate/RNAswarm -profile local,apptainer --samples <SAMPLES_CSV_FILE> --comparisons <COMPARISONS_CSV_FILE> --output <OUTDIR>
+            nextflow run gabriellovate/RNAswarm -profile slurm,apptainer --samples <SAMPLES_CSV_FILE> --comparisons <COMPARISONS_CSV_FILE> --output <OUTDIR>
+            nextflow run gabriellovate/RNAswarm -profile local,apptainer --samples <SAMPLES_CSV_FILE> --comparisons <COMPARISONS_CSV_FILE> --annotation_table <ANNOTATION_TABLE> --output <OUTDIR>
+            nextflow run gabriellovate/RNAswarm -profile slurm,apptainer --samples <SAMPLES_CSV_FILE> --comparisons <COMPARISONS_CSV_FILE> --annotation_table <ANNOTATION_TABLE> --output <OUTDIR>
+
+    Mandatory arguments:
+            --samples <SAMPLES_CSV_FILE>          CSV file containing the samples to be processed. The file must have the following format:
+                                                <SAMPLE_NAME>,<READ_FILE>,<GENOME_FILE>,<GROUP_NAME>
+                                                <SAMPLE_NAME>,<READ_FILE>,<GENOME_FILE>,<GROUP_NAME>
+                                                ...
+                                                <SAMPLE_NAME>,<READ_FILE>,<GENOME_FILE>,<GROUP_NAME>
+                                                where:
+                                                - <SAMPLE_NAME> is the name of the sample
+                                                - <READ_FILE> is the path to the read file
+                                                - <GENOME_FILE> is the path to the genome file
+                                                - <GROUP_NAME> is the name of the group to which the sample belongs
+            --comparisons <COMPARISONS_CSV_FILE>  CSV file containing the comparisons to be performed. The file must have the following format:
+                                                <GROUP_NAME_1>,<GROUP_NAME_2>
+                                                <GROUP_NAME_1>,<GROUP_NAME_3>
+                                                ...
+                                                <GROUP_NAME_2>,<GROUP_NAME_3>
+                                                where:
+                                                - <GROUP_NAME_X> is the name of the group
+            --output <OUTDIR>                     Output directory
+
+    Optional arguments:
+            --annotation_table <ANNOTATION_TABLE> CSV, TSV or XLSX file containing the annotations to be used. The file must have the following format:
+                                                    <GENE_NAME>,<GENE_START>,<GENE_END>,<GENE_STRAND>,<GENE_CHROMOSOME>
+                                                    <GENE_NAME>,<GENE_START>,<GENE_END>,<GENE_STRAND>,<GENE_CHROMOSOME>
+                                                    ...
+                                                    <GENE_NAME>,<GENE_START>,<GENE_END>,<GENE_STRAND>,<GENE_CHROMOSOME>
+                                                    where:
+                                                    - <GENE_NAME> is the name of the gene
+                                                    - <GENE_START> is the start position of the gene
+                                                    - <GENE_END> is the end position of the gene
+                                                    - <GENE_STRAND> is the strand of the gene
+                                                    - <GENE_CHROMOSOME> is the chromosome of the gene
+            --test                                Run in test mode. This will run the pipeline with a small subset of the data
+            --help                                Print this help message
+            """)
+        exit 0
+    }
     // parse sample's csv file
     if ( params.test ) {
         println "Running in test mode"
