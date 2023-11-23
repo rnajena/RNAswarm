@@ -19,10 +19,10 @@ The pipeline is written in Nextflow, which can be used on any POSIX compatible s
 In the future, only either conda or apptainer will be needed.
 
 ## Test your installation
-This command retrieves the project from GitHub and executes the pipeline using the included test data. It utilizes the default test profile, which employs the provided [sample sheet](https://github.com/gabriellovate/RNAswarm/blob/main/data/samples.csv) and [comparisons sheet](https://github.com/gabriellovate/RNAswarm/blob/main/data/comparisons.csv), both located in the [`data/` directory](https://github.com/gabriellovate/RNAswarm/tree/main/data).
+This command retrieves the project from GitHub and executes the pipeline using the included test data. It utilizes the default test profile, which employs the provided [sample sheet](https://github.com/rnajena/RNAswarm/blob/main/data/samples.csv) and [comparisons sheet](https://github.com/rnajena/RNAswarm/blob/main/data/comparisons.csv), both located in the [`data/` directory](https://github.com/rnajena/RNAswarm/tree/main/data).
 
 ```bash
-nextflow run gabriellovate/RNAswarm \
+nextflow run rnajena/RNAswarm \
             -profile test,apptainer \
             --output <OUTDIR>
 ```
@@ -30,7 +30,7 @@ nextflow run gabriellovate/RNAswarm \
 ## Update RNAswarm to the latest version
 After you `nextflow run`, the pipeline is cached by Nextflow. To update to the latest version, you can run the following command:
 ```bash
-nextflow pull gabriellovate/RNAswarm
+nextflow pull rnajena/RNAswarm
 ```
 
 ## Usage
@@ -59,7 +59,7 @@ group02,group03
 ### Running the pipeline
 #### with local executor
 ```bash
-nextflow run gabriellovate/RNAswarm \
+nextflow run rnajena/RNAswarm \
             -profile local,apptainer \
             --samples <SAMPLES_CSV_FILE> \
             --comparisons <COMPARISONS_CSV_FILE> \
@@ -68,7 +68,7 @@ nextflow run gabriellovate/RNAswarm \
 
 #### with slurm
 ```bash
-nextflow run gabriellovate/RNAswarm \
+nextflow run rnajena/RNAswarm \
             -profile slurm,apptainer \
             --slurm_queue <SLURM_QUEU_AVAILABLE> \
             --samples <SAMPLES_CSV_FILE> \
@@ -84,6 +84,6 @@ If you use RNAswarm for your analysis, please cite our github repository.
 author = {Lencioni Lovate, Gabriel and Lamkiewicz, Kevin},
 license = {MIT},
 title = {{RNAswarm}},
-url = {https://github.com/gabriellovate/RNAswarm}
+url = {https://github.com/rnajena/RNAswarm}
 }
 ```
