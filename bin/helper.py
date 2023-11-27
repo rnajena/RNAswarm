@@ -1,6 +1,5 @@
 import matplotlib.pyplot as plt
 import itertools
-import seaborn as sns
 import numpy as np
 import itertools
 from matplotlib.colors import LogNorm
@@ -97,62 +96,6 @@ def make_combination_array(genome_dict, intra_only=False):
             )
         )
     return combination_arrays
-
-def plot_heatmap(array, output_dir, filename, combination_0, combination_1):
-    """
-    Plots a heatmap of the given array.
-    
-    Parameters
-    ----------
-    array : numpy array
-        Array to be plotted.
-    output_dir : str
-        Path to output directory.
-    filename : str
-        Name of output file.
-    combination_0 : str
-        First segment of combination.
-    combination_1 : str
-        Second segment of combination.
-
-    Output
-    ------
-    None
-
-    """
-    heatmap = sns.heatmap(array, square=True, vmin=0, cmap="YlGnBu_r")
-    heatmap.set(xlabel=str(combination_1), ylabel=str(combination_0))
-    plt.figure()
-    heatmap.figure.savefig(f"{output_dir}/{filename}", bbox_inches="tight")
-    plt.close("all")
-
-def plot_heatmap_log(array, output_dir, filename, combination_0, combination_1):
-    """
-    Plots a heatmap of the given array in log scale.
-
-    Parameters
-    ----------
-    array : numpy array
-        Array to be plotted.
-    output_dir : str
-        Path to output directory.
-    filename : str
-        Name of output file.
-    combination_0 : str
-        First segment of combination.
-    combination_1 : str
-        Second segment of combination.
-
-    Output
-    ------
-    None
-
-    """
-    heatmap = sns.heatmap(array, square=True, vmin=0, cmap="PiYG", norm=LogNorm())
-    heatmap.set(xlabel=str(combination_1), ylabel=str(combination_0))
-    plt.figure()
-    heatmap.figure.savefig(f"{output_dir}/{filename}", bbox_inches="tight")
-    plt.close("all")
 
 
 def parse_annotation_table(annotation_table):

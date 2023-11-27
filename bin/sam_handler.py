@@ -21,7 +21,6 @@ Options:
 from docopt import docopt
 import pysam
 import os
-import sys
 import numpy as np
 import pandas as pd
 import helper as hp
