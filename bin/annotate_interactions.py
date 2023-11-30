@@ -228,7 +228,6 @@ def fit_optimal_gmm(
         return gmm_dict[max_components]  # Return the model with max_components if no optimal found
 
 
-
 def calculate_individual_pdfs(gmm, density_array, weights=None):
     """
     Calculate the probability density function for each component of the Gaussian Mixture Model.

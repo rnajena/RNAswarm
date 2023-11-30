@@ -39,3 +39,24 @@ process mergeAnnotations {
     merge_annotation_tables.py ${annotations} -o merged_annotations.tsv
     """
 }
+
+/*************************************************************************
+* deduplicate annotations
+*************************************************************************/
+process deduplicateAnnotations {
+    label 'RNAswarm'
+
+    input:
+    tuple val(group), path(annotation_table), path(count_table)
+
+    output:
+    tuple path("deduplicated_annotations/deduplicated_annotation_table.tsv"), path("deduplicated_annotations/deduplicated_count_table.tsv")
+
+    publishDir "${params.output}/06-annotations" , mode: 'copy'
+
+    script:
+    """
+    mkdir deduplicated_annotations
+    deduplicate_annotations.py -a ${annotation_table} -c ${count_table} -o deduplicated_annotations
+    """
+}

@@ -76,8 +76,12 @@ include { plotHeatmapsAnnotated } from './modules/data_visualization.nf'
 include { annotateArrays; mergeAnnotations } from './modules/annotate_interactions.nf'
 // differential analysis
 include { generateCountTables; mergeCountTables; runDESeq2 } from './modules/differential_analysis.nf'
+// make alias for mergeCountTables to merge all count tables
+include { mergeCountTables as mergeAllCountTables } from './modules/differential_analysis.nf'
+// deduplicate annotations
+include { deduplicateAnnotations } from './modules/annotate_interactions.nf'
 // generate circos plots
-include { makeCircosTable_deseq2; makeCircosTable_count_table; makeCircosTable_count_table_30; makeCircosTable_count_table_40; makeCircosTable_count_table_50; runCircos_single; runCircos_comb } from './modules/data_visualization.nf'
+include { makeCircosTable_deseq2; makeCircosTable_count_table; runCircos_single; runCircos_comb } from './modules/data_visualization.nf'
 workflow {
     if ( params.help ) {
         println("""
@@ -111,17 +115,7 @@ workflow {
             --output <OUTDIR>                     Output directory
 
     Optional arguments:
-            --annotation_table <ANNOTATION_TABLE> CSV, TSV or XLSX file containing the annotations to be used. The file must have the following format:
-                                                    <GENE_NAME>,<GENE_START>,<GENE_END>,<GENE_STRAND>,<GENE_CHROMOSOME>
-                                                    <GENE_NAME>,<GENE_START>,<GENE_END>,<GENE_STRAND>,<GENE_CHROMOSOME>
-                                                    ...
-                                                    <GENE_NAME>,<GENE_START>,<GENE_END>,<GENE_STRAND>,<GENE_CHROMOSOME>
-                                                    where:
-                                                    - <GENE_NAME> is the name of the gene
-                                                    - <GENE_START> is the start position of the gene
-                                                    - <GENE_END> is the end position of the gene
-                                                    - <GENE_STRAND> is the strand of the gene
-                                                    - <GENE_CHROMOSOME> is the chromosome of the gene
+            --annotation_table <ANNOTATION_TABLE> CSV, TSV or XLSX file containing the annotations to be used.
             --test                                Run in test mode. This will run the pipeline with a small subset of the data
             --help                                Print this help message
             """)
@@ -215,7 +209,9 @@ workflow {
     }
 
     // Plot the annotations on the heatmaps
-    plotHeatmapsAnnotated( annotated_arrays_ch )
+    plotHeatmapsAnnotated( 
+        annotated_arrays_ch.map( it -> [ it[0], it[1], it[2], it[3] ] ) // sample name, genome, array, annotations
+    )
 
     // Generate count tables
     count_tables_ch = generateCountTables( annotated_trns_ch )
@@ -223,6 +219,22 @@ workflow {
         count_tables_ch
             .groupTuple( by: 2 )
             .map( it -> [ it[2], it[1] ] ) // group name, count tables
+    )
+
+    // Merge all count tables independently of the group by collecting all count tables
+    merged_count_tables_all_ch = mergeAllCountTables(
+        count_tables_ch
+            .map( it -> [ it[1] ] ) // count tables
+            .collect()
+            .map( it -> [ "all", it ] ) // group name, count tables
+    )
+
+    // Deduplicate annotations
+    deduplicateAnnotations(
+        merged_count_tables_all_ch
+            .combine( mergeAnnotations.out )
+            .map( it -> [ it[0], it[2], it[3] ] ) // group name, count table, annotations
+            .view()
     )
 
     // Run differential analysis with DESeq2
@@ -254,11 +266,11 @@ workflow {
                         .map( it -> [ it[1], it[0], it[3], it[2] ] )
                         .combine( genomes_ch, by: 0 )
                         .map( it -> [ it[1], it[2], it[0], it[4], it[3] ] )
-                        .combine( mergeAnnotations.out )
+                        .combine( deduplicateAnnotations.out )
         circos_count_table_ch = merged_count_tables_ch
                         .combine( genomes_ch, by: 0 )
                         .map( it -> [ it[0], it[2], it[1] ] )
-                        .combine( mergeAnnotations.out )
+                        .combine( deduplicateAnnotations.out )
     }
 
     // Create circos tables

@@ -31,7 +31,7 @@ process mergeCountTables {
     output:
     tuple val(group_name), path("${group_name}_count_table.tsv")
 
-    publishDir "${params.output}/06-count_analysis/count_tables", mode: 'copy'
+    publishDir "${params.output}/07-count_analysis/count_tables", mode: 'copy'
 
     script:
     """
