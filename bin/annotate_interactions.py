@@ -195,40 +195,38 @@ def fit_optimal_gmm(
 ):
     """
     Using BIC score, fit a Gaussian Mixture Model to the array, and decide the optimal number of components.
-
-    Parameters
-    ----------
     """
+    if min_components > max_components or min_components < 1:
+        raise ValueError("min_components must be less than or equal to max_components and both greater than 0")
+
     optimal_number_of_components = False
-    components = min_components
     gmm_dict = {}
-    while not optimal_number_of_components and components <= max_components:
+
+    for components in range(min_components, max_components + 1, step_size):
         print(f"Fitting GMM with {components} components")
-        gmm_dict[components] = {}
-        gmm_dict[components] = mix.GaussianMixture(
+        gmm = mix.GaussianMixture(
             n_components=components,
             max_iter=max_iter,
             covariance_type="full",
             init_params="k-means++",
         ).fit(density_array)
-        if len(gmm_dict) > 1:
+        gmm_dict[components] = gmm
+
+        if components > min_components:  # Ensure there's a previous model to compare
             bic_delta = np.absolute(
-                gmm_dict[components].bic(density_array)
-                - gmm_dict[components - step_size].bic(density_array)
+                gmm.bic(density_array) - gmm_dict[components - step_size].bic(density_array)
             )
             if bic_delta < expected_delta:
                 optimal_number_of_components = True
                 break
-            elif components == max_components:
-                break
-            else:
-                components += step_size
-        else:
-            components += step_size
+
     if get_all_gmms:
         return gmm_dict
-    else:
+    elif optimal_number_of_components:
         return gmm_dict[components]
+    else:
+        return gmm_dict[max_components]  # Return the model with max_components if no optimal found
+
 
 
 def calculate_individual_pdfs(gmm, density_array, weights=None):
