@@ -88,17 +88,20 @@ def check_if_overlap(annotation1, annotation2):
         return False
     # check if the start of the first annotation is between the start and end of the second annotation
     if annotation1['start01'] >= annotation2['start01'] and annotation1['start01'] <= annotation2['end01']:
-        return True
+        # check if the start of the second annotation is between the start and end of the first annotation
+        if annotation1['start02'] >= annotation2['start02'] and annotation1['start02'] <= annotation2['end02']:
+            return True
+        # check if the end of the second annotation is between the start and end of the first annotation
+        if annotation1['end02'] >= annotation2['start02'] and annotation1['end02'] <= annotation2['end02']:
+            return True
     # check if the end of the first annotation is between the start and end of the second annotation
     if annotation1['end01'] >= annotation2['start01'] and annotation1['end01'] <= annotation2['end01']:
-        return True
-    # check if the start of the second annotation is between the start and end of the first annotation
-    if annotation2['start02'] >= annotation1['start02'] and annotation2['start02'] <= annotation1['end02']:
-        return True
-    # check if the end of the second annotation is between the start and end of the first annotation
-    if annotation2['end02'] >= annotation1['start02'] and annotation2['end02'] <= annotation1['end02']:
-        return True
-    # if none of the above, there is no overlap
+        # check if the start of the second annotation is between the start and end of the first annotation
+        if annotation1['start02'] >= annotation2['start02'] and annotation1['start02'] <= annotation2['end02']:
+            return True
+        # check if the end of the second annotation is between the start and end of the first annotation
+        if annotation1['end02'] >= annotation2['start02'] and annotation1['end02'] <= annotation2['end02']:
+            return True
     return False
 
 
