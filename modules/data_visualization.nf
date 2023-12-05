@@ -3,7 +3,7 @@
 *************************************************************************/
 
 process plotHeatmaps {
-    label 'RNAswarm'
+    label 'RNAswarm_small'
 
     input:
     tuple val(sample_name), path(genome), path(arrays)
@@ -26,7 +26,7 @@ process plotHeatmaps {
 *************************************************************************/
 
 process plotHeatmapsAnnotated {
-    label 'RNAswarm'
+    label 'RNAswarm_small'
 
     input:
     tuple val(sample_name), path(genome), path(arrays), path(annotation_table)
@@ -47,7 +47,7 @@ process plotHeatmapsAnnotated {
 * make circos table for count_table results
 *************************************************************************/
 process makeCircosTable_count_table {
-    label 'RNAswarm'
+    label 'RNAswarm_small'
 
     input:
     tuple val(genome_name), path(genome), path(count_table), path(annotation_table)
@@ -65,7 +65,7 @@ process makeCircosTable_count_table {
 * make circos table for count_table results
 *************************************************************************/
 process makeCircosTable_count_table_30 {
-    label 'RNAswarm'
+    label 'RNAswarm_small'
 
     input:
     tuple val(genome_name), path(genome), path(count_table), path(annotation_table)
@@ -83,7 +83,7 @@ process makeCircosTable_count_table_30 {
 * make circos table for count_table results
 *************************************************************************/
 process makeCircosTable_count_table_40 {
-    label 'RNAswarm'
+    label 'RNAswarm_small'
 
     input:
     tuple val(genome_name), path(genome), path(count_table), path(annotation_table)
@@ -119,7 +119,7 @@ process makeCircosTable_count_table_50 {
 * make circos table for deseq2 results
 *************************************************************************/
 process makeCircosTable_deseq2 {
-    label 'RNAswarm'
+    label 'RNAswarm_small'
 
     input:
     tuple val(genome_name_01), path(genome_01), val(genome_name_02), path(genome_02), path(results_DESeq2), path(annotation_table)
@@ -138,7 +138,7 @@ process makeCircosTable_deseq2 {
 * run circos for single analysis
 *************************************************************************/
 process runCircos_single {
-    label 'RNAswarm'
+    label 'RNAswarm_small'
 
     input:
     tuple val(genome_name), path(circos_dir)
@@ -159,7 +159,7 @@ process runCircos_single {
 * run circos for comparative analysis
 *************************************************************************/
 process runCircos_comb {
-    label 'RNAswarm'
+    label 'RNAswarm_small'
 
     input:
     tuple val(genome_name_01), val(genome_name_02), path(circos_dir)
