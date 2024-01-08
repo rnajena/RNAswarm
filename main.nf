@@ -229,13 +229,13 @@ workflow {
             .map( it -> [ "all", it ] ) // group name, count tables
     )
 
-    // // Deduplicate annotations
-    // deduplicateAnnotations(
-    //     merged_count_tables_all_ch
-    //         .combine( mergeAnnotations.out.view() )
-    //         .map( it -> [ it[0], it[2], it[3] ] ) // group name, count table, annotations
-    //         .view()
-    // )
+    // Deduplicate annotations
+    deduplicateAnnotations(
+        merged_count_tables_all_ch
+            .combine( mergeAnnotations.out.view() )
+            .map( it -> [ it[0], it[2], it[3] ] ) // group name, count table, annotations
+            .view()
+    )
 
     // Run differential analysis with DESeq2
     samples_input_ch = Channel
