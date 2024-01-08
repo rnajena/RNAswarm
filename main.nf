@@ -177,7 +177,7 @@ workflow {
         .groupTuple( by: 2 )                                // This can be streamlined by knowing the number of samples in each group beforehand,
                                                             // but should be fine for now
         .map( it -> [ it[2], it[3][0], it[4].flatten()] )   // group name, genome, arrays
-    groupped_arrays_ch
+    
     // merge arrays with the same group name
     merged_arrays_ch = mergeArrays( groupped_arrays_ch )
 
@@ -229,13 +229,13 @@ workflow {
             .map( it -> [ "all", it ] ) // group name, count tables
     )
 
-    // Deduplicate annotations
-    deduplicateAnnotations(
-        merged_count_tables_all_ch
-            .combine( mergeAnnotations.out )
-            .map( it -> [ it[0], it[2], it[3] ] ) // group name, count table, annotations
-            .view()
-    )
+    // // Deduplicate annotations
+    // deduplicateAnnotations(
+    //     merged_count_tables_all_ch
+    //         .combine( mergeAnnotations.out.view() )
+    //         .map( it -> [ it[0], it[2], it[3] ] ) // group name, count table, annotations
+    //         .view()
+    // )
 
     // Run differential analysis with DESeq2
     samples_input_ch = Channel
