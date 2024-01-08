@@ -104,9 +104,20 @@ def main():
 
     # parse the annotation table
     annotation_table_df = parse_annotation_table(annotation_table)
+    annotation_table_df['area'] = (annotation_table_df['end01'] - annotation_table_df['start01']) * (annotation_table_df['end02'] - annotation_table_df['start02'])
 
     # parse the count table
     count_table_df = parse_count_table(count_table)
+
+    # Reorder the annotation table to match the count table
+    annotation_table_df = annotation_table_df.loc[count_table_df.index]
+
+    # calculate the mean by area
+    count_table_df['mean_by_area'] = count_table_df['mean'] / annotation_table_df['area']
+    annotation_table_df['mean_by_area'] = count_table_df['mean_by_area']
+    count_table_df = count_table_df.sort_values(by='mean_by_area', ascending=False)
+    # Reorder the annotation table to match the count table
+    annotation_table_df = annotation_table_df.loc[count_table_df.index]
 
     # Convert annotation table to a dictionary for faster access
     annotation_dict = annotation_table_df.set_index('id').to_dict('index')
@@ -123,18 +134,44 @@ def main():
         if not any(check_if_overlap(annotation, annotation_dict[idx]) for idx in deduplicated_rows):
             deduplicated_rows.append(index)
 
+    # Check wich interactions overlap with each of the deduplicated interactions
+    main_interactions = {}
+    graveyard_interactions = []
+    for index in deduplicated_rows:
+        annotation = annotation_dict[index]
+        main_interactions[index] = []
+        for idx, annotation2 in annotation_dict.items():
+            if check_if_overlap(annotation, annotation2) and index != idx and idx not in graveyard_interactions:
+                main_interactions[index].append(idx)
+                graveyard_interactions.append(idx)
+
+
+    new_column = {}
+    for index, row in annotation_table_df.iterrows():
+        if index in main_interactions.keys():
+            new_column[index] = 'NA'
+        elif index in graveyard_interactions:
+            # search which interaction it overlaps with
+            for main, overlaping in main_interactions.items():
+                if index in overlaping:
+                    new_column[index] = main
+
+
+    # add new_column to annotation table
+    annotation_table_df['overlaps_with'] = new_column.values()
+    # add the mean column from the count table to the annotation table
+    annotation_table_df['mean_readcount'] = count_table_df['mean']
+
+    # export the annotation table to a tsv file
+    annotation_table_df.to_csv(os.path.join(output_folder, 'annotation_table_extended.tsv'), sep='\t')
+
     # Create deduplicated DataFrame
-    # set index to the id column
-    # count_table_deduplicated_df = count_table_df.loc[deduplicated_rows]
     count_table_deduplicated_df = count_table_df.loc[deduplicated_rows]
     annotation_table_deduplicated_df = annotation_table_df.loc[deduplicated_rows]
 
-    # Write the deduplicated count table to a file
-    output_files = [os.path.join(output_folder, 'deduplicated_count_table.tsv'),
-                   os.path.join(output_folder, 'deduplicated_annotation_table.tsv')]
-    count_table_deduplicated_df.to_csv(output_files[0], sep='\t', header=True)
-    annotation_table_deduplicated_df.to_csv(output_files[1], sep='\t', header=True)
-
+    # export the deduplicated count & annotation tables to a tsv file
+    count_table_deduplicated_df.to_csv(os.path.join(output_folder, 'count_table_deduplicated.tsv'), sep='\t')
+    annotation_table_deduplicated_df.to_csv(os.path.join(output_folder, 'annotation_table_deduplicated.tsv'), sep='\t')
 
 if __name__ == '__main__':
     main()
