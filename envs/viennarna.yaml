@@ -1,0 +1,8 @@
+name: viennarna
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - viennarna==2.6.4
+  
