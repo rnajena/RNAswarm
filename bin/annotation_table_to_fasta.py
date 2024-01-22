@@ -24,7 +24,7 @@ def annotation_to_sequence(annotation, genome_file):
     Args:
         
     Returns:
-        sequence (str): The sequence of the annotation.
+        sequence (str): The sequence(s) of the annotation.
     """
     genome = SeqIO.read(genome_file, "fasta")
     sequence = genome.seq[annotation['start']-1:annotation['end']]
@@ -39,7 +39,8 @@ def main():
     genome_file = args['--genome_file']
     output_file = args['--output_file']
     annotation_table_df = da.parse_annotation_table(annotation_table)
-
+    annotation_table_df['sequence'] = annotation_table_df.apply(lambda row: annotation_to_sequence(row, genome_file), axis=1)
+    annotation_table_df
 
 if __name__ == "__main__":
     main()
