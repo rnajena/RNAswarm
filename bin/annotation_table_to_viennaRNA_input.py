@@ -28,8 +28,8 @@ def annotation_to_sequence(annotation, genome_dict, extension=0):
     return sequences
 
 
-def write_fasta(sequences, output_file):
-    """Writes the sequences to a fasta file.
+def write_viennaRNA_input(sequences, output_file):
+    """Writes the sequences to an input file for viennaRNA's RNAduplex
 
     Args:
         sequences (dict): The sequences to write.
@@ -37,9 +37,8 @@ def write_fasta(sequences, output_file):
     """
     with open(output_file, "w") as file:
         for index, sequence in sequences.items():
-            file.write(f">{index}_seq01\n")
+            file.write(f">{index}\n")
             file.write(f"{sequence[0]}\n")
-            file.write(f">{index}_seq02\n")
             file.write(f"{sequence[1]}\n")
 
 
