@@ -231,10 +231,10 @@ workflow {
 
     // Deduplicate annotations
     deduplicate_annotations_input_ch = merged_count_tables_all_ch // group_name, merged_count_table
-            .combine( mergeAnnotations.out.view() ) // merged_annotations
+            .combine( mergeAnnotations.out ) // merged_annotations
             .map( it -> [ it[0], it[2], it[3] ] ) // group name, count table, annotations
     deduplicate_annotations_input_ch.view()
-    deduplicateAnnotations(deduplicate_annotations_input_ch)
+    deduplicateAnnotations( deduplicate_annotations_input_ch )
 
     // Run differential analysis with DESeq2
     samples_input_ch = Channel
