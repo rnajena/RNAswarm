@@ -73,6 +73,7 @@ include { fillArrays; mergeArrays } from './modules/handle_arrays.nf'
 include { plotHeatmaps as plotHeatmapsRaw } from './modules/data_visualization.nf'
 include { plotHeatmaps as plotHeatmapsMerged } from './modules/data_visualization.nf'
 include { plotHeatmapsAnnotated } from './modules/data_visualization.nf'
+include { plotHeatmapsAnnotated as plotHeatmapsAnnotatedDedup } from './modules/data_visualization.nf'
 include { annotateArrays; mergeAnnotations } from './modules/annotate_interactions.nf'
 // differential analysis
 include { generateCountTables; mergeCountTables; runDESeq2 } from './modules/differential_analysis.nf'
@@ -214,6 +215,7 @@ workflow {
     )
 
     // Generate count tables
+    annotated_trns_ch.view()
     count_tables_ch = generateCountTables( annotated_trns_ch )
     merged_count_tables_ch = mergeCountTables(
         count_tables_ch
@@ -232,9 +234,16 @@ workflow {
     // Deduplicate annotations
     deduplicate_annotations_input_ch = merged_count_tables_all_ch // group_name, merged_count_table
             .combine( mergeAnnotations.out ) // merged_annotations
-            .map( it -> [ it[0], it[2], it[3] ] ) // group name, count table, annotations
-    deduplicate_annotations_input_ch.view()
+            .map( it -> [ it[0], it[2], it[1] ] ) // group name, count table, annotations
+    deduplicate_annotations_input_ch
     deduplicateAnnotations( deduplicate_annotations_input_ch )
+
+    // Plot deduplicated annotations on the heatmaps
+    dedup_heatmaps_ch = annotated_arrays_ch
+        .map( it -> [ it[0], it[1], it[2], it[3] ] ) // sample name, genome, array, annotations
+        .combine( deduplicateAnnotations.out )
+    dedup_heatmaps_ch.view()
+    plotHeatmapsAnnotatedDedup( dedup_heatmaps_ch )
 
     // Run differential analysis with DESeq2
     samples_input_ch = Channel
@@ -244,6 +253,7 @@ workflow {
             .map( it -> [ it[1], it[0], it[2] ] )
             .combine( merged_count_tables_ch, by: 0 )
             .map( it -> [ it[1], it[2], it[0], it[3] ] )
+            .view()
 
     runDESeq2( samples_input_ch )
 
@@ -271,7 +281,7 @@ workflow {
                         .map( it -> [ it[0], it[2], it[1] ] )
                         .combine( deduplicateAnnotations.out )
     }
-
+    circos_deseq2_ch.view()
     // Create circos tables
     makeCircosTable_deseq2( circos_deseq2_ch )
     makeCircosTable_count_table( circos_count_table_ch )
