@@ -50,7 +50,7 @@ process deduplicateAnnotations {
     tuple val(group), path(annotation_table), path(count_table)
 
     output:
-    tuple path("deduplicated_annotations/deduplicated_annotation_table.tsv"), path("deduplicated_annotations/deduplicated_count_table.tsv")
+    tuple val(group), path("deduplicated_annotations/annotation_table_deduplicated.tsv"), path("deduplicated_annotations/count_table_deduplicated.tsv")
 
     publishDir "${params.output}/06-annotations" , mode: 'copy'
 

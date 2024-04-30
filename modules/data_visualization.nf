@@ -50,68 +50,14 @@ process makeCircosTable_count_table {
     label 'RNAswarm_small'
 
     input:
-    tuple val(genome_name), path(genome), path(count_table), path(annotation_table)
+    tuple val(genome_name), path(genome), path(genome_count_table), val(group_name), path(annotation_table), path(global_count_table)
 
     output:
     tuple val(genome_name), path("${genome_name}_circos")
 
     script:
     """
-    make_circos_files.py -c ${count_table} -a ${annotation_table} -g ${genome} -o ${genome_name}_circos
-    """
-}
-
-/*************************************************************************
-* make circos table for count_table results
-*************************************************************************/
-process makeCircosTable_count_table_30 {
-    label 'RNAswarm_small'
-
-    input:
-    tuple val(genome_name), path(genome), path(count_table), path(annotation_table)
-
-    output:
-    tuple val(genome_name), path("${genome_name}_circos_30")
-
-    script:
-    """
-    make_circos_files.py -c ${count_table} -a ${annotation_table} -g ${genome} -o ${genome_name}_circos_30 --number_of_top_hits 30
-    """
-}
-
-/*************************************************************************
-* make circos table for count_table results
-*************************************************************************/
-process makeCircosTable_count_table_40 {
-    label 'RNAswarm_small'
-
-    input:
-    tuple val(genome_name), path(genome), path(count_table), path(annotation_table)
-
-    output:
-    tuple val(genome_name), path("${genome_name}_circos_40")
-
-    script:
-    """
-    make_circos_files.py -c ${count_table} -a ${annotation_table} -g ${genome} -o ${genome_name}_circos_40 --number_of_top_hits 40
-    """
-}
-
-/*************************************************************************
-* make circos table for count_table results
-*************************************************************************/
-process makeCircosTable_count_table_50 {
-    label 'RNAswarm'
-
-    input:
-    tuple val(genome_name), path(genome), path(count_table), path(annotation_table)
-
-    output:
-    tuple val(genome_name), path("${genome_name}_circos_50")
-
-    script:
-    """
-    make_circos_files.py -c ${count_table} -a ${annotation_table} -g ${genome} -o ${genome_name}_circos_50 --number_of_top_hits 50
+    make_circos_files.py -c ${genome_count_table} -a ${annotation_table} -g ${genome} -o ${genome_name}_circos
     """
 }
 
@@ -122,7 +68,7 @@ process makeCircosTable_deseq2 {
     label 'RNAswarm_small'
 
     input:
-    tuple val(genome_name_01), path(genome_01), val(genome_name_02), path(genome_02), path(results_DESeq2), path(annotation_table)
+    tuple val(genome_name_01), path(genome_01), val(genome_name_02), path(genome_02), path(results_DESeq2), val(group_name), path(annotation_table), path(global_count_table)
 
     output:
     tuple val(genome_name_01), val(genome_name_02), path("${genome_name_01}_${genome_name_02}_circos")

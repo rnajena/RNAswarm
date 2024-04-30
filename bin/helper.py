@@ -5,6 +5,7 @@ import itertools
 from matplotlib.colors import LogNorm
 import pandas as pd
 
+
 def parse_fasta(fasta_file):
     """Parses a fasta file and returns a dictionary of segment names and sequences.
 
@@ -27,23 +28,24 @@ def parse_fasta(fasta_file):
     with open(fasta_file) as file:  # read genome file
         for line in file:  # parse genome file
             if line.startswith(">"):  # parse header
-            #* if there is a header already, we store the current sequence
-            #* to this header.
+                # * if there is a header already, we store the current sequence
+                # * to this header.
                 if header:
                     fasta_dict[header] = seq
-                    #* then we flush the sequence
+                    # * then we flush the sequence
                     seq = ""
-                #* and parse the new header
+                # * and parse the new header
                 header = line.strip()[1:]
             else:
-                #* if no header is detected, we append the new line
-                #* to the current sequence
+                # * if no header is detected, we append the new line
+                # * to the current sequence
                 seq += line.strip()
-        #* after the last line, we have to store
-        #* the last sequence as well. Since no new line with ">" occurs, we
-        #* do this manually
+        # * after the last line, we have to store
+        # * the last sequence as well. Since no new line with ">" occurs, we
+        # * do this manually
         fasta_dict[header] = seq
     return fasta_dict
+
 
 def make_combination_array(genome_dict, intra_only=False):
     """
@@ -72,20 +74,23 @@ def make_combination_array(genome_dict, intra_only=False):
     # * the iterator to a list. Actually, we also could just put the iterator in the for loop.
     # * should work as well. Is a tad more memory efficient.
     if intra_only:
-        segment_combinations = list(itertools.combinations_with_replacement(segments, 2))
+        segment_combinations = list(
+            itertools.combinations_with_replacement(segments, 2)
+        )
         segment_combinations = [
             segment_combination
             for segment_combination in segment_combinations
             if segment_combination[0] == segment_combination[1]
         ]
     else:
-        segment_combinations = list(itertools.combinations_with_replacement(segments, 2))
+        segment_combinations = list(
+            itertools.combinations_with_replacement(segments, 2)
+        )
         segment_combinations = [
             segment_combination
             for segment_combination in segment_combinations
             if segment_combination[0] != segment_combination[1]
         ]
-
 
     for segment_combination in segment_combinations:
         # for segment_combination in itertools.combinations_with_replacement(segments,2): # * this should work as well
@@ -96,38 +101,6 @@ def make_combination_array(genome_dict, intra_only=False):
             )
         )
     return combination_arrays
-
-
-def parse_annotation_table(annotation_table):
-    """
-    Parses an annotation table and returns a dictionary of segment names and annotations.
-    The annotation table must have the following columns: id,segment01,start01,end01,segment02,start02,end02
-
-    Parameters
-    ----------
-    annotation_table : str
-        Path to annotation table.
-
-    Returns
-    -------
-    annotation_dict : dict
-        Dictionary of segment names and annotations.
-
-    """
-    annotation_dict = {}
-    with open(annotation_table) as file:
-        for line in file:
-            if not line.startswith("id"):
-                line = line.strip().split("\t")
-                annotation_dict[line[0]] = {
-                    "segment01": line[1],
-                    "start01": int(line[2]),
-                    "end01": int(line[3]),
-                    "segment02": line[4],
-                    "start02": int(line[5]),
-                    "end02": int(line[6]),
-                }
-    return annotation_dict
 
 
 def positive_to_negative_strand_point(genome_dict, segment, position):
@@ -146,6 +119,7 @@ def positive_to_negative_strand_point(genome_dict, segment, position):
     aLen = len(genome_dict[segment])
     # Get the position on the negative strand
     return aLen - position + 1
+
 
 def negative_to_positive_strand(genome_dict, aSeq, cai, caj, bSeq, cbi, cbj):
     """Transpose the region of interest from the negative to the positive strand.
@@ -177,6 +151,7 @@ def negative_to_positive_strand(genome_dict, aSeq, cai, caj, bSeq, cbi, cbj):
     cbi_pos = bLen - cbj
 
     return aSeq, cai_pos, caj_pos, bSeq, cbi_pos, cbj_pos
+
 
 def positive_to_negative_strand(genome_dict, aSeq, cai, caj, bSeq, cbi, cbj):
     """Transpose the region of interest from the positive to the negative strand.
@@ -238,12 +213,10 @@ def parse_annotation_table(annotation_table):
             "end02",
         ]
         regions = pd.read_csv(annotation_table, names=header)
-         # add id column
+        # add id column
         regions["id"] = regions.index
     elif annotation_table.lower().endswith(".tsv"):
         regions = pd.read_csv(annotation_table, sep="\t")
     else:
-        raise ValueError(
-            "Annotation table must be either a csv file or a xlsx file."
-        )
+        raise ValueError("Annotation table must be either a csv file or a xlsx file.")
     return regions
