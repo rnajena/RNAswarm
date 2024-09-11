@@ -116,6 +116,7 @@ def plot_heatmap(
     else:
         suffix = f"{suffix}_unannotated"
     save_plot(plots_folder, combination, suffix)
+
     plt.close()
 
 
@@ -264,6 +265,10 @@ def save_plot(plots_folder: str, combination: tuple, suffix: str) -> None:
     plt.savefig(
         os.path.join(plots_folder, f"{combination[0]}_{combination[1]}{suffix}.pdf"),
         format="pdf",
+    )
+    plt.savefig(
+        os.path.join(plots_folder, f"{combination[0]}_{combination[1]}{suffix}.svg"),
+        format="svg",
     )
 
 

@@ -7,6 +7,7 @@ Takes an arbitrary number of trns files, finds and merges interactions, outputin
 Usage:
     annotate_interactions.py -t <trns_file>... -g <genome> -o <output_file> [-m <min_components> -M <max_components> --step_size <step_size> --sigma <sigma>]
     annotate_interactions.py -d <array_dir> -g <genome> -o <output_file> [-m <min_components> -M <max_components> --step_size <step_size> --sigma <sigma>]
+    annotate_interactions.py --filter --only_partner01 <partner_segment01> --only_partner02 <partner_segment02> -a <annotation_table> -o <output_file>
 
 Options:
     -h --help                             Show this screen.
