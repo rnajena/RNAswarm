@@ -231,19 +231,25 @@ workflow {
             .map( it -> [ "all", it ] ) // group name, count tables
     )
 
-    // Deduplicate annotations
-    deduplicate_annotations_input_ch = merged_count_tables_all_ch // group_name, merged_count_table
-            .combine( mergeAnnotations.out ) // merged_annotations
-            .map( it -> [ it[0], it[2], it[1] ] ) // group name, count table, annotations
-    deduplicate_annotations_input_ch
-    deduplicateAnnotations( deduplicate_annotations_input_ch )
+    if ( params.annotation_table ) {
+        // Plot annotations on the heatmaps
+        annotated_arrays_ch.view()
+        plotHeatmapsAnnotatedDedup( annotated_arrays_ch )
+    } else {
+        // Deduplicate annotations
+        deduplicate_annotations_input_ch = merged_count_tables_all_ch // group_name, merged_count_table
+                .combine( mergeAnnotations.out ) // merged_annotations
+                .map( it -> [ it[0], it[2], it[1] ] ) // group name, count table, annotations
+        deduplicate_annotations_input_ch
+        deduplicateAnnotations( deduplicate_annotations_input_ch )
 
-    // Plot deduplicated annotations on the heatmaps
-    dedup_heatmaps_ch = annotated_arrays_ch
-        .map( it -> [ it[0], it[1], it[2], it[3] ] ) // sample name, genome, array, annotations
-        .combine( deduplicateAnnotations.out )
-    dedup_heatmaps_ch.view()
-    plotHeatmapsAnnotatedDedup( dedup_heatmaps_ch )
+        // Plot deduplicated annotations on the heatmaps
+        dedup_heatmaps_ch = annotated_arrays_ch
+            .map( it -> [ it[0], it[1], it[2], it[3] ] ) // sample name, genome, array, annotations
+            .combine( deduplicateAnnotations.out )
+        dedup_heatmaps_ch.view()
+        plotHeatmapsAnnotatedDedup( dedup_heatmaps_ch )
+    }
 
     // Run differential analysis with DESeq2
     samples_input_ch = Channel
