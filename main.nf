@@ -215,7 +215,7 @@ workflow {
     )
 
     // Generate count tables
-    annotated_trns_ch.view()
+    annotated_trns_ch
     count_tables_ch = generateCountTables( annotated_trns_ch )
     merged_count_tables_ch = mergeCountTables(
         count_tables_ch
@@ -233,7 +233,7 @@ workflow {
 
     if ( params.annotation_table ) {
         // Plot annotations on the heatmaps
-        annotated_arrays_ch.view()
+        annotated_arrays_ch
         plotHeatmapsAnnotatedDedup( annotated_arrays_ch )
     } else {
         // Deduplicate annotations
@@ -261,19 +261,24 @@ workflow {
             .map( it -> [ it[1], it[2], it[0], it[3] ] )
 
     runDESeq2( samples_input_ch )
-
+    
     // Generate circos files
     if ( params.annotation_table ) {
+        annotated_arrays_remapped_ch = annotated_arrays_ch
+                        .map( it -> [ it[0], it[3] ] )
+                        .combine(merged_count_tables_all_ch)
         circos_deseq2_ch = runDESeq2.out
                         .combine( genomes_ch, by: 0 )
                         .map( it -> [ it[1], it[0], it[3], it[2] ] )
                         .combine( genomes_ch, by: 0 )
                         .map( it -> [ it[1], it[2], it[0], it[4], it[3] ] )
-                        .combine( Channel.fromPath( params.annotation_table, checkIfExists: true ) )
+                        .combine( annotated_arrays_remapped_ch, by: 0)
+                        .map( it -> [ it[0], it[1], it[2], it[3], it[4], it[6], it[5], it[7] ] )
         circos_count_table_ch = merged_count_tables_ch
                         .combine( genomes_ch, by: 0 )
                         .map( it -> [ it[0], it[2], it[1] ] )
-                        .combine( Channel.fromPath( params.annotation_table, checkIfExists: true ))
+                        .combine( annotated_arrays_remapped_ch, by: 0)
+                        .map( it -> [ it[0], it[1], it[2], it[4], it[3], it[5] ])
     } else {
         circos_deseq2_ch = runDESeq2.out
                         .combine( genomes_ch, by: 0 )
