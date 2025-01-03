@@ -247,7 +247,7 @@ workflow {
         dedup_heatmaps_ch = annotated_arrays_ch
             .map( it -> [ it[0], it[1], it[2], it[3] ] ) // sample name, genome, array, annotations
             .combine( deduplicateAnnotations.out )
-        dedup_heatmaps_ch.view()
+        dedup_heatmaps_ch
         plotHeatmapsAnnotatedDedup( dedup_heatmaps_ch )
     }
 
@@ -259,7 +259,6 @@ workflow {
             .map( it -> [ it[1], it[0], it[2] ] )
             .combine( merged_count_tables_ch, by: 0 )
             .map( it -> [ it[1], it[2], it[0], it[3] ] )
-            .view()
 
     runDESeq2( samples_input_ch )
 
@@ -287,7 +286,7 @@ workflow {
                         .map( it -> [ it[0], it[2], it[1] ] )
                         .combine( deduplicateAnnotations.out )
     }
-    circos_deseq2_ch.view()
+    circos_deseq2_ch
     // Create circos tables
     makeCircosTable_deseq2( circos_deseq2_ch )
     makeCircosTable_count_table( circos_count_table_ch )
