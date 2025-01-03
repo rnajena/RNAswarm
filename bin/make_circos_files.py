@@ -457,7 +457,7 @@ def main():
             annotation_table = pd.read_csv(annotation_table, header=0, index_col=0)
 
         # Remove rows in DESeq2 results that are not in the annotation table
-        DESeq2_results = DESeq2_results[DESeq2_results["id"].isin(annotation_table.index)]
+        DESeq2_results = DESeq2_results[DESeq2_results["id"].isin([annotation_table.index])]
 
         # Parse genome segment names and sequences
         genome_dict = hp.parse_fasta(genome_file)
