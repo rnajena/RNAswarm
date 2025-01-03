@@ -448,16 +448,10 @@ def main():
         DESeq2_results = DESeq2_results.rename(columns={"Unnamed: 0": "id"})
 
         # Read annotation table
-        # Check if which kind of spreadsheet is used
-        if ".xlsx" in annotation_table:
-            annotation_table = pd.read_excel(annotation_table, header=0, index_col=0)
-        elif ".tsv" in annotation_table:
-            annotation_table = pd.read_csv(annotation_table, header=0, index_col=0, sep="\t")
-        elif ".csv" in annotation_table:
-            annotation_table = pd.read_csv(annotation_table, header=0, index_col=0)
+        annotation_table = hp.parse_annotation_table(annotation_table)
 
         # Remove rows in DESeq2 results that are not in the annotation table
-        DESeq2_results = DESeq2_results[DESeq2_results["id"].isin(list(annotation_table.index))]
+        DESeq2_results = DESeq2_results[DESeq2_results["id"].isin(annotation_table.index)]
 
         # Parse genome segment names and sequences
         genome_dict = hp.parse_fasta(genome_file)
