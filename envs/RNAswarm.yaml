@@ -15,3 +15,4 @@ dependencies:
   - r-base=4.3.1=h639d9d3_5
   - bioconductor-deseq2=1.40.2=r43hf17093f_0
   - r-docopt=0.7.1=r43hc72bb7e_3
+  - openpyxl
