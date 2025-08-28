@@ -4,5 +4,5 @@ channels:
   - bioconda
   - defaults
 dependencies:
-  - viennarna==2.6.4
+  - viennarna=2.6.4
   
