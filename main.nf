@@ -68,7 +68,7 @@ workflow segemehl_mapping {
 **************************/
 
 // array filling using numpy
-include { fillArrays; mergeArrays } from './modules/handle_arrays.nf'
+include { fillArrays; fillArraysCF; mergeArrays } from './modules/handle_arrays.nf'
 // plot heatmaps
 include { plotHeatmaps as plotHeatmapsRaw } from './modules/data_visualization.nf'
 include { plotHeatmaps as plotHeatmapsMerged } from './modules/data_visualization.nf'
@@ -89,37 +89,71 @@ workflow {
     RNAswarm: differential RNA-RNA interaction probing pipeline based on RNA proximity ligation data
 
     Usage:
-            The typical command for running the pipeline is as follows:
-            nextflow run gabriellovate/RNAswarm -profile local,apptainer --samples <SAMPLES_CSV_FILE> --comparisons <COMPARISONS_CSV_FILE> --output <OUTDIR>
-            nextflow run gabriellovate/RNAswarm -profile slurm,apptainer --samples <SAMPLES_CSV_FILE> --comparisons <COMPARISONS_CSV_FILE> --output <OUTDIR>
-            nextflow run gabriellovate/RNAswarm -profile local,apptainer --samples <SAMPLES_CSV_FILE> --comparisons <COMPARISONS_CSV_FILE> --annotation_table <ANNOTATION_TABLE> --output <OUTDIR>
-            nextflow run gabriellovate/RNAswarm -profile slurm,apptainer --samples <SAMPLES_CSV_FILE> --comparisons <COMPARISONS_CSV_FILE> --annotation_table <ANNOTATION_TABLE> --output <OUTDIR>
+        Typical commands for running the pipeline:
+            nextflow run gabriellovate/RNAswarm -profile local,apptainer \
+                --samples <SAMPLES_CSV_FILE> --comparisons <COMPARISONS_CSV_FILE> --output <OUTDIR>
+            nextflow run gabriellovate/RNAswarm -profile slurm,apptainer \
+                --samples <SAMPLES_CSV_FILE> --comparisons <COMPARISONS_CSV_FILE> --output <OUTDIR>
+            nextflow run gabriellovate/RNAswarm -profile local,apptainer \
+                --samples <SAMPLES_CSV_FILE> --comparisons <COMPARISONS_CSV_FILE> \
+                --annotation_table <ANNOTATION_TABLE> --output <OUTDIR>
+            nextflow run gabriellovate/RNAswarm -profile slurm,apptainer \
+                --samples <SAMPLES_CSV_FILE> --comparisons <COMPARISONS_CSV_FILE> \
+                --annotation_table <ANNOTATION_TABLE> --output <OUTDIR>
+            nextflow run gabriellovate/RNAswarm -profile local,apptainer \
+                --samples_with_ChimericFragments <SAMPLES_CSV_FILE> --comparisons <COMPARISONS_CSV_FILE> \
+                --output <OUTDIR>
+            nextflow run gabriellovate/RNAswarm -profile slurm,apptainer \
+                --samples_with_ChimericFragments <SAMPLES_CSV_FILE> --comparisons <COMPARISONS_CSV_FILE> \
+                --output <OUTDIR>
 
-    Mandatory arguments:
-            --samples <SAMPLES_CSV_FILE>          CSV file containing the samples to be processed. The file must have the following format:
-                                                <SAMPLE_NAME>,<READ_FILE>,<GENOME_FILE>,<GROUP_NAME>
-                                                <SAMPLE_NAME>,<READ_FILE>,<GENOME_FILE>,<GROUP_NAME>
-                                                ...
-                                                <SAMPLE_NAME>,<READ_FILE>,<GENOME_FILE>,<GROUP_NAME>
-                                                where:
-                                                - <SAMPLE_NAME> is the name of the sample
-                                                - <READ_FILE> is the path to the read file
-                                                - <GENOME_FILE> is the path to the genome file
-                                                - <GROUP_NAME> is the name of the group to which the sample belongs
-            --comparisons <COMPARISONS_CSV_FILE>  CSV file containing the comparisons to be performed. The file must have the following format:
-                                                <GROUP_NAME_1>,<GROUP_NAME_2>
-                                                <GROUP_NAME_1>,<GROUP_NAME_3>
-                                                ...
-                                                <GROUP_NAME_2>,<GROUP_NAME_3>
-                                                where:
-                                                - <GROUP_NAME_X> is the name of the group
-            --output <OUTDIR>                     Output directory
+    Mandatory arguments (choose one of the following for sample input):
+        --samples <SAMPLES_CSV_FILE>
+            CSV file containing the samples to be processed. Format:
+                <SAMPLE_NAME>,<READ_FILE>,<GENOME_FILE>,<GROUP_NAME>
+                <SAMPLE_NAME>,<READ_FILE>,<GENOME_FILE>,<GROUP_NAME>
+                ...
+            Where:
+                - <SAMPLE_NAME>: name of the sample
+                - <READ_FILE>: path to the read file
+                - <GENOME_FILE>: path to the genome file
+                - <GROUP_NAME>: name of the group to which the sample belongs
+
+        OR
+
+        --samples_with_ChimericFragments <SAMPLES_CSV_FILE>
+            CSV file containing the samples to be processed, including chimeric fragments. Format:
+                <SAMPLE_NAME>,<READ_FILE>,<GENOME_FILE>,<GROUP_NAME>,<CHIMERIC_FRAGMENTS_FILE>
+                <SAMPLE_NAME>,<READ_FILE>,<GENOME_FILE>,<GROUP_NAME>,<CHIMERIC_FRAGMENTS_FILE>
+                ...
+            Where:
+                - <SAMPLE_NAME>: name of the sample
+                - <READ_FILE>: path to the read file
+                - <GENOME_FILE>: path to the genome file
+                - <GROUP_NAME>: name of the group to which the sample belongs
+                - <CHIMERIC_FRAGMENTS_FILE>: path to the chimeric fragments file
+
+        --comparisons <COMPARISONS_CSV_FILE>
+            CSV file containing the comparisons to be performed. Format:
+                <GROUP_NAME_1>,<GROUP_NAME_2>
+                <GROUP_NAME_1>,<GROUP_NAME_3>
+                ...
+            Where:
+                - <GROUP_NAME_X>: name of the group
+
+        --output <OUTDIR>
+            Output directory
 
     Optional arguments:
-            --annotation_table <ANNOTATION_TABLE> CSV, TSV or XLSX file containing the annotations to be used.
-            --test                                Run in test mode. This will run the pipeline with a small subset of the data
-            --help                                Print this help message
-            """)
+        --annotation_table <ANNOTATION_TABLE>
+            CSV, TSV or XLSX file containing the annotations to be used.
+
+        --test
+            Run in test mode with a small subset of the data.
+
+        --help
+            Print this help message.
+    """)
         exit 0
     }
     // parse sample's csv file
@@ -136,7 +170,22 @@ workflow {
                     "${row[3]}"                                 // group name
                 ]
             }
-    } else {
+    } else if (params.samples_with_ChimericFragments) {
+        samples_with_ChimericFragments_input_ch = Channel
+            .fromPath( params.samples_with_ChimericFragments, checkIfExists: true )
+            .splitCsv()
+            .map{
+                row -> [
+                    "${row[0]}",                                // sample name
+                    file("${row[1]}", checkIfExists: true),     // read file
+                    file("${row[2]}", checkIfExists: true),     // genome file
+                    "${row[3]}",                                // group name
+                    file("${row[4]}", checkIfExists: true)      // chimeric fragments file
+                ]
+            }
+        samples_input_ch = samples_with_ChimericFragments_input_ch
+            .map{ it -> [ it[0], it[1], it[2], it[3] ] } // sample name, read file, genome file, group name
+    } else if (params.samples) {
         samples_input_ch = Channel
             .fromPath( params.samples, checkIfExists: true )
             .splitCsv()
@@ -145,15 +194,23 @@ workflow {
                     "${row[0]}",                                // sample name
                     file("${row[1]}", checkIfExists: true),     // read file
                     file("${row[2]}", checkIfExists: true),     // genome file
-                    "${row[3]}"                                 // group name
+                    "${row[3]}",                                // group name
                 ]
             }
+    } else {
+        println "Error: You must provide either --samples or --samples_with_ChimericFragments"
+        showHelp()
+        exit 1
     }
     reads_ch = samples_input_ch
         .map{ it -> [ it[0], it[1], it[3] ] }               // sample name, read file, group name
     genomes_ch = samples_input_ch
         .map{ it -> [ it[3], it[2] ] }                      // group name, genome file
         .unique()
+    if ( params.samples_with_ChimericFragments) {
+        chimericFragments_ch = samples_with_ChimericFragments_input_ch
+            .map{ it -> [ it[3], it[2], it[4] ] }           // sample name, genome file, chimeric fragments file
+    }
 
     // preprocessing workflow
     preprocessing( reads_ch )
@@ -166,6 +223,10 @@ workflow {
         segemehl_mapping.out[0]
         .map( it -> [ it[0], it[1], it[5], it[6] ] )        // sample name, trns file, group name, genome
     )
+    if ( params.samples_with_ChimericFragments) {
+        array_cf_ch = fillArraysCF(
+            chimericFragments_ch
+        )
 
     // plot heatmaps using the filled arrays
     plotHeatmapsRaw( 

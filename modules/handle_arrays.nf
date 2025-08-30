@@ -21,6 +21,29 @@ process fillArrays {
     """
 }
 
+/*************************************************************************
+* Fill arrays with ChimericFragments files
+*************************************************************************/
+
+process fillArraysCF {
+    label 'RNAswarm'
+
+    input:
+    val(group_name), path(genome), path(chimeric_fragments)
+
+    output:
+    val(group_name), path(genome), path("${group_name}_arrays_CF")
+
+    publishDir "${params.output}/03-arrays", mode: 'copy'
+
+    script:
+    """
+    mkdir ${group_name}_arrays_CF
+    fill_arrays_cf.py ${chimeric_fragments} -g ${genome} -o ${group_name}_arrays_CF
+    echo ${group_name}_arrays_CF
+    """
+}
+
 
 /*************************************************************************
 * Merge arrays

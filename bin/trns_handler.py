@@ -99,7 +99,7 @@ def segemehlTrans2heatmap(trnsFile, interaction_arrays, intra_only=False):
                     fill_heatmap(interaction, interaction_arrays)
 
 
-def fill_heatmap(interaction, interaction_arrays, intra = False):
+def fill_heatmap(interaction, interaction_arrays, copies=1, intra=False):
     """Fills the interaction_arrays with the interaction
 
     Parameters
@@ -115,12 +115,12 @@ def fill_heatmap(interaction, interaction_arrays, intra = False):
     secondSegment = interaction[3]
     interaction_arrays[(firstSegment, secondSegment)][
         interaction[1] : interaction[2], interaction[4] : interaction[5]
-    ] += 1
+    ] += copies
     if intra:
         interaction_arrays[(secondSegment, firstSegment)][
             interaction[4] : interaction[5], interaction[1] : interaction[2]
-        ] += 1
-    return 1
+        ] += copies
+    return copies
 
 
 def get_histogram_dict(interaction_arrays):
