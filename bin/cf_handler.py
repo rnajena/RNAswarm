@@ -48,7 +48,7 @@ def chimericFragments2heatmap(cf_file, interaction_arrays, intra_only=False):
                 reader = csv.reader(inputStream)
                 header = next(reader)  # Skip header line if present
                 for line in reader:
-                    complementary_region = __extract_complementary_region(line)
+                    complementary_region = __extract_complementary_region(line, interaction_arrays=interaction_arrays)
                     ligationpoint_count = int(line[10])
                     if intra_only:
                         if complementary_region[0] == complementary_region[3]:

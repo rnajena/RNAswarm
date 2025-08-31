@@ -72,7 +72,7 @@ include { fillArrays; fillArraysCF; mergeArrays } from './modules/handle_arrays.
 // plot heatmaps
 include { plotHeatmaps as plotHeatmapsRaw } from './modules/data_visualization.nf'
 include { plotHeatmaps as plotHeatmapsMerged } from './modules/data_visualization.nf'
-include { plotHeatmapsAnnotated, plotHeatmapsChimericFragments } from './modules/data_visualization.nf'
+include { plotHeatmapsAnnotated } from './modules/data_visualization.nf'
 include { plotHeatmapsAnnotated as plotHeatmapsAnnotatedDedup } from './modules/data_visualization.nf'
 include { annotateArrays; mergeAnnotations } from './modules/annotate_interactions.nf'
 include { annotateArrays as annotateArraysCF } from './modules/annotate_interactions.nf'
@@ -210,7 +210,7 @@ workflow {
         .unique()
     if ( params.samples_with_ChimericFragments) {
         chimericFragments_ch = samples_with_ChimericFragments_input_ch
-            .map{ it -> [ ${it[3]}, it[2], it[4] ] }    // group name with, genome file, chimeric fragments file
+            .map{ it -> [ it[3], it[2], it[4] ] }    // group name with, genome file, chimeric fragments file
             .unique()
             .map{ it -> [ "${it[0]}_cf", it[1], it[2] ] }    // group name with _cf, genome file, chimeric fragments file
     }
@@ -239,7 +239,7 @@ workflow {
     plotHeatmapsRaw(
         params.samples_with_ChimericFragments
             // If chimeric fragments are present, include them in the heatmap
-            ? array_ch.map{ it -> [ it[0], it[3], it[4] ] }.append( array_cf_ch )
+            ? array_ch.map{ it -> [ it[0], it[3], it[4] ] }.concat( array_cf_ch )
             // If chimeric fragments are not present, only include the regular arrays
             : array_ch.map{ it -> [ it[0], it[3], it[4] ] }
     )
@@ -288,7 +288,7 @@ workflow {
     // Plot the annotations on the heatmaps
     plotHeatmapsAnnotated(
         params.samples_with_ChimericFragments
-            ? annotated_arrays_ch.append( annotated_cf_arrays_ch ).map( it -> [ it[0], it[1], it[2], it[3] ] ) // sample name, genome, array, annotations
+            ? annotated_arrays_ch.concat( annotated_cf_arrays_ch ).map( it -> [ it[0], it[1], it[2], it[3] ] ) // sample name, genome, array, annotations
             : annotated_arrays_ch.map( it -> [ it[0], it[1], it[2], it[3] ] ) // sample name, genome, array, annotations
     )
 
