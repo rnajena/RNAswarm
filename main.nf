@@ -210,7 +210,9 @@ workflow {
         .unique()
     if ( params.samples_with_ChimericFragments) {
         chimericFragments_ch = samples_with_ChimericFragments_input_ch
-            .map{ it -> [ "${it[3]}_cf", it[2], it[4] ] }    // group name with _cf, genome file, chimeric fragments file
+            .map{ it -> [ ${it[3]}, it[2], it[4] ] }    // group name with, genome file, chimeric fragments file
+            .unique()
+            .map{ it -> [ "${it[0]}_cf", it[1], it[2] ] }    // group name with _cf, genome file, chimeric fragments file
     }
 
     // preprocessing workflow
