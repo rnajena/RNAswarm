@@ -72,9 +72,10 @@ include { fillArrays; fillArraysCF; mergeArrays } from './modules/handle_arrays.
 // plot heatmaps
 include { plotHeatmaps as plotHeatmapsRaw } from './modules/data_visualization.nf'
 include { plotHeatmaps as plotHeatmapsMerged } from './modules/data_visualization.nf'
-include { plotHeatmapsAnnotated } from './modules/data_visualization.nf'
+include { plotHeatmapsAnnotated, plotHeatmapsChimericFragments } from './modules/data_visualization.nf'
 include { plotHeatmapsAnnotated as plotHeatmapsAnnotatedDedup } from './modules/data_visualization.nf'
 include { annotateArrays; mergeAnnotations } from './modules/annotate_interactions.nf'
+include { annotateArrays as annotateArraysCF } from './modules/annotate_interactions.nf'
 // differential analysis
 include { generateCountTables; mergeCountTables; runDESeq2 } from './modules/differential_analysis.nf'
 // make alias for mergeCountTables to merge all count tables
@@ -209,7 +210,7 @@ workflow {
         .unique()
     if ( params.samples_with_ChimericFragments) {
         chimericFragments_ch = samples_with_ChimericFragments_input_ch
-            .map{ it -> [ it[3], it[2], it[4] ] }           // sample name, genome file, chimeric fragments file
+            .map{ it -> [ "${it[3]}_cf", it[2], it[4] ] }    // group name with _cf, genome file, chimeric fragments file
     }
 
     // preprocessing workflow
@@ -223,16 +224,23 @@ workflow {
         segemehl_mapping.out[0]
         .map( it -> [ it[0], it[1], it[5], it[6] ] )        // sample name, trns file, group name, genome
     )
+    // if samples_with_ChimericFragments is true
     if ( params.samples_with_ChimericFragments) {
+        // fill arrays with the chimeric fragments output
         array_cf_ch = fillArraysCF(
             chimericFragments_ch
         )
+    }
 
     // plot heatmaps using the filled arrays
-    plotHeatmapsRaw( 
-        array_ch
-        .map( it -> [ it[0], it[3], it[4] ] )               // sample name, genome, array
-     )
+    
+    plotHeatmapsRaw(
+        params.samples_with_ChimericFragments
+            // If chimeric fragments are present, include them in the heatmap
+            ? array_ch.map{ it -> [ it[0], it[3], it[4] ] }.append( array_cf_ch )
+            // If chimeric fragments are not present, only include the regular arrays
+            : array_ch.map{ it -> [ it[0], it[3], it[4] ] }
+    )
 
     // accumulate arrays with the same group name
     groupped_arrays_ch = array_ch
@@ -256,9 +264,14 @@ workflow {
             .combine( Channel.fromPath( params.annotation_table, checkIfExists: true ) )
     } else {
         // Annotate interactions de novo
-        annotated_arrays_ch = annotateArrays( 
+        annotated_arrays_ch = annotateArrays(
             merged_arrays_ch 
             )
+        if (params.samples_with_ChimericFragments) {
+            annotated_cf_arrays_ch = annotateArraysCF(
+                array_cf_ch
+            )
+        }
         // collect annotations from the annotated_arrays_ch channel and merge them
         mergeAnnotations(
             annotated_arrays_ch
@@ -271,8 +284,10 @@ workflow {
     }
 
     // Plot the annotations on the heatmaps
-    plotHeatmapsAnnotated( 
-        annotated_arrays_ch.map( it -> [ it[0], it[1], it[2], it[3] ] ) // sample name, genome, array, annotations
+    plotHeatmapsAnnotated(
+        params.samples_with_ChimericFragments
+            ? annotated_arrays_ch.append( annotated_cf_arrays_ch ).map( it -> [ it[0], it[1], it[2], it[3] ] ) // sample name, genome, array, annotations
+            : annotated_arrays_ch.map( it -> [ it[0], it[1], it[2], it[3] ] ) // sample name, genome, array, annotations
     )
 
     // Generate count tables
