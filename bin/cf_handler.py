@@ -1,6 +1,23 @@
 import csv
 import trns_handler as th
 
+def __check_complementary_region(complementarey_region):
+    """Checks if the complementary_region is valid:
+
+    Parameters
+    complementary_region : list
+    
+    Returns
+    -------
+    bool
+    """
+    is_valid = False
+    if complementarey_region[1] < complementarey_region[2] and complementarey_region[4] < complementarey_region[5]:
+        is_valid = True
+
+    return is_valid
+
+
 
 def __extract_complementary_region(line, interaction_arrays=None):
     """Extracts complementary region information from a ChimericFragments line.
@@ -50,9 +67,11 @@ def chimericFragments2heatmap(cf_file, interaction_arrays, intra_only=False):
                 for line in reader:
                     complementary_region = __extract_complementary_region(line, interaction_arrays=interaction_arrays)
                     ligationpoint_count = int(line[10])
-                    if intra_only:
-                        if complementary_region[0] == complementary_region[3]:
-                            th.fill_heatmap(complementary_region, interaction_arrays, copies=ligationpoint_count, intra=True)
-                    else:
-                        if complementary_region[0] != complementary_region[3]:
-                            th.fill_heatmap(complementary_region, interaction_arrays, copies=ligationpoint_count)
+                    is_valid = __check_complementary_region(complementary_region)
+                    if is_valid:
+                        if intra_only:
+                            if complementary_region[0] == complementary_region[3]:
+                                th.fill_heatmap(complementary_region, interaction_arrays, copies=ligationpoint_count, intra=True)
+                        else:
+                            if complementary_region[0] != complementary_region[3]:
+                                th.fill_heatmap(complementary_region, interaction_arrays, copies=ligationpoint_count)
