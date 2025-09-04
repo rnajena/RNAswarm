@@ -32,15 +32,15 @@ process fillArraysCF {
     tuple val(group_name), path(genome), path(chimeric_fragments)
 
     output:
-    tuple val(group_name), path(genome), path("${group_name}_arrays_CF")
+    tuple val(group_name), path(genome), path("${group_name}_arrays")
 
     publishDir "${params.output}/03-arrays", mode: 'copy'
 
     script:
     """
-    mkdir ${group_name}_arrays_CF
-    fill_arrays_cf.py ${chimeric_fragments} -g ${genome} -o ${group_name}_arrays_CF
-    echo ${group_name}_arrays_CF
+    mkdir ${group_name}_arrays
+    fill_arrays_cf.py ${chimeric_fragments} -g ${genome} -o ${group_name}_arrays
+    echo ${group_name}_arrays
     """
 }
 
