@@ -239,8 +239,8 @@ workflow {
     // plot heatmaps using the filled arrays
     plotHeatmapsRaw(
         params.samples_with_ChimericFragments
-            ? array_cf_heatmap_ch.concat( array_ch.map { [ it[0], it[3], it[4] ] } ) // sample name, genome, array
-            : array_ch.map { [ it[0], it[3], it[4] ] }
+            ? array_cf_heatmap_ch.concat( array_ch.map{ [ it[0], it[3], it[4] ] } ) // sample name, genome, array
+            : array_ch.map{ [ it[0], it[3], it[4] ] }
     )
 
     // accumulate arrays with the same group name
