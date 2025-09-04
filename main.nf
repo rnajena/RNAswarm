@@ -74,7 +74,7 @@ include { plotHeatmaps as plotHeatmapsRaw } from './modules/data_visualization.n
 include { plotHeatmaps as plotHeatmapsMerged } from './modules/data_visualization.nf'
 include { plotHeatmapsAnnotated } from './modules/data_visualization.nf'
 include { plotHeatmapsAnnotated as plotHeatmapsAnnotatedDedup } from './modules/data_visualization.nf'
-include { annotateArrays; mergeAnnotations } from './modules/annotate_interactions.nf'
+include { annotateArrays; mergeAnnotations; normalizeArrays } from './modules/annotate_interactions.nf'
 include { annotateArrays as annotateArraysCF } from './modules/annotate_interactions.nf'
 // differential analysis
 include { generateCountTables; mergeCountTables; runDESeq2 } from './modules/differential_analysis.nf'
@@ -270,7 +270,8 @@ workflow {
             merged_arrays_ch 
             )
         if (params.samples_with_ChimericFragments) {
-            annotated_cf_arrays_ch = annotateArraysCF( array_cf_annot_ch )
+            input_to_annotate_arrayscf_ch = normalizeArrays( array_cf_annot_ch )
+            annotated_cf_arrays_ch = annotateArraysCF( input_to_annotate_arrayscf_ch )
         }
         // collect annotations from the annotated_arrays_ch channel and merge them
         mergeAnnotations(

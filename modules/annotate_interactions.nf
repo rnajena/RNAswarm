@@ -1,3 +1,22 @@
+
+
+process normalizeArrays {
+    label 'RNAswarm'
+
+    input:
+    tuple val(sample_name), path(genome), path(sample_arrays)
+
+    output:
+    tuple val(sample_name), path(genome), path("${sample_arrays}_normalized")
+
+    script:
+    """
+    mkdir ${sample_arrays}_normalized
+    normalize_arrays.py -d ${sample_arrays} -g ${genome} -o ${sample_arrays}_normalized
+    """
+}
+
+
 /*************************************************************************
 * annotate arrays de novo
 *************************************************************************/
