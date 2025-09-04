@@ -226,22 +226,21 @@ workflow {
         segemehl_mapping.out[0]
         .map( it -> [ it[0], it[1], it[5], it[6] ] )        // sample name, trns file, group name, genome
     )
-    // if samples_with_ChimericFragments is true
-    if ( params.samples_with_ChimericFragments) {
-        // fill arrays with the chimeric fragments output
-        array_cf_ch = fillArraysCF(
-            chimericFragments_ch
-        )
+
+    if( params.samples_with_ChimericFragments ) {
+        // Prepare placeholders for chimeric fragment array channels
+        array_cf_heatmap_ch = Channel.empty()
+        array_cf_annot_ch   = Channel.empty()
+        array_cf_ch = fillArraysCF( chimericFragments_ch )
+        // Duplicate before any downstream consumption
+        array_cf_ch.into { ; array_cf_annot_ch }
     }
 
     // plot heatmaps using the filled arrays
-    
     plotHeatmapsRaw(
         params.samples_with_ChimericFragments
-            // If chimeric fragments are present, include them in the heatmap
-            ? array_ch.map{ it -> [ it[0], it[3], it[4] ] }.concat( array_cf_ch )
-            // If chimeric fragments are not present, only include the regular arrays
-            : array_ch.map{ it -> [ it[0], it[3], it[4] ] }
+            ? array_cf_heatmap_ch.concat( array_ch.map { [ it[0], it[3], it[4] ] } ) // sample name, genome, array
+            : array_ch.map { [ it[0], it[3], it[4] ] }
     )
 
     // accumulate arrays with the same group name
@@ -270,9 +269,7 @@ workflow {
             merged_arrays_ch 
             )
         if (params.samples_with_ChimericFragments) {
-            annotated_cf_arrays_ch = annotateArraysCF(
-                array_cf_ch
-            )
+            annotated_cf_arrays_ch = annotateArraysCF( array_cf_annot_ch )
         }
         // collect annotations from the annotated_arrays_ch channel and merge them
         mergeAnnotations(
