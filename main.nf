@@ -235,11 +235,10 @@ workflow {
     }
 
     // plot heatmaps using the filled arrays
-    
     plotHeatmapsRaw(
         params.samples_with_ChimericFragments
             // If chimeric fragments are present, include them in the heatmap
-            ? array_ch.map{ it -> [ it[0], it[3], it[4] ] }.concat( array_cf_ch )
+            ? array_cf_ch.concat( array_ch.map{ it -> [ it[0], it[3], it[4] ] } )
             // If chimeric fragments are not present, only include the regular arrays
             : array_ch.map{ it -> [ it[0], it[3], it[4] ] }
     )
