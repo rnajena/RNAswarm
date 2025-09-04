@@ -233,7 +233,8 @@ workflow {
         array_cf_annot_ch   = Channel.empty()
         array_cf_ch = fillArraysCF( chimericFragments_ch )
         // Duplicate before any downstream consumption
-        array_cf_ch.into{ array_cf_heatmap_ch; array_cf_annot_ch }
+        array_cf_heatmap_ch = array_cf_ch
+        array_cf_annot_ch   = array_cf_ch
     }
 
     // plot heatmaps using the filled arrays
