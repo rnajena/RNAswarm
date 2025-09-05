@@ -58,6 +58,8 @@ def make_circos_files_count_table(
     annotation_table["mean_counts"] = mean_counts
     # Sort the annotation table by mean counts
     annotation_table = annotation_table.sort_values(by="mean_counts", ascending=False)
+    # export the annotation table with mean counts to a file in the output directory
+    annotation_table.to_csv(f"{output_dir}/annotation_table_with_mean_counts.txt", sep="\t", index=True)
     # Get the top hits
     top_hits = annotation_table.head(number_of_top_hits)
     # Copy the hits data frame to hits_with_positions
