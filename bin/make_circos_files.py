@@ -453,7 +453,7 @@ def main():
         annotation_table = hp.parse_annotation_table(annotation_table)
 
         # Remove rows in DESeq2 results that are not in the annotation table
-        DESeq2_results = DESeq2_results[DESeq2_results["id"].isin(annotation_table.index)]
+        DESeq2_results = DESeq2_results[DESeq2_results["id"].isin(annotation_table["id"])]
 
         # Parse genome segment names and sequences
         genome_dict = hp.parse_fasta(genome_file)
