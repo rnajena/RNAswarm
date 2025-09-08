@@ -163,7 +163,7 @@ def main():
     annotation_table_df['mean_readcount'] = count_table_df['mean']
 
     # export the annotation table to a tsv file
-    annotation_table_df.to_csv(os.path.join(output_folder, 'annotation_table_extended.tsv'), sep='\t')
+    annotation_table_df.to_csv(os.path.join(output_folder, 'annotation_table_extended.tsv'), sep='\t', index=False)
 
     # Create deduplicated DataFrame
     count_table_deduplicated_df = count_table_df.loc[deduplicated_rows]
@@ -171,7 +171,7 @@ def main():
 
     # export the deduplicated count & annotation tables to a tsv file
     count_table_deduplicated_df.to_csv(os.path.join(output_folder, 'count_table_deduplicated.tsv'), sep='\t')
-    annotation_table_deduplicated_df.to_csv(os.path.join(output_folder, 'annotation_table_deduplicated.tsv'), sep='\t')
+    annotation_table_deduplicated_df.to_csv(os.path.join(output_folder, 'annotation_table_deduplicated.tsv'), sep='\t', index=False)
 
 if __name__ == '__main__':
     main()
