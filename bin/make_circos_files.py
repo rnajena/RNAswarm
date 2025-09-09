@@ -54,8 +54,8 @@ def make_circos_files_count_table(
     """
     # Get the mean counts for each annotation
     mean_counts = count_table.mean(axis=1)
-    # Add the mean counts to the annotation table
-    annotation_table["mean_counts"] = mean_counts
+    # Map mean_counts to annotation_table using the "id" column
+    annotation_table["mean_counts"] = annotation_table["id"].map(mean_counts)
     # Sort the annotation table by mean counts
     annotation_table = annotation_table.sort_values(by="mean_counts", ascending=False)
     # export the annotation table with mean counts to a file in the output directory
