@@ -264,15 +264,28 @@ workflow {
         annotated_trns_ch = segemehl_mapping.out[0]
             .map( it -> [ it[0], it[1], it[5] ] ) // sample name, trns file, group name
             .combine( Channel.fromPath( params.annotation_table, checkIfExists: true ) )
+    } else if ( params.samples_with_ChimericFragments ) {
+        // Annotate interactions de novo with ChimericFragments data
+        input_to_annotate_arrayscf_ch = normalizeArrays( array_cf_annot_ch )
+        annotated_arrays_ch = annotateArraysCF( input_to_annotate_arrayscf_ch )
+        // collect annotations from the annotated_arrays_ch channel and merge them
+        mergeAnnotations(
+            annotated_arrays_ch
+                .collect { it[3] }
+        )
+        //
+        annotated_trns_ch = segemehl_mapping.out[0]
+            .map( it -> [ it[0], it[1], it[5] ] ) // sample name, trns file, group name
+            .combine( mergeAnnotations.out )        
     } else {
         // Annotate interactions de novo
         annotated_arrays_ch = annotateArrays(
             merged_arrays_ch 
             )
-        if (params.samples_with_ChimericFragments) {
-            input_to_annotate_arrayscf_ch = normalizeArrays( array_cf_annot_ch )
-            annotated_cf_arrays_ch = annotateArraysCF( input_to_annotate_arrayscf_ch )
-        }
+        // if (params.samples_with_ChimericFragments) {
+        //     input_to_annotate_arrayscf_ch = normalizeArrays( array_cf_annot_ch )
+        //     annotated_cf_arrays_ch = annotateArraysCF( input_to_annotate_arrayscf_ch )
+        // }
         // collect annotations from the annotated_arrays_ch channel and merge them
         mergeAnnotations(
             annotated_arrays_ch
@@ -285,10 +298,8 @@ workflow {
     }
 
     // Plot the annotations on the heatmaps
-    plotHeatmapsAnnotated(
-        params.samples_with_ChimericFragments
-            ? annotated_arrays_ch.concat( annotated_cf_arrays_ch ).map( it -> [ it[0], it[1], it[2], it[3] ] ) // sample name, genome, array, annotations
-            : annotated_arrays_ch.map( it -> [ it[0], it[1], it[2], it[3] ] ) // sample name, genome, array, annotations
+    plotHeatmapsAnnotated( 
+        annotated_arrays_ch.map( it -> [ it[0], it[1], it[2], it[3] ] ) // sample name, genome, array, annotations
     )
 
     // Generate count tables
