@@ -301,7 +301,7 @@ workflow {
 
     // Plot the annotations on the heatmaps
     plotHeatmapsAnnotated( 
-        annotated_arrays_ch.map{} it -> [ it[0], it[1], it[2], it[3] ] } // sample name, genome, array, annotations
+        annotated_arrays_ch.map{ it -> [ it[0], it[1], it[2], it[3] ] } // sample name, genome, array, annotations
     )
 
     // Generate count tables
