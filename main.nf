@@ -212,7 +212,7 @@ workflow {
         chimericFragments_ch = samples_with_ChimericFragments_input_ch
             .map{ it -> [ it[3], it[2], it[4] ] }    // group name with, genome file, chimeric fragments file
             .unique()
-            .map{ it -> [ "${it[0]}_cf", it[1], it[2] ] }    // group name with _cf, genome file, chimeric fragments file
+            .map{ it -> [ it[0], it[1], it[2] ] }    // group name with _cf, genome file, chimeric fragments file
     }
 
     // preprocessing workflow
@@ -224,7 +224,7 @@ workflow {
     // fill arrays with the segemehl output
     array_ch = fillArrays(
         segemehl_mapping.out[0]
-        .map( it -> [ it[0], it[1], it[5], it[6] ] )        // sample name, trns file, group name, genome
+        .map{ it -> [ it[0], it[1], it[5], it[6] ] }        // sample name, trns file, group name, genome
     )
 
     if( params.samples_with_ChimericFragments ) {
@@ -248,8 +248,8 @@ workflow {
     groupped_arrays_ch = array_ch
         .groupTuple( by: 2 )                                // This can be streamlined by knowing the number of samples in each group beforehand,
                                                             // but should be fine for now
-        .map( it -> [ it[2], it[3][0], it[4].flatten()] )   // group name, genome, arrays
-    
+        .map{ it -> [ it[2], it[3][0], it[4].flatten()] }   // group name, genome, arrays
+
     // merge arrays with the same group name
     merged_arrays_ch = mergeArrays( groupped_arrays_ch )
 
@@ -262,26 +262,28 @@ workflow {
         annotated_arrays_ch = merged_arrays_ch
             .combine( Channel.fromPath( params.annotation_table, checkIfExists: true ) )
         annotated_trns_ch = segemehl_mapping.out[0]
-            .map( it -> [ it[0], it[1], it[5] ] ) // sample name, trns file, group name
+            .map{ it -> [ it[0], it[1], it[5] ] } // sample name, trns file, group name
             .combine( Channel.fromPath( params.annotation_table, checkIfExists: true ) )
     } else if ( params.samples_with_ChimericFragments ) {
         // Annotate interactions de novo with ChimericFragments data
         input_to_annotate_arrayscf_ch = normalizeArrays( array_cf_annot_ch )
         annotated_arrays_ch = annotateArraysCF( input_to_annotate_arrayscf_ch )
+            .join( merged_arrays_ch )
+            .map{ it -> [ it[0], it[1], it[6], it[3], it[4] ] }
         // collect annotations from the annotated_arrays_ch channel and merge them
         mergeAnnotations(
             annotated_arrays_ch
                 .collect { it[3] }
         )
-        //
+
         annotated_trns_ch = segemehl_mapping.out[0]
-            .map( it -> [ it[0], it[1], it[5] ] ) // sample name, trns file, group name
+            .map{ it -> [ it[0], it[1], it[5] ] } // sample name, trns file, group name
             .combine( mergeAnnotations.out )        
     } else {
         // Annotate interactions de novo
         annotated_arrays_ch = annotateArrays(
             merged_arrays_ch 
-            )
+        )
         // if (params.samples_with_ChimericFragments) {
         //     input_to_annotate_arrayscf_ch = normalizeArrays( array_cf_annot_ch )
         //     annotated_cf_arrays_ch = annotateArraysCF( input_to_annotate_arrayscf_ch )
@@ -293,13 +295,13 @@ workflow {
         )
         //
         annotated_trns_ch = segemehl_mapping.out[0]
-            .map( it -> [ it[0], it[1], it[5] ] ) // sample name, trns file, group name
+            .map{ it -> [ it[0], it[1], it[5] ] } // sample name, trns file, group name
             .combine( mergeAnnotations.out )
     }
 
     // Plot the annotations on the heatmaps
     plotHeatmapsAnnotated( 
-        annotated_arrays_ch.map( it -> [ it[0], it[1], it[2], it[3] ] ) // sample name, genome, array, annotations
+        annotated_arrays_ch.map{} it -> [ it[0], it[1], it[2], it[3] ] } // sample name, genome, array, annotations
     )
 
     // Generate count tables
@@ -308,15 +310,15 @@ workflow {
     merged_count_tables_ch = mergeCountTables(
         count_tables_ch
             .groupTuple( by: 2 )
-            .map( it -> [ it[2], it[1] ] ) // group name, count tables
+            .map{ it -> [ it[2], it[1] ] } // group name, count tables
     )
 
     // Merge all count tables independently of the group by collecting all count tables
     merged_count_tables_all_ch = mergeAllCountTables(
         count_tables_ch
-            .map( it -> [ it[1] ] ) // count tables
+            .map{ it -> [ it[1] ] } // count tables
             .collect()
-            .map( it -> [ "all", it ] ) // group name, count tables
+            .map{ it -> [ "all", it ] } // group name, count tables
     )
 
     if ( params.annotation_table ) {
@@ -327,13 +329,13 @@ workflow {
         // Deduplicate annotations
         deduplicate_annotations_input_ch = merged_count_tables_all_ch // group_name, merged_count_table
                 .combine( mergeAnnotations.out ) // merged_annotations
-                .map( it -> [ it[0], it[2], it[1] ] ) // group name, count table, annotations
+                .map{ it -> [ it[0], it[2], it[1] ] } // group name, count table, annotations
         deduplicate_annotations_input_ch
         deduplicateAnnotations( deduplicate_annotations_input_ch )
 
         // Plot deduplicated annotations on the heatmaps
         dedup_heatmaps_ch = annotated_arrays_ch
-            .map( it -> [ it[0], it[1], it[2], it[3] ] ) // sample name, genome, array, annotations
+            .map{ it -> [ it[0], it[1], it[2], it[3] ] } // sample name, genome, array, annotations
             .combine( deduplicateAnnotations.out )
         dedup_heatmaps_ch
         plotHeatmapsAnnotatedDedup( dedup_heatmaps_ch )
@@ -344,39 +346,39 @@ workflow {
             .fromPath( params.comparisons, checkIfExists: true )
             .splitCsv()
             .combine( merged_count_tables_ch, by: 0 )
-            .map( it -> [ it[1], it[0], it[2] ] )
+            .map{ it -> [ it[1], it[0], it[2] ] }
             .combine( merged_count_tables_ch, by: 0 )
-            .map( it -> [ it[1], it[2], it[0], it[3] ] )
+            .map{ it -> [ it[1], it[2], it[0], it[3] ] }
 
     runDESeq2( samples_input_ch )
-    
+
     // Generate circos files
     if ( params.annotation_table ) {
         annotated_arrays_remapped_ch = annotated_arrays_ch
-                        .map( it -> [ it[0], it[3] ] )
+                        .map{ it -> [ it[0], it[3] ] }
                         .combine(merged_count_tables_all_ch)
         circos_deseq2_ch = runDESeq2.out
                         .combine( genomes_ch, by: 0 )
-                        .map( it -> [ it[1], it[0], it[3], it[2] ] )
+                        .map{ it -> [ it[1], it[0], it[3], it[2] ] }
                         .combine( genomes_ch, by: 0 )
-                        .map( it -> [ it[1], it[2], it[0], it[4], it[3] ] )
+                        .map{ it -> [ it[1], it[2], it[0], it[4], it[3] ] }
                         .combine( annotated_arrays_remapped_ch, by: 0)
-                        .map( it -> [ it[0], it[1], it[2], it[3], it[4], it[6], it[5], it[7] ] )
+                        .map{ it -> [ it[0], it[1], it[2], it[3], it[4], it[6], it[5], it[7] ] }
         circos_count_table_ch = merged_count_tables_ch
                         .combine( genomes_ch, by: 0 )
-                        .map( it -> [ it[0], it[2], it[1] ] )
+                        .map{ it -> [ it[0], it[2], it[1] ] }
                         .combine( annotated_arrays_remapped_ch, by: 0)
-                        .map( it -> [ it[0], it[1], it[2], it[4], it[3], it[5] ])
+                        .map{ it -> [ it[0], it[1], it[2], it[4], it[3], it[5] ] }
     } else {
         circos_deseq2_ch = runDESeq2.out
                         .combine( genomes_ch, by: 0 )
-                        .map( it -> [ it[1], it[0], it[3], it[2] ] )
+                        .map{ it -> [ it[1], it[0], it[3], it[2] ] }
                         .combine( genomes_ch, by: 0 )
-                        .map( it -> [ it[1], it[2], it[0], it[4], it[3] ] )
+                        .map{ it -> [ it[1], it[2], it[0], it[4], it[3] ] }
                         .combine( deduplicateAnnotations.out )
         circos_count_table_ch = merged_count_tables_ch
                         .combine( genomes_ch, by: 0 )
-                        .map( it -> [ it[0], it[2], it[1] ] )
+                        .map{ it -> [ it[0], it[2], it[1] ] }
                         .combine( deduplicateAnnotations.out )
     }
     circos_deseq2_ch
