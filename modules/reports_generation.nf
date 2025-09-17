@@ -3,14 +3,13 @@
 ***********************************************************************/
 process fastqcReport {
   label 'fastqc'
+  publishDir "${params.output}/05-stats_and_plots", mode: 'copy'
 
   input:
   tuple val(name), path(reads), val(condition)
 
   output:
   path("${reads.baseName}_fastqc")
-
-  publishDir "${params.output}/04-stats_and_plots", mode: 'copy'
 
   script:
   """
@@ -25,14 +24,13 @@ process fastqcReport {
 
 process getStats {
   label 'samtools'
+  publishDir "${params.output}/05-stats_and_plots", mode: 'copy'
 
   input:
   tuple val(name), path(mappings)
 
   output:
   path("${mappings.baseName}.log")
-
-  publishDir "${params.output}/04-stats_and_plots", mode: 'copy'
 
   script:
   """
@@ -46,11 +44,10 @@ process getStats {
 
 process makeKrakenDatabase {
   label 'generate_report_kraken'
+  publishDir './assets/kraken2_db', mode: 'copy'
 
   output:
   path('kraken_db')
-
-  publishDir './assets/kraken2_db', mode: 'copy'
 
   script:
   """
@@ -69,14 +66,13 @@ process makeKrakenDatabase {
 
 process runKraken {
   label 'generate_report_kraken'
+  publishDir "${params.output}/05-stats_and_plots", mode: 'copy'
 
   input:
   tuple val(name), path(reads), path(kraken_db)
   
   output:
   tuple path("${reads.baseName}_kraken.txt"), path("${reads.baseName}_kraken.out"), path("${reads.baseName}_kraken_classified.txt")
-
-  publishDir "${params.output}/04-stats_and_plots", mode: 'copy'
 
   script:
   """
@@ -94,11 +90,10 @@ process runKraken {
 
 process makeSortmernaDatabase {
   label 'generate_report_sortmerna'
+  publishDir './assets/sortmerna_db', mode: 'copy'
 
   output:
   path('sortmerna_db')
-
-  publishDir './assets/sortmerna_db', mode: 'copy'
 
   script:
   """
@@ -115,14 +110,13 @@ process makeSortmernaDatabase {
 
 process runSortmerna {
   label 'generate_report_sortmerna'
+  publishDir "${params.output}/05-stats_and_plots", mode: 'copy'
 
   input:
   tuple val(name), path(reads), path(sortmerna_db)
 
   output:
   tuple val(name), path(reads) //output has to be fixed so that multiQC can work
-
-  publishDir "${params.output}/04-stats_and_plots", mode: 'copy'
 
   script:
   """
@@ -146,6 +140,7 @@ process runSortmerna {
 
 process runMultiQC {
   label 'generate_report_multiqc'
+  publishDir "${params.output}/05-stats_and_plots", mode: 'copy'
 
   input:
   path(logs)
@@ -153,8 +148,6 @@ process runMultiQC {
   output:
   path "multiqc_report.html"
   path "multiqc_data"
-
-  publishDir "${params.output}/04-stats_and_plots", mode: 'copy'
 
   script:
   """

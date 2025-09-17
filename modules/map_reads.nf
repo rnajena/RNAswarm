@@ -44,14 +44,13 @@ process segemehl {
 *************************************************************************/
 process segemehlPublish {
     label 'segemehl'
+    publishDir "${params.output}/02-mappings/segemehl", mode: 'copy'
 
     input:
     tuple val(name), path(trns_file), path(sngl_file), path(mult_file), path(sam_file),  val(genome_name), path(genome)
 
     output:
     tuple val(name), path(trns_file), path(sngl_file), path(mult_file), path(sam_file)
-
-    publishDir "${params.output}/02-mappings/segemehl", mode: 'copy'
 
     script:
     """
@@ -65,14 +64,13 @@ process segemehlPublish {
 
 process convertSAMtoBAM {
     label 'samtools'
+    publishDir "${params.output}/02-mappings/${mapper}", mode: 'copy'
 
     input:
     tuple val(name), path(mappings), val(mapper)
 
     output:
     tuple val(name), path("${mappings.baseName}.bam")
-
-    publishDir "${params.output}/02-mappings/${mapper}", mode: 'copy'
 
     script:
     """
@@ -85,15 +83,14 @@ process convertSAMtoBAM {
 *************************************************************************/
 
 process handleTrnsFiles {
-    label 'python3'
+    label 'RNAswarm'
+    publishDir "${params.output}/03-heatmaps/segemehl", mode: 'copy'
   
     input:
     tuple val(name), path(genome), path(trns_file), path(sam_file)
 
     output:
     tuple val(name), path("${sam_file.baseName}_plots"), path("${sam_file.baseName}_heatmaps.log")
-
-    publishDir "${params.output}/03-heatmaps/segemehl", mode: 'copy'
 
     script:
     """

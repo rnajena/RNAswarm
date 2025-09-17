@@ -4,14 +4,13 @@
 
 process plotHeatmaps {
     label 'RNAswarm_small'
+    publishDir "${params.output}/05-stats_and_plots/heatmaps", mode: 'copy'
 
     input:
     tuple val(sample_name), path(genome), path(arrays)
 
     output:
     tuple val(sample_name), path("${sample_name}_heatmaps")
-
-    publishDir "${params.output}/05-stats_and_plots/heatmaps", mode: 'copy'
 
     script:
     """
@@ -27,14 +26,13 @@ process plotHeatmaps {
 
 process plotHeatmapsAnnotated {
     label 'RNAswarm_small'
+    publishDir "${params.output}/05-stats_and_plots/heatmaps_annotated", mode: 'copy'
 
     input:
     tuple val(sample_name), path(genome), path(arrays), path(annotation_table)
 
     output:
     tuple val(sample_name), path("${sample_name}_heatmaps")
-
-    publishDir "${params.output}/05-stats_and_plots/heatmaps_annotated", mode: 'copy'
 
     script:
     """
@@ -85,14 +83,13 @@ process makeCircosTable_deseq2 {
 *************************************************************************/
 process runCircos_single {
     label 'RNAswarm_small'
+    publishDir "${params.output}/08-circos_plots", mode: 'copy'
 
     input:
     tuple val(genome_name), path(circos_dir)
 
     output:
     tuple val(genome_name), path(circos_dir)
-
-    publishDir "${params.output}/08-circos_plots", mode: 'copy'
 
     script:
     """
@@ -106,14 +103,13 @@ process runCircos_single {
 *************************************************************************/
 process runCircos_comb {
     label 'RNAswarm_small'
+    publishDir "${params.output}/08-circos_plots", mode: 'copy'
 
     input:
     tuple val(genome_name_01), val(genome_name_02), path(circos_dir)
 
     output:
     tuple val(genome_name_01), val(genome_name_02), path(circos_dir)
-
-    publishDir "${params.output}/08-circos_plots", mode: 'copy'
 
     script:
     """

@@ -22,14 +22,13 @@ process normalizeArrays {
 *************************************************************************/
 process annotateArrays {
     label 'RNAswarm'
+    publishDir "${params.output}/06-annotations", mode: 'copy'
 
     input:
     tuple val(sample_name), path(genome), path(sample_arrays)
 
     output:
     tuple val(sample_name), path(genome), path(sample_arrays), path("${sample_name}_annotations/${sample_name}_annotations.csv"), path("${sample_name}_annotations/${sample_name}_annotations_gmms.pickle")
-
-    publishDir "${params.output}/06-annotations", mode: 'copy'
 
     script:
     """
@@ -43,14 +42,13 @@ process annotateArrays {
 *************************************************************************/
 process mergeAnnotations {
     label 'RNAswarm'
+    publishDir "${params.output}/06-annotations" , mode: 'copy'
 
     input:
     path(annotations)
 
     output:
     path("merged_annotations.tsv")
-
-    publishDir "${params.output}/06-annotations" , mode: 'copy'
 
     script:
     """
@@ -64,14 +62,13 @@ process mergeAnnotations {
 *************************************************************************/
 process deduplicateAnnotations {
     label 'RNAswarm'
+    publishDir "${params.output}/06-annotations" , mode: 'copy'
 
     input:
     tuple val(group), path(annotation_table), path(count_table)
 
     output:
     tuple val(group), path("deduplicated_annotations/annotation_table_deduplicated.tsv"), path("deduplicated_annotations/count_table_deduplicated.tsv")
-
-    publishDir "${params.output}/06-annotations" , mode: 'copy'
 
     script:
     """

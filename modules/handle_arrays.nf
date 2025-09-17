@@ -4,14 +4,13 @@
 
 process fillArrays {
     label 'RNAswarm'
+    publishDir "${params.output}/03-arrays", mode: 'copy'
 
     input:
     tuple val(sample_name), path(trns_files), val(group_name), path(genome)
 
     output:
     tuple val(sample_name), path(trns_files), val(group_name), path(genome), path("${sample_name}_arrays")
-
-    publishDir "${params.output}/03-arrays", mode: 'copy'
 
     script:
     """
@@ -27,14 +26,13 @@ process fillArrays {
 
 process fillArraysCF {
     label 'RNAswarm'
+    publishDir "${params.output}/03-arrays", mode: 'copy'
 
     input:
     tuple val(group_name), path(genome), path(chimeric_fragments)
 
     output:
     tuple val(group_name), path(genome), path("${group_name}_arrays")
-
-    publishDir "${params.output}/03-arrays", mode: 'copy'
 
     script:
     """
@@ -50,14 +48,13 @@ process fillArraysCF {
 *************************************************************************/
 process mergeArrays {
     label 'RNAswarm'
+    publishDir "${params.output}/04-merged-arrays", mode: 'copy'
 
     input:
     tuple val(group_name), path(genome), path(arrays)
 
     output:
     tuple val(group_name), path(genome), path("${group_name}_merged_arrays")
-
-    publishDir "${params.output}/04-merged-arrays", mode: 'copy'
 
     script:
     """
