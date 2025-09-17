@@ -200,7 +200,6 @@ workflow {
             }
     } else {
         println "Error: You must provide either --samples or --samples_with_ChimericFragments"
-        showHelp()
         exit 1
     }
     reads_ch = samples_input_ch
