@@ -68,13 +68,14 @@ workflow segemehl_mapping {
 **************************/
 
 // array filling using numpy
-include { fillArrays; mergeArrays } from './modules/handle_arrays.nf'
+include { fillArrays; fillArraysCF; mergeArrays } from './modules/handle_arrays.nf'
 // plot heatmaps
 include { plotHeatmaps as plotHeatmapsRaw } from './modules/data_visualization.nf'
 include { plotHeatmaps as plotHeatmapsMerged } from './modules/data_visualization.nf'
 include { plotHeatmapsAnnotated } from './modules/data_visualization.nf'
 include { plotHeatmapsAnnotated as plotHeatmapsAnnotatedDedup } from './modules/data_visualization.nf'
-include { annotateArrays; mergeAnnotations } from './modules/annotate_interactions.nf'
+include { annotateArrays; mergeAnnotations; normalizeArrays } from './modules/annotate_interactions.nf'
+include { annotateArrays as annotateArraysCF } from './modules/annotate_interactions.nf'
 // differential analysis
 include { generateCountTables; mergeCountTables; runDESeq2 } from './modules/differential_analysis.nf'
 // make alias for mergeCountTables to merge all count tables
@@ -89,37 +90,71 @@ workflow {
     RNAswarm: differential RNA-RNA interaction probing pipeline based on RNA proximity ligation data
 
     Usage:
-            The typical command for running the pipeline is as follows:
-            nextflow run gabriellovate/RNAswarm -profile local,apptainer --samples <SAMPLES_CSV_FILE> --comparisons <COMPARISONS_CSV_FILE> --output <OUTDIR>
-            nextflow run gabriellovate/RNAswarm -profile slurm,apptainer --samples <SAMPLES_CSV_FILE> --comparisons <COMPARISONS_CSV_FILE> --output <OUTDIR>
-            nextflow run gabriellovate/RNAswarm -profile local,apptainer --samples <SAMPLES_CSV_FILE> --comparisons <COMPARISONS_CSV_FILE> --annotation_table <ANNOTATION_TABLE> --output <OUTDIR>
-            nextflow run gabriellovate/RNAswarm -profile slurm,apptainer --samples <SAMPLES_CSV_FILE> --comparisons <COMPARISONS_CSV_FILE> --annotation_table <ANNOTATION_TABLE> --output <OUTDIR>
+        Typical commands for running the pipeline:
+            nextflow run gabriellovate/RNAswarm -profile local,apptainer \
+                --samples <SAMPLES_CSV_FILE> --comparisons <COMPARISONS_CSV_FILE> --output <OUTDIR>
+            nextflow run gabriellovate/RNAswarm -profile slurm,apptainer \
+                --samples <SAMPLES_CSV_FILE> --comparisons <COMPARISONS_CSV_FILE> --output <OUTDIR>
+            nextflow run gabriellovate/RNAswarm -profile local,apptainer \
+                --samples <SAMPLES_CSV_FILE> --comparisons <COMPARISONS_CSV_FILE> \
+                --annotation_table <ANNOTATION_TABLE> --output <OUTDIR>
+            nextflow run gabriellovate/RNAswarm -profile slurm,apptainer \
+                --samples <SAMPLES_CSV_FILE> --comparisons <COMPARISONS_CSV_FILE> \
+                --annotation_table <ANNOTATION_TABLE> --output <OUTDIR>
+            nextflow run gabriellovate/RNAswarm -profile local,apptainer \
+                --samples_with_ChimericFragments <SAMPLES_CSV_FILE> --comparisons <COMPARISONS_CSV_FILE> \
+                --output <OUTDIR>
+            nextflow run gabriellovate/RNAswarm -profile slurm,apptainer \
+                --samples_with_ChimericFragments <SAMPLES_CSV_FILE> --comparisons <COMPARISONS_CSV_FILE> \
+                --output <OUTDIR>
 
-    Mandatory arguments:
-            --samples <SAMPLES_CSV_FILE>          CSV file containing the samples to be processed. The file must have the following format:
-                                                <SAMPLE_NAME>,<READ_FILE>,<GENOME_FILE>,<GROUP_NAME>
-                                                <SAMPLE_NAME>,<READ_FILE>,<GENOME_FILE>,<GROUP_NAME>
-                                                ...
-                                                <SAMPLE_NAME>,<READ_FILE>,<GENOME_FILE>,<GROUP_NAME>
-                                                where:
-                                                - <SAMPLE_NAME> is the name of the sample
-                                                - <READ_FILE> is the path to the read file
-                                                - <GENOME_FILE> is the path to the genome file
-                                                - <GROUP_NAME> is the name of the group to which the sample belongs
-            --comparisons <COMPARISONS_CSV_FILE>  CSV file containing the comparisons to be performed. The file must have the following format:
-                                                <GROUP_NAME_1>,<GROUP_NAME_2>
-                                                <GROUP_NAME_1>,<GROUP_NAME_3>
-                                                ...
-                                                <GROUP_NAME_2>,<GROUP_NAME_3>
-                                                where:
-                                                - <GROUP_NAME_X> is the name of the group
-            --output <OUTDIR>                     Output directory
+    Mandatory arguments (choose one of the following for sample input):
+        --samples <SAMPLES_CSV_FILE>
+            CSV file containing the samples to be processed. Format:
+                <SAMPLE_NAME>,<READ_FILE>,<GENOME_FILE>,<GROUP_NAME>
+                <SAMPLE_NAME>,<READ_FILE>,<GENOME_FILE>,<GROUP_NAME>
+                ...
+            Where:
+                - <SAMPLE_NAME>: name of the sample
+                - <READ_FILE>: path to the read file
+                - <GENOME_FILE>: path to the genome file
+                - <GROUP_NAME>: name of the group to which the sample belongs
+
+        OR
+
+        --samples_with_ChimericFragments <SAMPLES_CSV_FILE>
+            CSV file containing the samples to be processed, including chimeric fragments. Format:
+                <SAMPLE_NAME>,<READ_FILE>,<GENOME_FILE>,<GROUP_NAME>,<CHIMERIC_FRAGMENTS_FILE>
+                <SAMPLE_NAME>,<READ_FILE>,<GENOME_FILE>,<GROUP_NAME>,<CHIMERIC_FRAGMENTS_FILE>
+                ...
+            Where:
+                - <SAMPLE_NAME>: name of the sample
+                - <READ_FILE>: path to the read file
+                - <GENOME_FILE>: path to the genome file
+                - <GROUP_NAME>: name of the group to which the sample belongs
+                - <CHIMERIC_FRAGMENTS_FILE>: path to the chimeric fragments file
+
+        --comparisons <COMPARISONS_CSV_FILE>
+            CSV file containing the comparisons to be performed. Format:
+                <GROUP_NAME_1>,<GROUP_NAME_2>
+                <GROUP_NAME_1>,<GROUP_NAME_3>
+                ...
+            Where:
+                - <GROUP_NAME_X>: name of the group
+
+        --output <OUTDIR>
+            Output directory
 
     Optional arguments:
-            --annotation_table <ANNOTATION_TABLE> CSV, TSV or XLSX file containing the annotations to be used.
-            --test                                Run in test mode. This will run the pipeline with a small subset of the data
-            --help                                Print this help message
-            """)
+        --annotation_table <ANNOTATION_TABLE>
+            CSV, TSV or XLSX file containing the annotations to be used.
+
+        --test
+            Run in test mode with a small subset of the data.
+
+        --help
+            Print this help message.
+    """)
         exit 0
     }
     // parse sample's csv file
@@ -136,7 +171,22 @@ workflow {
                     "${row[3]}"                                 // group name
                 ]
             }
-    } else {
+    } else if (params.samples_with_ChimericFragments) {
+        samples_with_ChimericFragments_input_ch = Channel
+            .fromPath( params.samples_with_ChimericFragments, checkIfExists: true )
+            .splitCsv()
+            .map{
+                row -> [
+                    "${row[0]}",                                // sample name
+                    file("${row[1]}", checkIfExists: true),     // read file
+                    file("${row[2]}", checkIfExists: true),     // genome file
+                    "${row[3]}",                                // group name
+                    file("${row[4]}", checkIfExists: true)      // chimeric fragments file
+                ]
+            }
+        samples_input_ch = samples_with_ChimericFragments_input_ch
+            .map{ it -> [ it[0], it[1], it[2], it[3] ] } // sample name, read file, genome file, group name
+    } else if (params.samples) {
         samples_input_ch = Channel
             .fromPath( params.samples, checkIfExists: true )
             .splitCsv()
@@ -145,15 +195,24 @@ workflow {
                     "${row[0]}",                                // sample name
                     file("${row[1]}", checkIfExists: true),     // read file
                     file("${row[2]}", checkIfExists: true),     // genome file
-                    "${row[3]}"                                 // group name
+                    "${row[3]}",                                // group name
                 ]
             }
+    } else {
+        println "Error: You must provide either --samples or --samples_with_ChimericFragments"
+        exit 1
     }
     reads_ch = samples_input_ch
         .map{ it -> [ it[0], it[1], it[3] ] }               // sample name, read file, group name
     genomes_ch = samples_input_ch
         .map{ it -> [ it[3], it[2] ] }                      // group name, genome file
         .unique()
+    if ( params.samples_with_ChimericFragments) {
+        chimericFragments_ch = samples_with_ChimericFragments_input_ch
+            .map{ it -> [ it[3], it[2], it[4] ] }    // group name with, genome file, chimeric fragments file
+            .unique()
+            .map{ it -> [ it[0], it[1], it[2] ] }    // group name with _cf, genome file, chimeric fragments file
+    }
 
     // preprocessing workflow
     preprocessing( reads_ch )
@@ -164,21 +223,32 @@ workflow {
     // fill arrays with the segemehl output
     array_ch = fillArrays(
         segemehl_mapping.out[0]
-        .map( it -> [ it[0], it[1], it[5], it[6] ] )        // sample name, trns file, group name, genome
+        .map{ it -> [ it[0], it[1], it[5], it[6] ] }        // sample name, trns file, group name, genome
     )
 
+    if( params.samples_with_ChimericFragments ) {
+        // Prepare placeholders for chimeric fragment array channels
+        array_cf_heatmap_ch = Channel.empty()
+        array_cf_annot_ch   = Channel.empty()
+        array_cf_ch = fillArraysCF( chimericFragments_ch )
+        // Duplicate before any downstream consumption
+        array_cf_heatmap_ch = array_cf_ch
+        array_cf_annot_ch   = array_cf_ch
+    }
+
     // plot heatmaps using the filled arrays
-    plotHeatmapsRaw( 
-        array_ch
-        .map( it -> [ it[0], it[3], it[4] ] )               // sample name, genome, array
-     )
+    plotHeatmapsRaw(
+        params.samples_with_ChimericFragments
+            ? array_cf_heatmap_ch.concat( array_ch.map{ [ it[0], it[3], it[4] ] } ) // sample name, genome, array
+            : array_ch.map{ [ it[0], it[3], it[4] ] }
+    )
 
     // accumulate arrays with the same group name
     groupped_arrays_ch = array_ch
         .groupTuple( by: 2 )                                // This can be streamlined by knowing the number of samples in each group beforehand,
                                                             // but should be fine for now
-        .map( it -> [ it[2], it[3][0], it[4].flatten()] )   // group name, genome, arrays
-    
+        .map{ it -> [ it[2], it[3][0], it[4].flatten()] }   // group name, genome, arrays
+
     // merge arrays with the same group name
     merged_arrays_ch = mergeArrays( groupped_arrays_ch )
 
@@ -191,13 +261,32 @@ workflow {
         annotated_arrays_ch = merged_arrays_ch
             .combine( Channel.fromPath( params.annotation_table, checkIfExists: true ) )
         annotated_trns_ch = segemehl_mapping.out[0]
-            .map( it -> [ it[0], it[1], it[5] ] ) // sample name, trns file, group name
+            .map{ it -> [ it[0], it[1], it[5] ] } // sample name, trns file, group name
             .combine( Channel.fromPath( params.annotation_table, checkIfExists: true ) )
+    } else if ( params.samples_with_ChimericFragments ) {
+        // Annotate interactions de novo with ChimericFragments data
+        input_to_annotate_arrayscf_ch = normalizeArrays( array_cf_annot_ch )
+        annotated_arrays_ch = annotateArraysCF( input_to_annotate_arrayscf_ch )
+            .join( merged_arrays_ch )
+            .map{ it -> [ it[0], it[1], it[6], it[3], it[4] ] }
+        // collect annotations from the annotated_arrays_ch channel and merge them
+        mergeAnnotations(
+            annotated_arrays_ch
+                .collect { it[3] }
+        )
+
+        annotated_trns_ch = segemehl_mapping.out[0]
+            .map{ it -> [ it[0], it[1], it[5] ] } // sample name, trns file, group name
+            .combine( mergeAnnotations.out )        
     } else {
         // Annotate interactions de novo
-        annotated_arrays_ch = annotateArrays( 
+        annotated_arrays_ch = annotateArrays(
             merged_arrays_ch 
-            )
+        )
+        // if (params.samples_with_ChimericFragments) {
+        //     input_to_annotate_arrayscf_ch = normalizeArrays( array_cf_annot_ch )
+        //     annotated_cf_arrays_ch = annotateArraysCF( input_to_annotate_arrayscf_ch )
+        // }
         // collect annotations from the annotated_arrays_ch channel and merge them
         mergeAnnotations(
             annotated_arrays_ch
@@ -205,13 +294,13 @@ workflow {
         )
         //
         annotated_trns_ch = segemehl_mapping.out[0]
-            .map( it -> [ it[0], it[1], it[5] ] ) // sample name, trns file, group name
+            .map{ it -> [ it[0], it[1], it[5] ] } // sample name, trns file, group name
             .combine( mergeAnnotations.out )
     }
 
     // Plot the annotations on the heatmaps
     plotHeatmapsAnnotated( 
-        annotated_arrays_ch.map( it -> [ it[0], it[1], it[2], it[3] ] ) // sample name, genome, array, annotations
+        annotated_arrays_ch.map{ it -> [ it[0], it[1], it[2], it[3] ] } // sample name, genome, array, annotations
     )
 
     // Generate count tables
@@ -220,15 +309,15 @@ workflow {
     merged_count_tables_ch = mergeCountTables(
         count_tables_ch
             .groupTuple( by: 2 )
-            .map( it -> [ it[2], it[1] ] ) // group name, count tables
+            .map{ it -> [ it[2], it[1] ] } // group name, count tables
     )
 
     // Merge all count tables independently of the group by collecting all count tables
     merged_count_tables_all_ch = mergeAllCountTables(
         count_tables_ch
-            .map( it -> [ it[1] ] ) // count tables
+            .map{ it -> [ it[1] ] } // count tables
             .collect()
-            .map( it -> [ "all", it ] ) // group name, count tables
+            .map{ it -> [ "all", it ] } // group name, count tables
     )
 
     if ( params.annotation_table ) {
@@ -239,13 +328,13 @@ workflow {
         // Deduplicate annotations
         deduplicate_annotations_input_ch = merged_count_tables_all_ch // group_name, merged_count_table
                 .combine( mergeAnnotations.out ) // merged_annotations
-                .map( it -> [ it[0], it[2], it[1] ] ) // group name, count table, annotations
+                .map{ it -> [ it[0], it[2], it[1] ] } // group name, count table, annotations
         deduplicate_annotations_input_ch
         deduplicateAnnotations( deduplicate_annotations_input_ch )
 
         // Plot deduplicated annotations on the heatmaps
         dedup_heatmaps_ch = annotated_arrays_ch
-            .map( it -> [ it[0], it[1], it[2], it[3] ] ) // sample name, genome, array, annotations
+            .map{ it -> [ it[0], it[1], it[2], it[3] ] } // sample name, genome, array, annotations
             .combine( deduplicateAnnotations.out )
         dedup_heatmaps_ch
         plotHeatmapsAnnotatedDedup( dedup_heatmaps_ch )
@@ -256,39 +345,39 @@ workflow {
             .fromPath( params.comparisons, checkIfExists: true )
             .splitCsv()
             .combine( merged_count_tables_ch, by: 0 )
-            .map( it -> [ it[1], it[0], it[2] ] )
+            .map{ it -> [ it[1], it[0], it[2] ] }
             .combine( merged_count_tables_ch, by: 0 )
-            .map( it -> [ it[1], it[2], it[0], it[3] ] )
+            .map{ it -> [ it[1], it[2], it[0], it[3] ] }
 
     runDESeq2( samples_input_ch )
-    
+
     // Generate circos files
     if ( params.annotation_table ) {
         annotated_arrays_remapped_ch = annotated_arrays_ch
-                        .map( it -> [ it[0], it[3] ] )
+                        .map{ it -> [ it[0], it[3] ] }
                         .combine(merged_count_tables_all_ch)
         circos_deseq2_ch = runDESeq2.out
                         .combine( genomes_ch, by: 0 )
-                        .map( it -> [ it[1], it[0], it[3], it[2] ] )
+                        .map{ it -> [ it[1], it[0], it[3], it[2] ] }
                         .combine( genomes_ch, by: 0 )
-                        .map( it -> [ it[1], it[2], it[0], it[4], it[3] ] )
+                        .map{ it -> [ it[1], it[2], it[0], it[4], it[3] ] }
                         .combine( annotated_arrays_remapped_ch, by: 0)
-                        .map( it -> [ it[0], it[1], it[2], it[3], it[4], it[6], it[5], it[7] ] )
+                        .map{ it -> [ it[0], it[1], it[2], it[3], it[4], it[6], it[5], it[7] ] }
         circos_count_table_ch = merged_count_tables_ch
                         .combine( genomes_ch, by: 0 )
-                        .map( it -> [ it[0], it[2], it[1] ] )
+                        .map{ it -> [ it[0], it[2], it[1] ] }
                         .combine( annotated_arrays_remapped_ch, by: 0)
-                        .map( it -> [ it[0], it[1], it[2], it[4], it[3], it[5] ])
+                        .map{ it -> [ it[0], it[1], it[2], it[4], it[3], it[5] ] }
     } else {
         circos_deseq2_ch = runDESeq2.out
                         .combine( genomes_ch, by: 0 )
-                        .map( it -> [ it[1], it[0], it[3], it[2] ] )
+                        .map{ it -> [ it[1], it[0], it[3], it[2] ] }
                         .combine( genomes_ch, by: 0 )
-                        .map( it -> [ it[1], it[2], it[0], it[4], it[3] ] )
+                        .map{ it -> [ it[1], it[2], it[0], it[4], it[3] ] }
                         .combine( deduplicateAnnotations.out )
         circos_count_table_ch = merged_count_tables_ch
                         .combine( genomes_ch, by: 0 )
-                        .map( it -> [ it[0], it[2], it[1] ] )
+                        .map{ it -> [ it[0], it[2], it[1] ] }
                         .combine( deduplicateAnnotations.out )
     }
     circos_deseq2_ch

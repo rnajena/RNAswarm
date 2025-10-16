@@ -3,14 +3,13 @@
 ***********************************************************************/
 process fastpTrimming {
     label 'fastp'
+    publishDir "${params.output}/01-trimmed_reads", mode: 'copy'
 
     input:
     tuple val(sample_name), path(reads), val(group_name)
 
     output:
     tuple val(sample_name), path("${reads.baseName}_trimmed.fastq"), val(group_name)
-
-    publishDir "${params.output}/01-trimmed_reads", mode: 'copy'
 
     script:
     """
@@ -25,7 +24,7 @@ process fastpTrimming {
 * concatenate multifasta
 ***********************************************************************/
 process concatenateFasta {
-    label 'python3'
+    label 'RNAswarm'
 
     input:
     tuple val(group_name), path(genome), val(is_genome_concatenated)

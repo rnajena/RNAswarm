@@ -54,10 +54,17 @@ def make_circos_files_count_table(
     """
     # Get the mean counts for each annotation
     mean_counts = count_table.mean(axis=1)
-    # Add the mean counts to the annotation table
-    annotation_table["mean_counts"] = mean_counts
+    # Map mean_counts to annotation_table using the "id" column
+    # Set the id column as index in count_table to match with annotation_table
+    count_table_indexed = count_table.set_index("id")
+    # Get the mean counts for each annotation
+    mean_counts = count_table_indexed.mean(axis=1)
+    # Map mean_counts to annotation_table using the "id" column
+    annotation_table["mean_counts"] = annotation_table["id"].map(mean_counts)
     # Sort the annotation table by mean counts
     annotation_table = annotation_table.sort_values(by="mean_counts", ascending=False)
+    # export the annotation table with mean counts to a file in the output directory
+    annotation_table.to_csv(f"{output_dir}/annotation_table_with_mean_counts.txt", sep="\t", index=True)
     # Get the top hits
     top_hits = annotation_table.head(number_of_top_hits)
     # Copy the hits data frame to hits_with_positions
@@ -451,7 +458,7 @@ def main():
         annotation_table = hp.parse_annotation_table(annotation_table)
 
         # Remove rows in DESeq2 results that are not in the annotation table
-        DESeq2_results = DESeq2_results[DESeq2_results["id"].isin(annotation_table.index)]
+        DESeq2_results = DESeq2_results[DESeq2_results["id"].isin(annotation_table["id"])]
 
         # Parse genome segment names and sequences
         genome_dict = hp.parse_fasta(genome_file)
